@@ -1,0 +1,137 @@
+<div class="config-container" [style.--color-sistema]="colorSistemaValue">
+    <!-- Sección Información de la Empresa -->
+    <div class="config-card mb-4">
+        <div class="config-card-header text-center">
+            <h3>Información de la empresa</h3>
+        </div>
+        <div class="config-card-body">
+            <div class="empresa-logo-section">
+                <div class="logo-preview-container">
+                    <img [src]="logoUrl()" alt="Logo Empresa" class="logo-preview">
+                </div>
+                <button class="btn btn-update-img" (click)="solicitarImagen()">
+                    <i class="bi bi-upload"></i> Actualizar imagen
+                </button>
+            </div>
+
+            <form [formGroup]="empresaForm" (ngSubmit)="actualizarEmpresa()" class="empresa-form mt-4">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="empresa">Empresa</label>
+                        <input type="text" id="empresa" formControlName="empresa" placeholder="Nombre de la empresa"
+                            [class.invalid]="empresaForm.get('empresa')?.invalid && empresaForm.get('empresa')?.touched">
+                    </div>
+                    <div class="form-group">
+                        <label for="propietario">Propietario</label>
+                        <input type="text" id="propietario" formControlName="propietario"
+                            placeholder="Nombre del propietario"
+                            [class.invalid]="empresaForm.get('propietario')?.invalid && empresaForm.get('propietario')?.touched">
+                    </div>
+                    <div class="form-group">
+                        <label for="correo">Correo</label>
+                        <input type="email" id="correo" formControlName="correo" placeholder="correo@ejemplo.com"
+                            [class.invalid]="empresaForm.get('correo')?.invalid && empresaForm.get('correo')?.touched">
+                    </div>
+                    <div class="form-group">
+                        <label for="telefono">Teléfono</label>
+                        <input type="text" id="telefono" formControlName="telefono" placeholder="Número de teléfono"
+                            [class.invalid]="empresaForm.get('telefono')?.invalid && empresaForm.get('telefono')?.touched">
+                    </div>
+                    <div class="form-group">
+                        <label for="departamento">Departamento</label>
+                        <input type="text" id="departamento" formControlName="departamento" placeholder="Departamento"
+                            [class.invalid]="empresaForm.get('departamento')?.invalid && empresaForm.get('departamento')?.touched">
+                    </div>
+                    <div class="form-group">
+                        <label for="municipio">Municipio</label>
+                        <input type="text" id="municipio" formControlName="municipio" placeholder="Municipio"
+                            [class.invalid]="empresaForm.get('municipio')?.invalid && empresaForm.get('municipio')?.touched">
+                    </div>
+                </div>
+                <div class="text-end mt-3">
+                    <button type="submit" class="btn btn-actualizar">
+                        <i class="bi bi-arrow-clockwise"></i> Actualizar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Sección Información de Mesas -->
+    <div class="config-card">
+        <div class="config-card-header text-center">
+            <h3>Información de mesas</h3>
+        </div>
+        <div class="config-card-body">
+            <div class="d-flex justify-content-end mb-3">
+                <button class="btn btn-crear-mesa" (click)="crearMesas()">
+                    <i class="bi bi-layout-wtf"></i> Crear Mesas
+                </button>
+            </div>
+
+            <div class="table-container">
+                <table class="config-table">
+                    <thead>
+                        <tr>
+                            <th>No. <i class="bi bi-arrow-down-up"></i></th>
+                            <th>Clasificación <i class="bi bi-arrow-down-up"></i></th>
+                            <th>Nombre de mesa <i class="bi bi-arrow-down-up"></i></th>
+                            <th># Mesas <i class="bi bi-arrow-down-up"></i></th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (mesa of mesasPaginadas(); track mesa.CodigoMesa) {
+                        <tr>
+                            <td>{{ formatearNumero(mesa.CodigoMesa) }}</td>
+                            <td>{{ mesa.NombreClasificacion }}</td>
+                            <td>{{ mesa.NombreMesa }}</td>
+                            <td>{{ mesa.CantidadMesas }}</td>
+                            <td class="acciones-cell">
+                                <button class="btn-accion btn-editar" (click)="editarMesa(mesa)" title="Editar">
+                                    <i class="bi bi-pencil-square"></i>
+                                </button>
+                                <button class="btn-accion btn-eliminar" (click)="eliminarMesa(mesa.CodigoMesa)"
+                                    title="Eliminar">
+                                    <i class="bi bi-trash-fill"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        } @empty {
+                        <tr>
+                            <td colspan="5" class="text-center py-4 text-muted">No hay configuraciones de mesas</td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginación -->
+            <div class="paginacion-container mt-3">
+                <span class="paginacion-info">
+                    Mostrando {{ rangoInicio() }} al {{ rangoFin() }} de {{ totalRegistros() }} registros
+                </span>
+                <div class="paginacion-controles">
+                    <button class="btn-paginacion" (click)="paginaAnterior()" [disabled]="paginaActual() === 1">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                    @for (p of [].constructor(totalPaginas()); track $index) {
+                    <button class="btn-paginacion" [class.activo]="paginaActual() === $index + 1"
+                        (click)="irAPagina($index + 1)">
+                        {{ $index + 1 }}
+                    </button>
+                    }
+                    <button class="btn-paginacion" (click)="paginaSiguiente()"
+                        [disabled]="paginaActual() === totalPaginas() || totalPaginas() === 0">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modales -->
+    <app-modal-mesa [visible]="mostrarModalMesa()" (alCerrar)="cerrarModalMesa()"
+        (alGuardar)="manejarGuardarMesa($event)">
+    </app-modal-mesa>
+</div>

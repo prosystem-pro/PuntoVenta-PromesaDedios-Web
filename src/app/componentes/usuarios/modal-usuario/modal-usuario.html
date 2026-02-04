@@ -1,0 +1,83 @@
+@if (visible) {
+<div class="modal-overlay" #overlay>
+  <div class="modal-content">
+    <!-- Header -->
+    <div class="modal-header">
+      <h2 class="modal-titulo">Crear usuario</h2>
+      <button class="btn-close-modal" (click)="cerrar()" [style.color]="colorSistema">
+        <i class="bi bi-x-circle-fill"></i>
+      </button>
+    </div>
+
+    <!-- Body / Formulario -->
+    <form [formGroup]="usuarioForm" (ngSubmit)="guardar()" class="modal-body">
+      <div class="form-grid">
+        <!-- Nombre -->
+        <div class="form-group">
+          <label for="nombre">Nombre</label>
+          <input type="text" id="nombre" formControlName="nombre" placeholder="Nombre de empleado"
+            [class.invalid]="usuarioForm.get('nombre')?.invalid && usuarioForm.get('nombre')?.touched">
+        </div>
+
+        <!-- Celular -->
+        <div class="form-group">
+          <label for="celular">Celular</label>
+          <input type="text" id="celular" formControlName="celular" placeholder="Celular de empleado"
+            [class.invalid]="usuarioForm.get('celular')?.invalid && usuarioForm.get('celular')?.touched">
+        </div>
+
+        <!-- Dirección -->
+        <div class="form-group">
+          <label for="direccion">Dirección</label>
+          <input type="text" id="direccion" formControlName="direccion" placeholder="Dirección de empleado"
+            [class.invalid]="usuarioForm.get('direccion')?.invalid && usuarioForm.get('direccion')?.touched">
+        </div>
+
+        <!-- Rol -->
+        <div class="form-group">
+          <label for="rol">Rol</label>
+          <input type="text" id="rol" formControlName="rol" placeholder="Rol de empleado"
+            [class.invalid]="usuarioForm.get('rol')?.invalid && usuarioForm.get('rol')?.touched">
+        </div>
+
+        <!-- Usuario -->
+        <div class="form-group">
+          <label for="usuario">Usuario</label>
+          <input type="text" id="usuario" formControlName="usuario" placeholder="Usuario de empleado"
+            [class.invalid]="usuarioForm.get('usuario')?.invalid && usuarioForm.get('usuario')?.touched">
+        </div>
+
+        <!-- Contraseña -->
+        <div class="form-group">
+          <label for="contrasena">Contraseña</label>
+          <div class="password-input-container">
+            <input [type]="mostrarPassword() ? 'text' : 'password'" id="contrasena" formControlName="contrasena"
+              placeholder="Contraseña"
+              [class.invalid]="usuarioForm.get('contrasena')?.invalid && usuarioForm.get('contrasena')?.touched">
+            <button type="button" class="btn-toggle-password" (click)="togglePassword()">
+              <i class="bi" [class.bi-eye]="!mostrarPassword()" [class.bi-eye-slash]="mostrarPassword()"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer / Acciones -->
+      <div class="modal-footer">
+        <div class="status-container">
+          <label class="switch-label">
+            <div class="switch">
+              <input type="checkbox" formControlName="activo">
+              <span class="slider round"></span>
+            </div>
+            <span>Activo</span>
+          </label>
+        </div>
+
+        <button type="submit" class="btn-guardar" [style.background-color]="colorSistema">
+          <i class="bi bi-download"></i> Guardar
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+}

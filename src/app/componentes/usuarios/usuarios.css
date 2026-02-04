@@ -1,0 +1,292 @@
+:host {
+    --color-text-dark: #333;
+    --color-text-muted: #666;
+    --color-border: #e0e0e0;
+    --color-bg-light: #fafafa;
+    --color-white: #fff;
+    --color-danger: #dc3545;
+}
+
+/* ===== Container principal ===== */
+.usuarios-container {
+    padding: 1rem 1.5rem;
+    background-color: var(--color-bg-light);
+    min-height: 100%;
+}
+
+/* ===== Header ===== */
+.usuarios-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.usuarios-titulo {
+    font-weight: 700;
+    font-size: 1.5rem;
+    margin: 0;
+    text-align: center;
+    position: relative;
+    padding-bottom: 0.75rem;
+}
+
+.usuarios-titulo::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 400px;
+    max-width: 100%;
+    height: 3px;
+    background-color: currentColor;
+}
+
+/* ===== Botones ===== */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-export {
+    background-color: var(--color-sistema);
+    color: var(--color-white);
+}
+
+.btn-export:hover {
+    background-color: color-mix(in srgb, var(--color-sistema), black 10%);
+    transform: translateY(-1px);
+}
+
+.btn-crear {
+    background-color: var(--color-sistema);
+    color: var(--color-white);
+}
+
+.btn-crear:hover {
+    background-color: color-mix(in srgb, var(--color-sistema), black 10%);
+    transform: translateY(-1px);
+}
+
+/* ===== Búsqueda ===== */
+.search-container {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 1rem;
+}
+
+.search-box {
+    position: relative;
+    width: 250px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 0.5rem 2.5rem 0.5rem 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    font-size: 0.875rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.search-input:focus {
+    border-color: var(--color-primary);
+}
+
+.search-input::placeholder {
+    color: #999;
+}
+
+.search-icon {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #999;
+    font-size: 0.875rem;
+}
+
+/* ===== Tabla ===== */
+.table-container {
+    background-color: var(--color-white);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.usuarios-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.usuarios-table thead {
+    background-color: var(--color-bg-light);
+    border-bottom: 2px solid var(--color-border);
+}
+
+.usuarios-table th {
+    padding: 0.875rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.8rem;
+    color: var(--color-text-dark);
+    white-space: nowrap;
+}
+
+.usuarios-table th i {
+    font-size: 0.7rem;
+    margin-left: 0.25rem;
+    opacity: 0.5;
+    cursor: pointer;
+}
+
+.usuarios-table th i:hover {
+    opacity: 1;
+}
+
+.usuarios-table tbody tr {
+    border-bottom: 1px solid var(--color-border);
+    transition: background-color 0.15s;
+}
+
+.usuarios-table tbody tr:hover {
+    background-color: rgba(255, 149, 0, 0.05);
+}
+
+.usuarios-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.usuarios-table td {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    color: var(--color-text-dark);
+}
+
+/* ===== Acciones ===== */
+.acciones-cell {
+    text-align: center;
+    white-space: nowrap;
+}
+
+.btn-accion {
+    background: none;
+    border: none;
+    padding: 0.35rem;
+    margin: 0 0.15rem;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.btn-accion i {
+    font-size: 1.1rem;
+}
+
+.btn-editar {
+    color: var(--color-text-dark);
+}
+
+.btn-editar:hover {
+    color: var(--color-primary);
+    background-color: rgba(255, 149, 0, 0.1);
+}
+
+.btn-eliminar {
+    color: var(--color-danger);
+}
+
+.btn-eliminar:hover {
+    background-color: rgba(220, 53, 69, 0.1);
+}
+
+/* ===== Paginación ===== */
+.paginacion-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+    padding: 0.5rem 0;
+}
+
+.paginacion-info {
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+}
+
+.paginacion-controles {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.btn-paginacion {
+    min-width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-white);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    font-size: 0.875rem;
+    color: var(--color-text-dark);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-paginacion:hover:not(:disabled):not(.activo) {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+}
+
+.btn-paginacion:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-paginacion.activo {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-white);
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+    .usuarios-header {
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+
+    .usuarios-titulo {
+        order: -1;
+        width: 100%;
+        font-size: 1.25rem;
+    }
+
+    .search-box {
+        width: 100%;
+    }
+
+    .search-container {
+        justify-content: stretch;
+    }
+
+    .table-container {
+        overflow-x: auto;
+    }
+
+    .paginacion-container {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+}

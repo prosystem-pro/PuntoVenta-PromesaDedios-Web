@@ -1,0 +1,28 @@
+.transition-all {
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-effect:hover {
+    background-color: #f8f9fa;
+}
+
+/* Estilo para cuando la ruta está seleccionada */
+.active-link {
+    background-color: color-mix(in srgb, var(--color-principal, #FF9500), white 90%) !important;
+    border-left: 4px solid var(--color-principal, #FF9500) !important;
+}
+
+.nav-link {
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.text-nowrap {
+    white-space: nowrap;
+}
+
+.d-flex.align-items-center.mb-3 {
+    min-height: 50px;
+    transition: all 0.3s ease;
+}

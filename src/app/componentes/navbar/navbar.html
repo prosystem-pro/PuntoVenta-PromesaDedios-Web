@@ -1,0 +1,59 @@
+<nav class="navbar bg-white border-bottom py-0 w-100 shadow-sm" style="height: 70px">
+  <div class="container-fluid h-100 d-grid" style="grid-template-columns: 1fr auto 1fr">
+    <div></div>
+    <div class="d-flex align-items-center justify-content-center">
+      <div class="text-center me-4">
+        <h4 class="mb-0 fw-bold d-inline-block" [style.color]="colorPrincipal">Caja 1 |</h4>
+        <div class="fw-bold" style="margin-top: -5px; font-size: 0.75rem">
+          Abierta
+        </div>
+      </div>
+      <div class="border-start ps-4 text-start" style="line-height: 1.1">
+        <div class="fw-bold text-dark">Usuario: Luis</div>
+        <div class="text-muted">Turno: AM</div>
+      </div>
+    </div>
+
+    <div class="d-flex align-items-center justify-content-end">
+      <div class="gear-stack dropdown" [style.backgroundColor]="colorPrincipal">
+        <button class="btn-gear" type="button" id="dropdownMenuSettings" data-bs-toggle="dropdown" aria-expanded="false"
+          [style.backgroundColor]="colorPrincipal">
+          <i class="bi bi-gear-wide-connected"></i>
+        </button>
+
+        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 p-3 mt-2 custom-dropdown"
+          aria-labelledby="dropdownMenuSettings">
+          <li class="dropdown-header text-center fs-6 fw-bold text-dark">Administración</li>
+          <li>
+            <a class="dropdown-item d-flex align-items-center py-2 rounded-3" routerLink="/usuario">
+              <i class="bi bi-people me-3 fs-5"></i> Usuarios
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item d-flex align-items-center py-2 rounded-3" routerLink="/rol">
+              <i class="bi bi-shield-lock me-3 fs-5"></i> Roles y permisos
+            </a>
+          </li>
+          <!-- <li>
+            <a class="dropdown-item d-flex align-items-center py-2 rounded-3" routerLink="/terminal">
+              <i class="bi bi-pc-display me-3 fs-5"></i> Terminales
+            </a>
+          </li> -->
+          <li>
+            <a class="dropdown-item d-flex align-items-center py-2 rounded-3" routerLink="/configuracion">
+              <i class="bi bi-gear-wide-connected me-3 fs-5"></i> Configuración
+            </a>
+          </li>
+          <li>
+            <hr class="dropdown-divider" />
+          </li>
+          <li>
+            <a class="dropdown-item d-flex align-items-center py-2 rounded-3 text-danger" href="#">
+              <i class="bi bi-box-arrow-right me-3 fs-5"></i> Cerrar sesión
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</nav>

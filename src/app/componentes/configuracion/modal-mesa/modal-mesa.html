@@ -1,0 +1,84 @@
+@if (visible) {
+<div class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-titulo">Crear mesas</h2>
+            <button class="btn-close-modal" (click)="cerrar()" [style.color]="colorSistema">
+                <i class="bi bi-x-circle-fill"></i>
+            </button>
+        </div>
+
+        <form [formGroup]="mesaForm" (ngSubmit)="guardar()" class="modal-body">
+            <div class="form-grid">
+                <!-- Clasificación con botón de agregar -->
+                <div class="form-group">
+                    <label>Clasificación</label>
+                    <div class="d-flex gap-2">
+                        <select formControlName="clasificacion" class="form-select"
+                            [class.invalid]="mesaForm.get('clasificacion')?.invalid && mesaForm.get('clasificacion')?.touched">
+                            <option value="" disabled selected>Seleccione...</option>
+                            @for (c of clasificaciones(); track c.id) {
+                            <option [value]="c.id">{{ c.nombre }}</option>
+                            }
+                        </select>
+                        <button type="button" class="btn btn-add-mini" (click)="abrirClasificaciones()"
+                            [style.background-color]="colorSistema">
+                            <i class="bi bi-plus-lg"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Nombre de mesa -->
+                <div class="form-group">
+                    <label for="nombreMesa">Nombre de mesa</label>
+                    <input type="text" id="nombreMesa" formControlName="nombre" placeholder="Mesa"
+                        [class.invalid]="mesaForm.get('nombre')?.invalid && mesaForm.get('nombre')?.touched">
+                </div>
+
+                <!-- Cantidad -->
+                <div class="form-group">
+                    <label for="cantidad">Cantidad</label>
+                    <input type="number" id="cantidad" formControlName="cantidad"
+                        [class.invalid]="mesaForm.get('cantidad')?.invalid && mesaForm.get('cantidad')?.touched">
+                </div>
+
+                <!-- Icono -->
+                <div class="form-group">
+                    <label>Icono de mesas</label>
+                    <select formControlName="icono" class="form-select icon-select">
+                        @for (icon of iconos; track icon.id) {
+                        <option [value]="icon.id">
+                            Mesa estándar
+                        </option>
+                        }
+                    </select>
+                    <div class="icon-preview mt-2" [style.color]="colorSistema">
+                        <i class="bi bi-layout-wtf fs-2"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="status-container mt-3">
+                <label class="switch-label">
+                    <div class="switch">
+                        <input type="checkbox" formControlName="activo">
+                        <span class="slider round"></span>
+                    </div>
+                    <span>Activo</span>
+                </label>
+            </div>
+
+            <div class="modal-footer mt-4">
+                <button type="submit" class="btn-guardar" [style.background-color]="colorSistema">
+                    <i class="bi bi-download"></i> Guardar
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Modal Clasificación (Anidado) -->
+    <app-modal-clasificacion [visible]="mostrarModalClasificacion()" (alCerrar)="cerrarClasificaciones()"
+        (alGuardar)="manejarNuevaClasificacion($event)">
+    </app-modal-clasificacion>
+</div>
+}

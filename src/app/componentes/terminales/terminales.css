@@ -1,0 +1,185 @@
+:host {
+    --color-export-green: #4CAF50;
+    --color-text-dark: #333;
+    --color-text-muted: #666;
+    --color-border: #e0e0e0;
+    --color-bg-light: #fafafa;
+    --color-white: #fff;
+    --color-danger: #dc3545;
+}
+
+/* Reutilizando estilos de roles/usuarios */
+.roles-container {
+    padding: 1rem 1.5rem;
+    background-color: var(--color-bg-light);
+    min-height: 100%;
+}
+
+.roles-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.roles-titulo {
+    font-weight: 700;
+    font-size: 1.5rem;
+    margin: 0;
+    text-align: center;
+    position: relative;
+    padding-bottom: 0.75rem;
+}
+
+.roles-titulo::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 400px;
+    max-width: 100%;
+    height: 3px;
+    background-color: currentColor;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-export {
+    background-color: var(--color-export-green);
+    color: var(--color-white);
+}
+
+.btn-crear {
+    background-color: #ff9500;
+    color: var(--color-white);
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+
+.search-container {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 1rem;
+}
+
+.search-box {
+    position: relative;
+    width: 250px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 0.5rem 2.5rem 0.5rem 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    font-size: 0.875rem;
+    outline: none;
+}
+
+.search-icon {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #999;
+}
+
+.table-container {
+    background-color: var(--color-white);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.roles-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.roles-table thead {
+    background-color: var(--color-bg-light);
+    border-bottom: 2px solid var(--color-border);
+}
+
+.roles-table th {
+    padding: 0.875rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.8rem;
+    color: var(--color-text-dark);
+}
+
+.roles-table tbody tr {
+    border-bottom: 1px solid var(--color-border);
+}
+
+.roles-table td {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+}
+
+.text-center {
+    text-align: center !important;
+}
+
+.acciones-cell {
+    text-align: center;
+}
+
+.btn-accion {
+    background: none;
+    border: none;
+    padding: 0.35rem;
+    margin: 0 0.15rem;
+    cursor: pointer;
+    font-size: 1.1rem;
+}
+
+.btn-editar:hover {
+    color: #ff9500;
+}
+
+.btn-eliminar:hover {
+    color: var(--color-danger);
+}
+
+.paginacion-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+}
+
+.paginacion-controles {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.btn-paginacion {
+    min-width: 32px;
+    height: 32px;
+    border: 1px solid var(--color-border);
+    background-color: var(--color-white);
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-paginacion.activo {
+    background-color: #ff9500;
+    color: white;
+    border-color: #ff9500;
+}

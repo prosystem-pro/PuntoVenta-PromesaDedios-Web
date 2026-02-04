@@ -1,0 +1,88 @@
+<div class="roles-container">
+    <!-- Header con botones y titulo -->
+    <div class="roles-header">
+        <button class="btn btn-export" [style.background-color]="colorSistema" (click)="exportarExcel()">
+            <i class="bi bi-file-earmark-spreadsheet"></i> Exportar a exel
+        </button>
+
+        <h2 class="roles-titulo" [style.color]="colorSistema">
+            LISTADO TERMINALES
+        </h2>
+
+        <button class="btn btn-crear" [style.background-color]="colorSistema" (click)="crearTerminal()">
+            <i class="bi bi-pc-display"></i> Crear terminal
+        </button>
+    </div>
+
+    <!-- Barra de busqueda -->
+    <div class="search-container">
+        <div class="search-box">
+            <input type="text" class="search-input" placeholder="Buscar" [value]="textoBusqueda()"
+                (input)="alCambiarBusqueda($event)">
+            <i class="bi bi-search search-icon"></i>
+        </div>
+    </div>
+
+    <!-- Tabla de terminales -->
+    <div class="table-container">
+        <table class="roles-table">
+            <thead>
+                <tr>
+                    <th>No. <i class="bi bi-arrow-down-up"></i></th>
+                    <th>Nombre <i class="bi bi-arrow-down-up"></i></th>
+                    <th class="text-center"># Usuarios <i class="bi bi-arrow-down-up"></i></th>
+                    <th class="text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (terminal of terminalesPaginadas(); track terminal.CodigoTerminal; let i = $index) {
+                <tr>
+                    <td>{{ formatearNumero(terminal.CodigoTerminal) }}</td>
+                    <td>{{ terminal.NombreTerminal }}</td>
+                    <td class="text-center">{{ terminal.CantidadUsuarios }}</td>
+                    <td class="acciones-cell">
+                        <button class="btn-accion btn-editar" (click)="editarTerminal(terminal)" title="Editar">
+                            <i class="bi bi-pencil-square"></i>
+                        </button>
+                        <button class="btn-accion btn-eliminar" (click)="eliminarTerminal(terminal.CodigoTerminal)"
+                            title="Eliminar">
+                            <i class="bi bi-trash-fill"></i>
+                        </button>
+                    </td>
+                </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Paginacion -->
+    <div class="paginacion-container">
+        <span class="paginacion-info">
+            Mostrando {{ rangoInicio() }} al {{ rangoFin() }} de {{ totalRegistros() }} registros
+        </span>
+
+        <div class="paginacion-controles">
+            <button class="btn-paginacion" (click)="paginaAnterior()" [disabled]="paginaActual() === 1">
+                <i class="bi bi-chevron-left"></i>
+            </button>
+
+            @for (pagina of [].constructor(totalPaginas()); track $index) {
+            <button class="btn-paginacion" [class.activo]="paginaActual() === $index + 1"
+                [style.background-color]="paginaActual() === $index + 1 ? colorSistema : null"
+                [style.border-color]="paginaActual() === $index + 1 ? colorSistema : null"
+                (click)="irAPagina($index + 1)">
+                {{ $index + 1 }}
+            </button>
+            }
+
+            <button class="btn-paginacion" (click)="paginaSiguiente()" [disabled]="paginaActual() === totalPaginas()">
+                <i class="bi bi-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal para crear terminal -->
+    <app-modal-terminal [visible]="mostrarModalCrear()" [colorSistema]="colorSistema" (alCerrar)="cerrarModalCrear()"
+        (alGuardar)="manejarGuardarTerminal($event)">
+    </app-modal-terminal>
+</div>

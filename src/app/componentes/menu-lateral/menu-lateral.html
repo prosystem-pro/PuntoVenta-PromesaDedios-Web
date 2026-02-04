@@ -1,0 +1,38 @@
+<div class="d-flex flex-column flex-shrink-0 p-3 bg-white border-end vh-100 shadow-sm transition-all"
+  [style.width]="estaExpandido() ? '240px' : '85px'" [style.--color-principal]="colorPrincipal">
+
+  <div class="d-flex align-items-center mb-3 position-relative" [style.min-height]="'80px'"
+    [class.justify-content-center]="!estaExpandido()">
+
+    <div *ngIf="estaExpandido()" class="position-absolute start-50 translate-middle-x">
+      <a routerLink="/" class="text-decoration-none">
+        <img src="logoPromesaDeDios.png" alt="Logo" class="img-fluid" style="max-width: 120px; cursor: pointer;">
+      </a>
+    </div>
+
+    <button (click)="alternarMenu()" class="btn border-0 p-1" [style.color]="colorPrincipal"
+      [title]="estaExpandido() ? 'Plegar menú' : 'Desplegar menú'" [class.ms-auto]="estaExpandido()">
+      <i class="bi" [ngClass]="estaExpandido() ? 'bi-arrow-bar-left' : 'bi-arrow-bar-right'"
+        style="font-size: 1.5rem;"></i>
+    </button>
+  </div>
+
+  <ul class="nav nav-pills flex-column mb-auto">
+    <li class="nav-item mb-2" *ngFor="let item of itemsMenu">
+      <a [routerLink]="item.ruta" routerLinkActive="active-link"
+        class="nav-link d-flex align-items-center link-dark py-2 rounded-3 hover-effect"
+        [title]="!estaExpandido() ? item.texto : ''">
+        <i [class]="item.icono" class="fs-5" [class.me-3]="estaExpandido()" [style.color]="colorPrincipal"></i>
+        <span *ngIf="estaExpandido()" class="fw-medium text-nowrap">{{ item.texto }}</span>
+      </a>
+    </li>
+  </ul>
+
+  <div class="mt-auto pt-3 border-top text-center">
+    <button class="btn w-100 text-white fw-bold shadow-sm d-flex align-items-center justify-content-center"
+      [style.backgroundColor]="colorPrincipal">
+      <i class="bi bi-door-closed" [class.me-2]="estaExpandido()"></i>
+      <span *ngIf="estaExpandido()">Cerrar caja</span>
+    </button>
+  </div>
+</div>

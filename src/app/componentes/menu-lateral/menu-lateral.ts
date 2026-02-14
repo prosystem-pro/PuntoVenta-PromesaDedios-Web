@@ -12,6 +12,7 @@ import { Entorno } from '../../Entorno/Entorno';
 })
 export class MenuLateral {
   public colorPrincipal = Entorno.ColorSistema;
+  public logo = Entorno.Logo;
 
   // Estado del menu: true = abierto, false = colapsado
   estaExpandido = signal(true);

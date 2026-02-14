@@ -1,9 +1,9 @@
 @if (visible) {
 <div class="modal-overlay" #overlay>
-    <div class="modal-content">
+    <div class="modal-content animate__animated animate__fadeInDown">
         <!-- Header -->
         <div class="modal-header">
-            <h2 class="modal-titulo">Crear cliente</h2>
+            <h2 class="modal-titulo">{{ modoEdicion() ? 'EDITAR CLIENTE' : 'CREAR CLIENTE' }}</h2>
             <button class="btn-close-modal" (click)="cerrar()" [style.color]="colorSistema">
                 <i class="bi bi-x-circle-fill"></i>
             </button>
@@ -14,30 +14,31 @@
             <div class="form-grid">
                 <!-- Nombre -->
                 <div class="form-group text-start sm-col-2">
-                    <label for="nombre">Nombre</label>
-                    <input type="text" id="nombre" formControlName="nombre" placeholder="Nombre del cliente"
-                        [class.invalid]="clienteForm.get('nombre')?.invalid && clienteForm.get('nombre')?.touched">
+                    <label for="NombreCliente">Nombre Completo</label>
+                    <input type="text" id="NombreCliente" formControlName="NombreCliente"
+                        placeholder="Nombre del cliente"
+                        [class.invalid]="clienteForm.get('NombreCliente')?.invalid && clienteForm.get('NombreCliente')?.touched">
                 </div>
 
                 <!-- NIT -->
                 <div class="form-group text-start">
-                    <label for="nit">NIT</label>
-                    <input type="text" id="nit" formControlName="nit" placeholder="NIT del cliente"
-                        [class.invalid]="clienteForm.get('nit')?.invalid && clienteForm.get('nit')?.touched">
+                    <label for="NIT">NIT</label>
+                    <input type="text" id="NIT" formControlName="NIT" placeholder="NIT del cliente"
+                        [class.invalid]="clienteForm.get('NIT')?.invalid && clienteForm.get('NIT')?.touched">
                 </div>
 
                 <!-- Teléfono -->
                 <div class="form-group text-start">
-                    <label for="telefono">Teléfono</label>
-                    <input type="text" id="telefono" formControlName="telefono" placeholder="Teléfono del cliente"
-                        [class.invalid]="clienteForm.get('telefono')?.invalid && clienteForm.get('telefono')?.touched">
+                    <label for="Telefono">Teléfono</label>
+                    <input type="text" id="Telefono" formControlName="Telefono" placeholder="Teléfono del cliente"
+                        [class.invalid]="clienteForm.get('Telefono')?.invalid && clienteForm.get('Telefono')?.touched">
                 </div>
 
                 <!-- Dirección -->
                 <div class="form-group text-start sm-col-2">
-                    <label for="direccion">Dirección</label>
-                    <input type="text" id="direccion" formControlName="direccion" placeholder="Dirección del cliente"
-                        [class.invalid]="clienteForm.get('direccion')?.invalid && clienteForm.get('direccion')?.touched">
+                    <label for="Direccion">Dirección</label>
+                    <input type="text" id="Direccion" formControlName="Direccion" placeholder="Dirección del cliente"
+                        [class.invalid]="clienteForm.get('Direccion')?.invalid && clienteForm.get('Direccion')?.touched">
                 </div>
             </div>
 
@@ -46,7 +47,7 @@
                 <div class="status-container">
                     <label class="switch-label">
                         <div class="switch">
-                            <input type="checkbox" formControlName="activo">
+                            <input type="checkbox" formControlName="Estatus">
                             <span class="slider round"></span>
                         </div>
                         <span>Activo</span>
@@ -54,7 +55,7 @@
                 </div>
 
                 <button type="submit" class="btn-guardar" [style.background-color]="colorSistema">
-                    <i class="bi bi-download"></i> Guardar
+                    <i class="bi bi-download"></i> {{ modoEdicion() ? 'Actualizar' : 'Guardar' }}
                 </button>
             </div>
         </form>

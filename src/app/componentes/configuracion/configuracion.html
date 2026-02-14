@@ -17,35 +17,53 @@
             <form [formGroup]="empresaForm" (ngSubmit)="actualizarEmpresa()" class="empresa-form mt-4">
                 <div class="form-grid">
                     <div class="form-group">
-                        <label for="empresa">Empresa</label>
-                        <input type="text" id="empresa" formControlName="empresa" placeholder="Nombre de la empresa"
-                            [class.invalid]="empresaForm.get('empresa')?.invalid && empresaForm.get('empresa')?.touched">
+                        <label for="NombreComercial">Empresa</label>
+                        <input type="text" id="NombreComercial" formControlName="NombreComercial"
+                            placeholder="Nombre de la empresa"
+                            [class.invalid]="empresaForm.get('NombreComercial')?.invalid && empresaForm.get('NombreComercial')?.touched">
                     </div>
                     <div class="form-group">
-                        <label for="propietario">Propietario</label>
-                        <input type="text" id="propietario" formControlName="propietario"
+                        <label for="NombrePropietario">Propietario</label>
+                        <input type="text" id="NombrePropietario" formControlName="NombrePropietario"
                             placeholder="Nombre del propietario"
-                            [class.invalid]="empresaForm.get('propietario')?.invalid && empresaForm.get('propietario')?.touched">
+                            [class.invalid]="empresaForm.get('NombrePropietario')?.invalid && empresaForm.get('NombrePropietario')?.touched">
                     </div>
                     <div class="form-group">
-                        <label for="correo">Correo</label>
-                        <input type="email" id="correo" formControlName="correo" placeholder="correo@ejemplo.com"
-                            [class.invalid]="empresaForm.get('correo')?.invalid && empresaForm.get('correo')?.touched">
+                        <label for="Correo">Correo</label>
+                        <input type="email" id="Correo" formControlName="Correo" placeholder="correo@ejemplo.com"
+                            [class.invalid]="empresaForm.get('Correo')?.invalid && empresaForm.get('Correo')?.touched">
                     </div>
                     <div class="form-group">
-                        <label for="telefono">Teléfono</label>
-                        <input type="text" id="telefono" formControlName="telefono" placeholder="Número de teléfono"
-                            [class.invalid]="empresaForm.get('telefono')?.invalid && empresaForm.get('telefono')?.touched">
+                        <label for="Telefono">Teléfono</label>
+                        <input type="text" id="Telefono" formControlName="Telefono" placeholder="Número de teléfono"
+                            [class.invalid]="empresaForm.get('Telefono')?.invalid && empresaForm.get('Telefono')?.touched">
                     </div>
                     <div class="form-group">
-                        <label for="departamento">Departamento</label>
-                        <input type="text" id="departamento" formControlName="departamento" placeholder="Departamento"
-                            [class.invalid]="empresaForm.get('departamento')?.invalid && empresaForm.get('departamento')?.touched">
+                        <label for="Departamento">Departamento</label>
+                        <input type="text" id="Departamento" formControlName="Departamento" placeholder="Departamento"
+                            [class.invalid]="empresaForm.get('Departamento')?.invalid && empresaForm.get('Departamento')?.touched">
                     </div>
                     <div class="form-group">
-                        <label for="municipio">Municipio</label>
-                        <input type="text" id="municipio" formControlName="municipio" placeholder="Municipio"
-                            [class.invalid]="empresaForm.get('municipio')?.invalid && empresaForm.get('municipio')?.touched">
+                        <label for="Municipio">Municipio</label>
+                        <input type="text" id="Municipio" formControlName="Municipio" placeholder="Municipio"
+                            [class.invalid]="empresaForm.get('Municipio')?.invalid && empresaForm.get('Municipio')?.touched">
+                    </div>
+                    <!-- Razon Social -->
+                    <div class="form-group">
+                        <label for="RazonSocial">Razón Social</label>
+                        <input type="text" id="RazonSocial" formControlName="RazonSocial"
+                            placeholder="Razón social de la empresa">
+                    </div>
+                    <!-- NIT -->
+                    <div class="form-group">
+                        <label for="NIT">NIT</label>
+                        <input type="text" id="NIT" formControlName="NIT" placeholder="NIT de la empresa">
+                    </div>
+                    <!-- Direccion -->
+                    <div class="form-group">
+                        <label for="Direccion">Dirección</label>
+                        <input type="text" id="Direccion" formControlName="Direccion"
+                            placeholder="Dirección de la empresa">
                     </div>
                 </div>
                 <div class="text-end mt-3">
@@ -65,7 +83,7 @@
         <div class="config-card-body">
             <div class="d-flex justify-content-end mb-3">
                 <button class="btn btn-crear-mesa" (click)="crearMesas()">
-                    <i class="bi bi-layout-wtf"></i> Crear Mesas
+                    <i class="bi bi-grid-3x3-gap"></i> Crear Mesas
                 </button>
             </div>
 
@@ -91,8 +109,7 @@
                                 <button class="btn-accion btn-editar" (click)="editarMesa(mesa)" title="Editar">
                                     <i class="bi bi-pencil-square"></i>
                                 </button>
-                                <button class="btn-accion btn-eliminar" (click)="eliminarMesa(mesa.CodigoMesa)"
-                                    title="Eliminar">
+                                <button class="btn-accion btn-eliminar" (click)="eliminarMesa(mesa)" title="Eliminar">
                                     <i class="bi bi-trash-fill"></i>
                                 </button>
                             </td>
@@ -115,10 +132,9 @@
                     <button class="btn-paginacion" (click)="paginaAnterior()" [disabled]="paginaActual() === 1">
                         <i class="bi bi-chevron-left"></i>
                     </button>
-                    @for (p of [].constructor(totalPaginas()); track $index) {
-                    <button class="btn-paginacion" [class.activo]="paginaActual() === $index + 1"
-                        (click)="irAPagina($index + 1)">
-                        {{ $index + 1 }}
+                    @for (p of paginasArray(); track p) {
+                    <button class="btn-paginacion" [class.activo]="paginaActual() === p" (click)="irAPagina(p)">
+                        {{ p }}
                     </button>
                     }
                     <button class="btn-paginacion" (click)="paginaSiguiente()"
@@ -131,7 +147,8 @@
     </div>
 
     <!-- Modales -->
-    <app-modal-mesa [visible]="mostrarModalMesa()" (alCerrar)="cerrarModalMesa()"
+    <app-modal-mesa [visible]="mostrarModalMesa()" [mesaAEditar]="mesaAEditar()" [clasificaciones]="clasificaciones()"
+        (alRefrescarClasificaciones)="cargarClasificaciones()" (alCerrar)="cerrarModalMesa()"
         (alGuardar)="manejarGuardarMesa($event)">
     </app-modal-mesa>
 </div>

@@ -1,0 +1,154 @@
+.productos-container {
+    padding: 10px;
+    background-color: transparent;
+}
+
+.productos-titulo {
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 3px solid var(--color-sistema);
+    padding-bottom: 5px;
+}
+
+/* Botones Naranja */
+.btn-export,
+.btn-crear,
+.btn-stock {
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 18px;
+    font-weight: 600;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.btn-export:hover,
+.btn-crear:hover,
+.btn-stock:hover {
+    filter: brightness(1.1);
+    transform: translateY(-2px);
+    color: white;
+}
+
+/* Buscadores */
+.barcode-search-box,
+.text-search-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: white;
+    border-radius: 12px;
+    padding: 2px 10px;
+}
+
+.barcode-search-box {
+    border: 2px solid #ddd;
+}
+
+.barcode-input {
+    border: none !important;
+    box-shadow: none !important;
+    padding-left: 10px;
+}
+
+.barcode-icon {
+    font-size: 1.5rem;
+    color: #444;
+}
+
+.text-search-box {
+    border: 2px solid var(--color-sistema);
+}
+
+.text-search-input {
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.search-icon {
+    color: #999;
+    font-size: 1.2rem;
+}
+
+/* Tabla */
+.products-card {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.productos-table thead th {
+    background: white;
+    padding: 20px 15px;
+    font-weight: 700;
+    color: #000;
+    border-bottom: 3px solid #eee;
+}
+
+.productos-table tbody td {
+    padding: 15px;
+    color: #444;
+    font-weight: 500;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.inactive-row td {
+    color: #ff4444 !important;
+}
+
+.td-unidad {
+    color: #666;
+}
+
+/* Acciones en tabla */
+.acciones-cell {
+    white-space: nowrap;
+}
+
+.btn-accion {
+    border: none;
+    background: transparent;
+    font-size: 1.3rem;
+    padding: 0 8px;
+    transition: transform 0.2s;
+}
+
+.btn-accion:hover {
+    transform: scale(1.2);
+}
+
+.btn-editar {
+    color: #444;
+}
+
+.btn-eliminar {
+    color: #ff4444;
+}
+
+/* Paginacion */
+.page-link {
+    color: #444;
+    border-radius: 8px !important;
+    margin: 0 3px;
+    border: 1px solid #ddd;
+    font-weight: 600;
+}
+
+.page-item.active .page-link {
+    color: white;
+}
+
+.pagination-nav {
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .productos-header {
+        flex-direction: column;
+        gap: 15px;
+    }
+}

@@ -1,7 +1,10 @@
-import { Component, Input, Output, EventEmitter, signal, computed } from '@angular/core';
+import { Component, Input, Output, EventEmitter, signal, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Entorno } from '../../../Entorno/Entorno';
+import { ClasificacionMesa } from '../../../Modelos/clasificacion-mesa.modelo';
+import { ServicioConfiguracion } from '../../../Servicios/configuracion.service';
+import { AlertaServicio } from '../../../Servicios/alerta.service';
 
 @Component({
     selector: 'app-modal-clasificacion',
@@ -10,27 +13,19 @@ import { Entorno } from '../../../Entorno/Entorno';
     templateUrl: './modal-clasificacion.html',
     styleUrl: './modal-clasificacion.css'
 })
-export class ModalClasificacion {
+export class ModalClasificacion implements OnInit {
+    private servicioConfig = inject(ServicioConfiguracion);
+    private servicioAlerta = inject(AlertaServicio);
+    private fb = inject(FormBuilder);
+
     @Input() visible = false;
     @Output() alCerrar = new EventEmitter<void>();
-    @Output() alGuardar = new EventEmitter<any>();
+    @Output() alGuardar = new EventEmitter<void>(); // Se usará para avisar que refresque el combo
 
     colorSistema = Entorno.ColorSistema;
     clasifForm: FormGroup;
 
-    // Datos simulados para el listado interno
-    registros = signal([
-        { id: 1, nombre: 'Salón principal', estado: 'Activo' },
-        { id: 2, nombre: 'Jardín', estado: 'Activo' },
-        { id: 3, nombre: 'Terraza', estado: 'Activo' },
-        { id: 4, nombre: 'Salón 2', estado: 'Activo' },
-        { id: 5, nombre: 'Picina', estado: 'Inactivo' },
-        { id: 6, nombre: 'Patio', estado: 'Activo' },
-        { id: 7, nombre: 'Parqueo', estado: 'Activo' },
-        { id: 8, nombre: 'Jardín 2', estado: 'Activo' },
-        { id: 9, nombre: 'Salón 2', estado: 'Activo' },
-        { id: 10, nombre: 'Planta baja', estado: 'Activo' }
-    ]);
+    registros = signal<ClasificacionMesa[]>([]);
 
     paginaActual = signal(1);
     itemsPorPagina = 8;
@@ -41,35 +36,64 @@ export class ModalClasificacion {
         return this.registros().slice(inicio, inicio + this.itemsPorPagina);
     });
 
-    constructor(private fb: FormBuilder) {
+    paginasArray = computed(() => Array.from({ length: this.totalPaginas() }, (_, i) => i + 1));
+
+    constructor() {
         this.clasifForm = this.fb.group({
-            nombre: ['', [Validators.required]],
-            estado: ['Activo', [Validators.required]]
+            NombreClasificacion: ['', [Validators.required]],
+            Estatus: [1, [Validators.required]]
         });
+    }
+
+    ngOnInit(): void {
+        this.cargarDatos();
+    }
+
+    async cargarDatos() {
+        const res = await this.servicioConfig.obtenerClasificaciones();
+        if (res.success) {
+            this.registros.set(res.data);
+        }
     }
 
     cerrar() {
         this.alCerrar.emit();
-        this.clasifForm.reset({ estado: 'Activo' });
+        this.clasifForm.reset({ Estatus: 1 });
     }
 
-    agregar() {
+    async agregar() {
         if (this.clasifForm.valid) {
-            const nueva = this.clasifForm.value;
-            this.alGuardar.emit(nueva);
-            // Actualizar listado local
-            this.registros.update(r => [{ id: r.length + 1, ...nueva }, ...r]);
-            this.clasifForm.reset({ estado: 'Activo' });
+            const res = await this.servicioConfig.crearClasificacion(this.clasifForm.value);
+            if (res.success) {
+                this.servicioAlerta.MostrarToast('Clasificación agregada');
+                this.cargarDatos();
+                this.clasifForm.reset({ Estatus: 1 });
+                this.alGuardar.emit();
+            } else {
+                this.servicioAlerta.MostrarError(res, 'Error al agregar');
+            }
         } else {
             this.clasifForm.markAllAsTouched();
         }
     }
 
     irAPagina(p: number) {
-        this.paginaActual.set(p);
+        if (p >= 1 && p <= this.totalPaginas()) {
+            this.paginaActual.set(p);
+        }
     }
 
-    eliminar(id: number) {
-        this.registros.update(r => r.filter(item => item.id !== id));
+    async eliminar(id: number) {
+        const confirmado = await this.servicioAlerta.Confirmacion('¿Está seguro?', 'Se eliminará esta clasificación');
+        if (confirmado) {
+            const res = await this.servicioConfig.eliminarClasificacion(id);
+            if (res.success) {
+                this.servicioAlerta.MostrarToast('Clasificación eliminada');
+                this.cargarDatos();
+                this.alGuardar.emit();
+            } else {
+                this.servicioAlerta.MostrarError(res, 'Error al eliminar');
+            }
+        }
     }
 }

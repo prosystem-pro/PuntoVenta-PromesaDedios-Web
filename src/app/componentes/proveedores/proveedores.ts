@@ -1,9 +1,11 @@
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Proveedor } from '../../Modelos/proveedor.modelo';
 import { Entorno } from '../../Entorno/Entorno';
 import { ModalProveedor } from './modal-proveedor/modal-proveedor';
+import { ServicioProveedor } from '../../Servicios/proveedor.service';
+import { AlertaServicio } from '../../Servicios/alerta.service';
 import * as XLSX from 'xlsx';
 
 @Component({
@@ -14,17 +16,22 @@ import * as XLSX from 'xlsx';
     styleUrl: './proveedores.css',
 })
 export class Proveedores implements OnInit {
+    private servicioProveedor = inject(ServicioProveedor);
+    private servicioAlerta = inject(AlertaServicio);
+
     // Color del sistema desde Entorno
     colorSistema = Entorno.ColorSistema;
 
     // Datos
-    private todosLosProveedores: Proveedor[] = [];
+    proveedores = signal<Proveedor[]>([]);
+    cargando = signal(false);
 
     // Busqueda
     textoBusqueda = signal('');
 
     // Control del modal
-    mostrarModalCrear = signal(false);
+    mostrarModal = signal(false);
+    proveedorSeleccionado = signal<Proveedor | null>(null);
 
     // Paginacion fija
     paginaActual = signal(1);
@@ -34,13 +41,14 @@ export class Proveedores implements OnInit {
     proveedoresFiltrados = computed(() => {
         const busqueda = this.textoBusqueda().toLowerCase().trim();
         if (!busqueda) {
-            return this.todosLosProveedores;
+            return this.proveedores();
         }
-        return this.todosLosProveedores.filter(p =>
+        return this.proveedores().filter(p =>
             p.NombreProveedor.toLowerCase().includes(busqueda) ||
             p.NIT.toLowerCase().includes(busqueda) ||
             p.Telefono.includes(busqueda) ||
-            p.Direccion.toLowerCase().includes(busqueda)
+            p.Direccion.toLowerCase().includes(busqueda) ||
+            p.Correo.toLowerCase().includes(busqueda)
         );
     });
 
@@ -70,40 +78,16 @@ export class Proveedores implements OnInit {
         this.cargarProveedores();
     }
 
-    private cargarProveedores(): void {
-        // Simulacion de JSON del API con 20 registros
-        const nombres = [
-            'Maria Luisa Castro Merida de Juarez',
-            'Distribuidora Global S.A.',
-            'Suministros Industriales S.A.',
-            'Comercializadora del Sur',
-            'Importaciones Modernas',
-            'Tecnologias Avanzadas',
-            'Soluciones Logisticas S.A.',
-            'Alimentos y Bebidas del Norte',
-            'Materiales de Construccion S.A.',
-            'Servicios Integrales de Limpieza',
-            'Muebles y Equipos de Oficina',
-            'Textiles del Centro',
-            'Repuestos y Accesorios Express',
-            'Papeleria y Utiles S.A.',
-            'Quimicos y Solventes Industriales',
-            'Herramientas y Maquinaria S.A.',
-            'Embalajes y Empaques',
-            'Sistemas de Seguridad Integrados',
-            'Mantenimiento Tecnico Profesional',
-            'Agencia de Publicidad y Medios'
-        ];
+    async cargarProveedores() {
+        this.cargando.set(true);
+        const res = await this.servicioProveedor.obtenerProveedores();
+        this.cargando.set(false);
 
-        this.todosLosProveedores = Array(20).fill(null).map((_, i) => ({
-            CodigoProveedor: i + 1,
-            NombreProveedor: nombres[i],
-            Telefono: '4456-7665',
-            NIT: `8897322-${i % 9 + 1}`,
-            Direccion: 'San Antonio Palopo, Sololá',
-            Correo: `proveedor${i + 1}@correo.com`,
-            Estatus: 1
-        }));
+        if (res.success) {
+            this.proveedores.set(res.data as Proveedor[]);
+        } else {
+            // Error manejado
+        }
     }
 
     // Metodos de paginacion
@@ -125,56 +109,73 @@ export class Proveedores implements OnInit {
     alCambiarBusqueda(evento: Event): void {
         const input = evento.target as HTMLInputElement;
         this.textoBusqueda.set(input.value);
-        this.paginaActual.set(1); // Resetear a primera pagina al buscar
+        this.paginaActual.set(1);
     }
 
     // Metodos de acciones
-    eliminarProveedor(id: number): void {
-        console.log('Eliminando proveedor:', id);
-        if (confirm('¿Esta seguro de eliminar este proveedor?')) {
-            this.todosLosProveedores = this.todosLosProveedores.filter(p => p.CodigoProveedor !== id);
-            this.textoBusqueda.set(this.textoBusqueda()); // Forzar actualizacion
+    async eliminarProveedor(id: number) {
+        const confirmado = await this.servicioAlerta.Confirmacion(
+            '¿Esta seguro de eliminar este proveedor?',
+            'Esta accion no se puede deshacer',
+            'Si, eliminar',
+            'Cancelar'
+        );
+
+        if (confirmado) {
+            this.cargando.set(true);
+            const res = await this.servicioProveedor.eliminarProveedor(id);
+            this.cargando.set(false);
+
+            if (res.success) {
+                this.servicioAlerta.MostrarExito(res.message || 'Proveedor eliminado correctamente');
+                this.cargarProveedores();
+            } else {
+                this.servicioAlerta.MostrarError(res, 'Error al eliminar proveedor');
+            }
         }
     }
 
     editarProveedor(proveedor: Proveedor): void {
-        console.log('Editando proveedor:', proveedor.NombreProveedor);
-        // Mas adelante se podria implementar la logica de editar
+        this.proveedorSeleccionado.set(proveedor);
+        this.mostrarModal.set(true);
     }
 
     crearProveedor(): void {
-        console.log('Abriendo modal para crear proveedor...');
-        this.mostrarModalCrear.set(true);
+        this.proveedorSeleccionado.set(null);
+        this.mostrarModal.set(true);
     }
 
-    cerrarModalCrear(): void {
-        this.mostrarModalCrear.set(false);
+    cerrarModal(): void {
+        this.mostrarModal.set(false);
+        this.proveedorSeleccionado.set(null);
     }
 
-    manejarGuardarProveedor(datos: any): void {
-        console.log('Nuevo proveedor capturado:', datos);
+    async manejarGuardarProveedor(datos: any) {
+        let res;
+        if (this.proveedorSeleccionado()) {
+            // Editar
+            res = await this.servicioProveedor.editarProveedor(this.proveedorSeleccionado()!.CodigoProveedor, datos);
+        } else {
+            // Crear
+            res = await this.servicioProveedor.crearProveedor(datos);
+        }
 
-        const nuevo: Proveedor = {
-            CodigoProveedor: this.todosLosProveedores.length + 1,
-            NombreProveedor: datos.nombre,
-            Telefono: datos.telefono,
-            NIT: datos.nit,
-            Direccion: datos.direccion,
-            Correo: datos.correo,
-            Estatus: datos.activo ? 1 : 0
-        };
-
-        this.todosLosProveedores = [nuevo, ...this.todosLosProveedores];
-        this.textoBusqueda.set(this.textoBusqueda());
+        if (res.success) {
+            this.servicioAlerta.MostrarExito(res.message || 'Proveedor guardado correctamente');
+            this.cargarProveedores();
+            this.cerrarModal();
+        } else {
+            this.servicioAlerta.MostrarError(res, 'Error al guardar proveedor');
+        }
     }
 
     exportarExcel(): void {
-        const datosParaExportar = this.proveedoresFiltrados().map(p => ({
-            'No.': this.formatearNumero(p.CodigoProveedor),
+        const datosParaExportar = this.proveedoresFiltrados().map((p, index) => ({
+            'No.': index + 1,
             'Nombre': p.NombreProveedor,
             'NIT': p.NIT,
-            'Teléfono': p.Telefono,
-            'Dirección': p.Direccion,
+            'Telefono': p.Telefono,
+            'Direccion': p.Direccion,
             'Correo': p.Correo,
             'Estatus': p.Estatus === 1 ? 'Activo' : 'Inactivo'
         }));
@@ -188,7 +189,7 @@ export class Proveedores implements OnInit {
     }
 
     formatearNumero(num: number): string {
-        return num.toString().padStart(2, '0');
+        return num.toString();
     }
 
 }

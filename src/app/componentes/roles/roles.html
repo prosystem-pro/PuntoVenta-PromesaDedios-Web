@@ -10,12 +10,12 @@
         </h2>
 
         <button class="btn btn-crear" [style.background-color]="colorSistema" (click)="crearRol()">
-            <i class="bi bi-shield-lock-fill"></i> Crear Rol
+            <i class="bi bi-shield-lock"></i> Crear Rol
         </button>
     </div>
 
     <!-- Barra de busqueda -->
-    <div class="search-container">
+    <div class="search-container mb-4">
         <div class="search-box">
             <input type="text" class="search-input" placeholder="Buscar" [value]="textoBusqueda()"
                 (input)="alCambiarBusqueda($event)">
@@ -23,67 +23,89 @@
         </div>
     </div>
 
-    <!-- Tabla de roles -->
-    <div class="table-container">
-        <table class="roles-table">
-            <thead>
-                <tr>
-                    <th>No. <i class="bi bi-arrow-down-up"></i></th>
-                    <th>Nombre <i class="bi bi-arrow-down-up"></i></th>
-                    <th class="text-center"># Usuarios <i class="bi bi-arrow-down-up"></i></th>
-                    <th class="text-center"># Permisos <i class="bi bi-arrow-down-up"></i></th>
-                    <th class="text-center">Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                @for (rol of rolesPaginados(); track rol.CodigoRol; let i = $index) {
-                <tr>
-                    <td>{{ formatearNumero(rol.CodigoRol) }}</td>
-                    <td>{{ rol.NombreRol }}</td>
-                    <td class="text-center">{{ rol.CantidadUsuarios }}</td>
-                    <td class="text-center">{{ rol.CantidadPermisos }}</td>
-                    <td class="acciones-cell">
-                        <button class="btn-accion btn-editar" (click)="editarRol(rol)" title="Editar">
-                            <i class="bi bi-pencil-square"></i>
-                        </button>
-                        <button class="btn-accion btn-eliminar" (click)="eliminarRol(rol.CodigoRol)" title="Eliminar">
-                            <i class="bi bi-trash-fill"></i>
-                        </button>
-                    </td>
-                </tr>
-                }
-            </tbody>
-        </table>
-    </div>
+    <!-- Table Section -->
+    <div class="roles-card shadow-sm border-0">
+        <div class="table-container p-0">
+            <div *ngIf="cargando()" class="text-center py-5">
+                <div class="spinner-border" [style.color]="colorSistema" role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+                <p class="mt-2 text-muted">Cargando roles...</p>
+            </div>
 
-    <!-- Paginacion -->
-    <div class="paginacion-container">
-        <span class="paginacion-info">
-            Mostrando {{ rangoInicio() }} al {{ rangoFin() }} de {{ totalRegistros() }} registros
-        </span>
-
-        <div class="paginacion-controles">
-            <button class="btn-paginacion" (click)="paginaAnterior()" [disabled]="paginaActual() === 1">
-                <i class="bi bi-chevron-left"></i>
-            </button>
-
-            @for (pagina of [].constructor(totalPaginas()); track $index) {
-            <button class="btn-paginacion" [class.activo]="paginaActual() === $index + 1"
-                [style.background-color]="paginaActual() === $index + 1 ? colorSistema : null"
-                [style.border-color]="paginaActual() === $index + 1 ? colorSistema : null"
-                (click)="irAPagina($index + 1)">
-                {{ $index + 1 }}
-            </button>
-            }
-
-            <button class="btn-paginacion" (click)="paginaSiguiente()" [disabled]="paginaActual() === totalPaginas()">
-                <i class="bi bi-chevron-right"></i>
-            </button>
+            <table *ngIf="!cargando()" class="roles-table">
+                <thead>
+                    <tr>
+                        <th>No. <i class="bi bi-arrow-down-up ms-1 small text-muted"></i></th>
+                        <th class="text-start">Nombre <i class="bi bi-arrow-down-up ms-1 small text-muted"></i></th>
+                        <th class="text-center"># Usuarios <i class="bi bi-arrow-down-up ms-1 small text-muted"></i>
+                        </th>
+                        <th class="text-center"># Permisos <i class="bi bi-arrow-down-up ms-1 small text-muted"></i>
+                        </th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let rol of rolesPaginados(); let i = index">
+                        <td>{{ ((paginaActual() - 1) * itemsPorPagina + i + 1) | number:'2.0-0' }}</td>
+                        <td class="text-start">{{ rol.NombreRol }}</td>
+                        <td class="text-center">{{ rol.CantidadUsuarios || 0 }}</td>
+                        <td class="text-center">{{ rol.CantidadPermisos || 0 }}</td>
+                        <td class="acciones-cell text-center">
+                            <div class="acciones-container">
+                                <button class="btn-accion btn-editar" title="Editar" (click)="editarRol(rol)">
+                                    <i class="bi bi-pencil-fill"></i>
+                                </button>
+                                <button class="btn-accion btn-eliminar" title="Eliminar"
+                                    (click)="eliminarRol(rol.CodigoRol)">
+                                    <i class="bi bi-trash-fill"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr *ngIf="rolesPaginados().length === 0">
+                        <td colspan="5" class="text-center py-5 text-muted">No se encontraron roles</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 
-    <!-- Modal para crear rol -->
-    <app-modal-rol [visible]="mostrarModalCrear()" [colorSistema]="colorSistema" (alCerrar)="cerrarModalCrear()"
-        (alGuardar)="manejarGuardarRol($event)">
-    </app-modal-rol>
+    <!-- Footer con Paginacion -->
+    <div class="card-footer d-flex justify-content-between align-items-center bg-white border-top-0 p-4">
+        <div class="pagination-info text-muted small">
+            Mostrando <strong>{{ rangoInicio() }}</strong> al <strong>{{ rangoFin() }}</strong> de <strong>{{
+                totalRegistros() }}</strong> registros
+        </div>
+
+        <nav aria-label="Navegacion" class="pagination-nav">
+            <ul class="pagination pagination-sm m-0">
+                <li class="page-item" [class.disabled]="paginaActual() === 1">
+                    <button class="page-link" (click)="paginaAnterior()">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                </li>
+
+                <li class="page-item" *ngFor="let p of [].constructor(totalPaginas()); let i = index"
+                    [class.active]="paginaActual() === i + 1">
+                    <button class="page-link" (click)="irAPagina(i + 1)"
+                        [style.backgroundColor]="paginaActual() === i + 1 ? colorSistema : ''"
+                        [style.borderColor]="paginaActual() === i + 1 ? colorSistema : ''">
+                        {{ i + 1 }}
+                    </button>
+                </li>
+
+                <li class="page-item" [class.disabled]="paginaActual() === totalPaginas() || totalPaginas() === 0">
+                    <button class="page-link" (click)="paginaSiguiente()">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                </li>
+            </ul>
+        </nav>
+    </div>
 </div>
+
+<!-- Modal -->
+<app-modal-rol [visible]="mostrarModal()" [colorSistema]="colorSistema" [rolAEditar]="rolSeleccionado()"
+    (alCerrar)="cerrarModal()" (alGuardar)="manejarGuardarRol($event)">
+</app-modal-rol>

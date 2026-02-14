@@ -9,7 +9,8 @@
         </div>
       </div>
       <div class="border-start ps-4 text-start" style="line-height: 1.1">
-        <div class="fw-bold text-dark">Usuario: Luis</div>
+        <div class="fw-bold text-dark">Usuario: {{ servicioAutenticacion.usuarioActual()?.NombreUsuario || 'Visitante'
+          }}</div>
         <div class="text-muted">Turno: AM</div>
       </div>
     </div>
@@ -48,7 +49,8 @@
             <hr class="dropdown-divider" />
           </li>
           <li>
-            <a class="dropdown-item d-flex align-items-center py-2 rounded-3 text-danger" href="#">
+            <a class="dropdown-item d-flex align-items-center py-2 rounded-3 text-danger" href="#"
+              (click)="cerrarSesion($event)">
               <i class="bi bi-box-arrow-right me-3 fs-5"></i> Cerrar sesión
             </a>
           </li>

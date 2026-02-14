@@ -1,0 +1,46 @@
+<div class="login-container d-flex align-items-center justify-content-center min-vh-100">
+    <div class="login-card p-4 text-center">
+        <!-- Logo -->
+        <div class="mb-3">
+            <img [src]="logo" alt="Logo" class="login-logo">
+        </div>
+
+        <!-- Title -->
+        <h1 class="login-title mb-4">Bienvenido</h1>
+
+        <!-- Form -->
+        <form (ngSubmit)="alEnviarFormulario()" #loginForm="ngForm" class="login-form">
+            <!-- Usuario -->
+            <div class="input-group mb-3 shadow-sm rounded-pill custom-input-group">
+                <span class="input-group-text bg-white border-0 ps-4 pe-2">
+                    <i class="bi bi-person text-secondary"></i>
+                </span>
+                <input type="text" class="form-control border-0 py-2 pe-4 rounded-pill" placeholder="Usuario"
+                    name="NombreUsuario" [(ngModel)]="NombreUsuario" required>
+            </div>
+
+            <!-- Contrasena -->
+            <div class="input-group mb-4 shadow-sm rounded-pill custom-input-group">
+                <span class="input-group-text bg-white border-0 ps-4 pe-2">
+                    <i class="bi bi-key text-secondary"></i>
+                </span>
+                <input type="password" class="form-control border-0 py-2 pe-4 rounded-pill" placeholder="Contrasena"
+                    name="Clave" [(ngModel)]="Clave" required>
+            </div>
+
+            <!-- Error Message -->
+            <div *ngIf="error()" class="alert alert-danger py-2 small mb-3">
+                {{ error() }}
+            </div>
+
+            <!-- Button -->
+            <button type="submit"
+                class="btn login-btn w-100 rounded-pill py-2 shadow-sm d-flex align-items-center justify-content-center"
+                [disabled]="cargando()" [style.backgroundColor]="colorSistema">
+                <span *ngIf="cargando()" class="spinner-border spinner-border-sm me-2"></span>
+                <i *ngIf="!cargando()" class="bi bi-person-circle me-2 fs-5"></i>
+                <span class="fw-bold">Iniciar Sesion</span>
+            </button>
+        </form>
+    </div>
+</div>

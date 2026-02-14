@@ -207,53 +207,24 @@
 }
 
 /* ===== Paginación ===== */
-.paginacion-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 1rem;
-    padding: 0.5rem 0;
+.card-footer {
+    border-radius: 0 0 16px 16px;
 }
 
-.paginacion-info {
-    font-size: 0.875rem;
-    color: var(--color-text-muted);
-}
-
-.paginacion-controles {
-    display: flex;
-    gap: 0.25rem;
-}
-
-.btn-paginacion {
-    min-width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: var(--color-white);
-    border: 1px solid var(--color-border);
-    border-radius: 4px;
-    font-size: 0.875rem;
+.pagination-nav .page-link {
     color: var(--color-text-dark);
-    cursor: pointer;
+    border: 1px solid var(--color-border);
+    padding: 0.4rem 0.8rem;
     transition: all 0.2s;
 }
 
-.btn-paginacion:hover:not(:disabled):not(.activo) {
-    border-color: var(--color-sistema);
+.pagination-nav .page-item.active .page-link {
+    color: white;
+}
+
+.pagination-nav .page-link:hover:not(.disabled) {
+    background-color: #f8f9fa;
     color: var(--color-sistema);
-}
-
-.btn-paginacion:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-.btn-paginacion.activo {
-    background-color: var(--color-sistema);
-    border-color: var(--color-sistema);
-    color: var(--color-white);
 }
 
 /* Responsive */

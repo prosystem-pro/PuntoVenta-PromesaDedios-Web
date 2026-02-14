@@ -13,14 +13,14 @@
                 <div class="form-row align-items-end">
                     <div class="form-group flex-grow-1">
                         <label>Clasificación <span class="text-danger">*</span></label>
-                        <input type="text" formControlName="nombre" placeholder="Nombre de categoría"
-                            [class.invalid]="clasifForm.get('nombre')?.invalid && clasifForm.get('nombre')?.touched">
+                        <input type="text" formControlName="NombreClasificacion" placeholder="Nombre de categoría"
+                            [class.invalid]="clasifForm.get('NombreClasificacion')?.invalid && clasifForm.get('NombreClasificacion')?.touched">
                     </div>
                     <div class="form-group ms-3" style="width: 150px;">
                         <label>Estado <span class="text-danger">*</span></label>
-                        <select formControlName="estado" class="form-select">
-                            <option value="Activo">Activo</option>
-                            <option value="Inactivo">Inactivo</option>
+                        <select formControlName="Estatus" class="form-select">
+                            <option [ngValue]="1">Activo</option>
+                            <option [ngValue]="0">Inactivo</option>
                         </select>
                     </div>
                     <button type="submit" class="btn btn-agregar ms-3" [style.background-color]="colorSistema">
@@ -39,14 +39,17 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @for (item of registrosPaginados(); track item.id) {
+                        @for (item of registrosPaginados(); track item.CodigoClasificacionMesa) {
                         <tr>
-                            <td>{{ item.nombre }}</td>
-                            <td [class.text-danger]="item.estado === 'Inactivo'">{{ item.estado }}</td>
+                            <td>{{ item.NombreClasificacion }}</td>
+                            <td [class.text-danger]="item.Estatus === 0">
+                                {{ item.Estatus === 1 ? 'Activo' : 'Inactivo' }}
+                            </td>
                             <td class="acciones-cell">
-                                <button class="btn-accion-mini"><i class="bi bi-pencil-square"></i></button>
-                                <button class="btn-accion-mini text-danger" (click)="eliminar(item.id)"><i
-                                        class="bi bi-trash"></i></button>
+                                <button class="btn-accion-mini text-danger"
+                                    (click)="eliminar(item.CodigoClasificacionMesa)">
+                                    <i class="bi bi-trash"></i>
+                                </button>
                             </td>
                         </tr>
                         }
@@ -60,11 +63,10 @@
                         [disabled]="paginaActual() === 1">
                         <i class="bi bi-chevron-left"></i>
                     </button>
-                    @for (p of [].constructor(totalPaginas()); track $index) {
-                    <button class="btn-paginacion-mini" [class.activo]="$index + 1 === paginaActual()"
-                        [style.background-color]="$index + 1 === paginaActual() ? colorSistema : null"
-                        (click)="irAPagina($index + 1)">
-                        {{ $index + 1 }}
+                    @for (p of paginasArray(); track p) {
+                    <button class="btn-paginacion-mini" [class.activo]="p === paginaActual()"
+                        [style.background-color]="p === paginaActual() ? colorSistema : null" (click)="irAPagina(p)">
+                        {{ p }}
                     </button>
                     }
                     <button class="btn-paginacion-mini" (click)="irAPagina(paginaActual() + 1)"

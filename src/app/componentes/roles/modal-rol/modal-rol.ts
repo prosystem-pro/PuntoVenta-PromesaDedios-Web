@@ -1,6 +1,7 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, signal, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormArray, FormControl } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormControl } from '@angular/forms';
+import { Rol } from '../../../Modelos/rol.modelo';
 
 @Component({
     selector: 'app-modal-rol',
@@ -9,11 +10,14 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, F
     templateUrl: './modal-rol.html',
     styleUrl: './modal-rol.css'
 })
-export class ModalRol {
+export class ModalRol implements OnChanges {
     @Input() visible = false;
     @Input() colorSistema = '#ff9500';
+    @Input() rolAEditar: Rol | null = null;
     @Output() alCerrar = new EventEmitter<void>();
     @Output() alGuardar = new EventEmitter<any>();
+
+    modoEdicion = signal(false);
 
     rolForm: FormGroup;
 
@@ -44,8 +48,23 @@ export class ModalRol {
 
         this.rolForm = this.fb.group({
             nombreRol: ['', [Validators.required]],
+            Estatus: [true],
             permisos: this.fb.group(permissionsGroup)
         });
+    }
+
+    ngOnChanges(changes: SimpleChanges): void {
+        if (changes['rolAEditar'] && this.rolAEditar) {
+            this.modoEdicion.set(true);
+            this.rolForm.patchValue({
+                nombreRol: this.rolAEditar.NombreRol,
+                Estatus: this.rolAEditar.Estatus === 1
+            });
+            // Si hubiera permisos persistidos en el backend, se cargarían aquí
+        } else if (changes['visible'] && this.visible && !this.rolAEditar) {
+            this.modoEdicion.set(false);
+            this.rolForm.reset({ Estatus: true });
+        }
     }
 
     cerrar() {
@@ -55,8 +74,12 @@ export class ModalRol {
 
     guardar() {
         if (this.rolForm.valid) {
-            this.alGuardar.emit(this.rolForm.value);
-            this.cerrar();
+            const formValue = this.rolForm.value;
+            const datosParaGuardar = {
+                ...formValue,
+                Estatus: formValue.Estatus ? 1 : 0
+            };
+            this.alGuardar.emit(datosParaGuardar);
         } else {
             this.rolForm.markAllAsTouched();
         }

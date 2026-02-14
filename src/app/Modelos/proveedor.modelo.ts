@@ -7,3 +7,9 @@ export interface Proveedor {
   Correo: string;
   Estatus: number;
 }
+
+export interface RespuestaProveedor {
+  success: boolean;
+  message: string;
+  data: Proveedor | Proveedor[];
+}

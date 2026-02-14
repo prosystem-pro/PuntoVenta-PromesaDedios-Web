@@ -1,9 +1,11 @@
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Rol } from '../../Modelos/rol.modelo';
 import { Entorno } from '../../Entorno/Entorno';
 import { ModalRol } from './modal-rol/modal-rol';
+import { ServicioUsuario } from '../../Servicios/usuario.service';
+import { AlertaServicio } from '../../Servicios/alerta.service';
 import * as XLSX from 'xlsx';
 
 @Component({
@@ -14,17 +16,22 @@ import * as XLSX from 'xlsx';
     styleUrl: './roles.css',
 })
 export class Roles implements OnInit {
+    private servicioUsuario = inject(ServicioUsuario);
+    private servicioAlerta = inject(AlertaServicio);
+
     // Color del sistema desde Entorno
     colorSistema = Entorno.ColorSistema;
 
     // Datos
-    private todosLosRoles: Rol[] = [];
+    roles = signal<Rol[]>([]);
+    cargando = signal(false);
 
     // Busqueda
     textoBusqueda = signal('');
 
     // Control del modal
-    mostrarModalCrear = signal(false);
+    mostrarModal = signal(false);
+    rolSeleccionado = signal<Rol | null>(null);
 
     // Paginacion fija
     paginaActual = signal(1);
@@ -34,9 +41,9 @@ export class Roles implements OnInit {
     rolesFiltrados = computed(() => {
         const busqueda = this.textoBusqueda().toLowerCase().trim();
         if (!busqueda) {
-            return this.todosLosRoles;
+            return this.roles();
         }
-        return this.todosLosRoles.filter(r =>
+        return this.roles().filter(r =>
             r.NombreRol.toLowerCase().includes(busqueda)
         );
     });
@@ -67,31 +74,16 @@ export class Roles implements OnInit {
         this.cargarRoles();
     }
 
-    private cargarRoles(): void {
-        // Datos simulados segun la imagen
-        const nombres = [
-            'Administrador',
-            'Propietario',
-            'Vendedor auxiliar',
-            'Vendedor',
-            'Pasante',
-            'Panadero',
-            'Bodeguero',
-            'Bodeguero',
-            'Bodeguero',
-            'Bodeguero'
-        ];
+    async cargarRoles() {
+        this.cargando.set(true);
+        const res = await this.servicioUsuario.obtenerRoles();
+        this.cargando.set(false);
 
-        const usuarios = [3, 2, 4, 2, 1, 5, 2, 1, 5, 6];
-        const permisos = [5, 5, 2, 1, 4, 6, 10, 8, 1, 3];
-
-        this.todosLosRoles = nombres.map((nombre, i) => ({
-            CodigoRol: i + 1,
-            NombreRol: nombre,
-            CantidadUsuarios: usuarios[i],
-            CantidadPermisos: permisos[i],
-            Estatus: 1
-        }));
+        if (res.success) {
+            this.roles.set(res.data as Rol[]);
+        } else {
+            // Error manejado por el servicio
+        }
     }
 
     // Metodos de paginacion
@@ -116,45 +108,71 @@ export class Roles implements OnInit {
     }
 
     // Metodos de acciones
-    eliminarRol(id: number): void {
-        console.log('Eliminando rol:', id);
+    async eliminarRol(id: number) {
+        const confirmado = await this.servicioAlerta.Confirmacion(
+            '¿Está seguro de eliminar este rol?',
+            'Esta acción no se puede deshacer',
+            'Sí, eliminar',
+            'Cancelar'
+        );
+
+        if (confirmado) {
+            this.cargando.set(true);
+            const res = await this.servicioUsuario.eliminarRol(id);
+            this.cargando.set(false);
+
+            if (res.success) {
+                this.servicioAlerta.MostrarExito(res.message || 'Rol eliminado correctamente');
+                this.cargarRoles();
+            } else {
+                this.servicioAlerta.MostrarError(res, 'Error al eliminar rol');
+            }
+        }
     }
 
     editarRol(rol: Rol): void {
-        console.log('Editando rol:', rol.NombreRol);
+        this.rolSeleccionado.set(rol);
+        this.mostrarModal.set(true);
     }
 
     crearRol(): void {
-        this.mostrarModalCrear.set(true);
+        this.rolSeleccionado.set(null);
+        this.mostrarModal.set(true);
     }
 
-    cerrarModalCrear(): void {
-        this.mostrarModalCrear.set(false);
+    cerrarModal(): void {
+        this.mostrarModal.set(false);
+        this.rolSeleccionado.set(null);
     }
 
-    manejarGuardarRol(datos: any): void {
-        console.log('Nuevo rol capturado:', datos);
-
-        // Simulación de agregar a la lista local
-        const nuevo: Rol = {
-            CodigoRol: this.todosLosRoles.length + 1,
+    async manejarGuardarRol(datos: any) {
+        let res;
+        const payload = {
             NombreRol: datos.nombreRol,
-            CantidadUsuarios: 0,
-            CantidadPermisos: Object.values(datos.permisos).filter(v => v === true).length,
-            Estatus: 1
+            Estatus: 1 // Por defecto activo, se puede expandir el modal para incluir estatus
         };
 
-        this.todosLosRoles = [nuevo, ...this.todosLosRoles];
-        // Resetear busqueda para mostrar el nuevo registro
-        this.textoBusqueda.set('');
+        this.cargando.set(true);
+        if (this.rolSeleccionado()) {
+            res = await this.servicioUsuario.editarRol(this.rolSeleccionado()!.CodigoRol, payload);
+        } else {
+            res = await this.servicioUsuario.crearRol(payload);
+        }
+        this.cargando.set(false);
+
+        if (res.success) {
+            this.servicioAlerta.MostrarExito(res.message || 'Rol guardado correctamente');
+            this.cargarRoles();
+            this.cerrarModal();
+        } else {
+            this.servicioAlerta.MostrarError(res, 'Error al guardar rol');
+        }
     }
 
     exportarExcel(): void {
-        const datosParaExportar = this.rolesFiltrados().map(r => ({
-            'No.': this.formatearNumero(r.CodigoRol),
+        const datosParaExportar = this.rolesFiltrados().map((r, index) => ({
+            'No.': index + 1,
             'Nombre': r.NombreRol,
-            '# Usuarios': r.CantidadUsuarios,
-            '# Permisos': r.CantidadPermisos,
             'Estatus': r.Estatus === 1 ? 'Activo' : 'Inactivo'
         }));
 
@@ -167,6 +185,6 @@ export class Roles implements OnInit {
     }
 
     formatearNumero(num: number): string {
-        return num.toString().padStart(2, '0');
+        return num.toString();
     }
 }

@@ -1,0 +1,291 @@
+<div class="detalle-container" [style.--color-sistema]="colorSistema">
+    <form [formGroup]="productoForm">
+        <div class="layout-grid">
+            <!-- Columna Izquierda: Formulario y Configuracion -->
+            <div class="col-main card shadow-sm">
+                <div class="card-header bg-white py-3 border-0 text-center">
+                    <h2 class="section-title m-0">{{ modoEdicion() ? 'Editar producto' : 'Crear producto' }}</h2>
+                </div>
+
+                <div class="card-body p-4">
+                    <div class="form-grid">
+                        <!-- Fila 1 -->
+                        <div class="form-group">
+                            <label class="form-label">Categoría<span class="text-danger">*</span></label>
+                            <div class="input-with-button">
+                                <select formControlName="CodigoCategoriaProducto" class="form-select">
+                                    <option [ngValue]="null">Seleccionar</option>
+                                    @for (cat of categorias(); track cat.CodigoCategoriaProducto) {
+                                    <option [ngValue]="cat.CodigoCategoriaProducto">{{ cat.NombreCategoriaProducto }}
+                                    </option>
+                                    }
+                                </select>
+                                <button type="button" class="btn btn-add-mini" [style.background-color]="colorSistema"
+                                    (click)="mostrarCategoriaModal.set(true)">
+                                    <i class="bi bi-plus-lg"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Producto<span class="text-danger">*</span></label>
+                            <input type="text" formControlName="NombreProducto" class="form-control"
+                                placeholder="Nombre">
+                        </div>
+
+                        <!-- Fila 2 -->
+                        <div class="form-group">
+                            <label class="form-label">Presentación<span class="text-danger">*</span></label>
+                            <div class="input-with-button">
+                                <select formControlName="CodigoUnidadMedida" class="form-select">
+                                    <option [ngValue]="null">Seleccionar</option>
+                                    @for (uni of unidades(); track uni.CodigoUnidadMedida) {
+                                    <option [ngValue]="uni.CodigoUnidadMedida">{{ uni.NombreUnidad }}</option>
+                                    }
+                                </select>
+                                <button type="button" class="btn btn-add-mini" [style.background-color]="colorSistema"
+                                    (click)="mostrarPresentacionModal.set(true)">
+                                    <i class="bi bi-plus-lg"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Tipo producto</label>
+                                    <select formControlName="TipoProducto" class="form-select">
+                                        <option value="Ventanilla">Ventanilla</option>
+                                        <option value="Cocina">Cocina</option>
+                                        <option value="Insumo">Insumo</option>
+                                    </select>
+                        </div>
+
+                        <!-- Fila Stock -->
+                        <div class="d-flex gap-3" style="grid-column: span 2;">
+                            <div class="form-group flex-grow-1">
+                                <label class="form-label">Stock</label>
+                                <input type="number" formControlName="Stock" class="form-control" placeholder="Cant.">
+                            </div>
+                            <div class="form-group flex-grow-1">
+                                <label class="form-label">Stock Mínimo</label>
+                                <input type="number" formControlName="StockMinimo" class="form-control"
+                                    placeholder="Cant.">
+                            </div>
+                            <div class="form-group flex-grow-1">
+                                <label class="form-label">Stock Sugerido</label>
+                                <input type="number" formControlName="StockSugerido" class="form-control"
+                                    placeholder="Cant.">
+                            </div>
+                        </div>
+
+                        <!-- Fila Precios -->
+                        <div class="form-group">
+                            <label class="form-label">Precio compra</label>
+                            <input type="number" formControlName="PrecioCompra" class="form-control"
+                                placeholder="Cantidad">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Precio venta<span class="text-danger">*</span></label>
+                            <input type="number" formControlName="PrecioVenta" class="form-control"
+                                placeholder="Cantidad">
+                        </div>
+
+                        <!-- Fila Codigo/IVA e Imagen -->
+                        <div class="d-flex gap-3 align-items-end" style="grid-column: span 2;">
+                            <div class="form-group flex-grow-1">
+                                <label class="form-label">Código de barra</label>
+                                <input type="text" formControlName="CodigoBarra" class="form-control"
+                                    placeholder="Código">
+                            </div>
+                            <div class="form-group" style="width: 120px;">
+                                <label class="form-label">Iva (%)</label>
+                                <input type="number" formControlName="Iva" class="form-control" placeholder="0">
+                            </div>
+
+                            <div class="upload-section ms-2">
+                                <label class="form-label d-block">Subir imagen</label>
+                                <div class="upload-controls d-flex gap-2">
+                                    <button type="button" class="btn btn-upload-icon" (click)="fileInput.click()">
+                                        <i class="bi bi-upload"></i>
+                                    </button>
+                                    <input #fileInput type="file" hidden (change)="alSeleccionarImagen($event)"
+                                        accept="image/*">
+                                    <div class="mini-preview border rounded">
+                                        @if(imagenPreview()) {
+                                        <img [src]="imagenPreview()" alt="Preview">
+                                        } @else {
+                                        <i class="bi bi-image text-muted"></i>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Switch Receta -->
+                    <div class="form-check form-switch mt-4">
+                        <input class="form-check-input" type="checkbox" role="switch" id="recetaSwitch"
+                            formControlName="TieneReceta">
+                        <label class="form-check-label" for="recetaSwitch">
+                            Recetas
+                        </label>
+                    </div>
+
+                    <!-- Configuración de Ingredientes -->
+                    @if(productoForm.get('TieneReceta')?.value) {
+                    <div class="configuration-section animate__animated animate__fadeIn">
+                        <h3 class="config-title">Configuración</h3>
+                        <div class="config-grid">
+                            <div class="form-group position-relative">
+                                <label class="form-label">Ingredientes</label>
+                                <input type="text" class="form-control" placeholder="Nombre"
+                                    [value]="textoFiltroIngrediente()" (input)="alEscribirIngrediente(txt.value)"
+                                    autocomplete="off" #txt>
+
+                                <!-- Sugerencias del buscador -->
+                                @if(textoFiltroIngrediente() && !ingredienteSeleccionado()) {
+                                <ul class="suggestion-list">
+                                    @for(p of ingredientesDisponibles(); track p.CodigoProducto) {
+                                    <li (mousedown)="seleccionarIngrediente(p)">
+                                        {{ p.NombreProducto }} - <small>{{ p.NombreUnidad }}</small>
+                                    </li>
+                                    }
+                                </ul>
+                                }
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Presentación</label>
+                                <select class="form-select" [value]="unidadIngrediente()"
+                                    (change)="alCambiarUnidadIngrediente($event)">
+                                    <option [value]="null">Seleccionar</option>
+                                    @for(uni of unidades(); track uni.CodigoUnidadMedida) {
+                                    <option [value]="uni.CodigoUnidadMedida">
+                                        {{ uni.NombreUnidad }}
+                                    </option>
+                                    }
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Cantidad</label>
+                                <input type="number" class="form-control" placeholder="Cantidad"
+                                    [value]="cantidadIngrediente()" (input)="cantidadIngrediente.set(+cant.value)"
+                                    #cant>
+                            </div>
+
+                            <div class="d-flex align-items-end">
+                                <button type="button" class="btn btn-agregar-main w-100"
+                                    [style.background-color]="colorSistema" (click)="agregarIngrediente()">
+                                    <i class="bi bi-plus-lg"></i> Agregar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Columna Derecha: Lista de Ingredientes -->
+            <div class="col-side card shadow-sm">
+                <div class="card-header bg-white py-3 border-0 text-center">
+                    <h2 class="section-title m-0">Lista de ingredientes</h2>
+                </div>
+
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table align-middle m-0">
+                            <thead>
+                                <tr>
+                                    <th>Ingrediente <i class="bi bi-arrow-down-up"></i></th>
+                                    <th>Present. <i class="bi bi-arrow-down-up"></i></th>
+                                    <th>Cant. <i class="bi bi-arrow-down-up"></i></th>
+                                    <th class="text-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody formArrayName="Ingredientes">
+                                @for(ing of ingredientes.controls; track $index; let i = $index) {
+                                <tr [formGroupName]="i" [class.table-active]="indiceEdicionIngrediente() === i">
+                                    <td class="fw-bold">{{ ing.get('NombreProducto')?.value }}</td>
+                                    <td>
+                                        @if(indiceEdicionIngrediente() === i) {
+                                        <select formControlName="CodigoUnidadMedida" class="form-select form-select-sm">
+                                            @for (uni of unidades(); track uni.CodigoUnidadMedida) {
+                                            <option [ngValue]="uni.CodigoUnidadMedida">{{ uni.NombreUnidad }}</option>
+                                            }
+                                        </select>
+                                        } @else {
+                                        {{ ing.get('NombreUnidad')?.value }}
+                                        }
+                                    </td>
+                                    <td>
+                                        @if(indiceEdicionIngrediente() === i) {
+                                        <input type="number" formControlName="Cantidad"
+                                            class="form-control form-control-sm table-input">
+                                        } @else {
+                                        {{ ing.get('Cantidad')?.value }}
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        @if(indiceEdicionIngrediente() === i) {
+                                        <button type="button" class="btn-accion btn-editar" title="Confirmar"
+                                            (click)="confirmarEdicion(i)">
+                                            <i class="bi bi-check-lg text-success"></i>
+                                        </button>
+                                        } @else {
+                                        <button type="button" class="btn-accion btn-editar" title="Editar"
+                                            (click)="editarIngrediente(i)">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </button>
+                                        <button type="button" class="btn-accion btn-eliminar" title="Eliminar"
+                                            (click)="eliminarIngrediente(i)">
+                                            <i class="bi bi-trash-fill"></i>
+                                        </button>
+                                        }
+                                    </td>
+                                </tr>
+                                }
+                                @if(ingredientes.length === 0) {
+                                <tr>
+                                    <td colspan="4" class="text-center py-5 text-muted">
+                                        Cargue ingredientes activando la opción "Recetas"
+                                    </td>
+                                </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card-footer bg-white border-0 p-4">
+                    <div class="cost-summary mb-4" [style.background-color]="'#98e6b3'">
+                        Costo total ingredientes: Q {{ calcularCostoTotal() | number:'1.2-2' }}
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="pagination-mini">
+                            <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-chevron-left"></i></button>
+                            <span class="px-2">1</span>
+                            <button class="btn btn-outline-secondary btn-sm"><i
+                                    class="bi bi-chevron-right"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="global-actions d-flex justify-content-end gap-3 mt-4">
+            <button type="button" class="btn btn-cancelar" (click)="cancelar()">Cancelar</button>
+            <button type="button" class="btn btn-guardar-main" [style.background-color]="colorSistema"
+                (click)="guardar()">
+                <i class="bi bi-download"></i> Guardar
+            </button>
+        </div>
+    </form>
+</div>
+
+<app-categoria-modal [visible]="mostrarCategoriaModal()" [colorSistema]="colorSistema"
+    (alCerrar)="mostrarCategoriaModal.set(false)" (alGuardar)="cargarCatalogos()">
+</app-categoria-modal>
+
+<app-presentacion-modal [visible]="mostrarPresentacionModal()" [colorSistema]="colorSistema"
+    (alCerrar)="mostrarPresentacionModal.set(false)" (alGuardar)="cargarCatalogos()">
+</app-presentacion-modal>

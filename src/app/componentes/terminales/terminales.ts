@@ -102,11 +102,9 @@ export class Terminales implements OnInit {
     }
 
     eliminarTerminal(id: number): void {
-        console.log('Eliminando terminal:', id);
     }
 
     editarTerminal(terminal: Terminal): void {
-        console.log('Editando terminal:', terminal.NombreTerminal);
     }
 
     crearTerminal(): void {
@@ -118,7 +116,6 @@ export class Terminales implements OnInit {
     }
 
     manejarGuardarTerminal(datos: any): void {
-        console.log('Nueva terminal capturada:', datos);
 
         const nuevo: Terminal = {
             CodigoTerminal: this.todasLasTerminales.length + 1,

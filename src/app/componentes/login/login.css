@@ -1,0 +1,58 @@
+.login-container {
+  background-color: #ffffff;
+  font-family: 'Inter', sans-serif;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 400px;
+}
+
+.login-logo {
+  max-width: 150px;
+  height: auto;
+}
+
+.login-title {
+  font-family: 'Pacifico', cursive;
+  color: #5d4037; /* Marron tenue como el logo */
+  font-size: 3rem;
+  font-weight: normal;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+}
+
+.custom-input-group {
+  border: 1px solid #f0f0f0;
+  background-color: white;
+}
+
+.custom-input-group input:focus {
+  box-shadow: none;
+  outline: none;
+}
+
+.login-btn {
+  color: white;
+  border: none;
+  font-size: 1.1rem;
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+.login-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+}
+
+.login-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.login-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Iconos de bootstrap */
+.bi {
+  vertical-align: middle;
+}

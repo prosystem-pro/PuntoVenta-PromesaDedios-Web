@@ -6,9 +6,13 @@ export interface Usuario {
   Telefono: string;
   Direccion: string;
   Estatus: number;
-  // Campos opcionales del diagrama ER
-  Correo?: string;
-  ClaveHash?: string;
-  ClaveSalt?: string;
-  SuperAdmin?: number;
+  Correo: string;
+  Clave?: string; // Para creacion y edicion
+  NombreRol?: string;
+}
+
+export interface RespuestaUsuario {
+  success: boolean;
+  message: string;
+  data: Usuario | Usuario[];
 }

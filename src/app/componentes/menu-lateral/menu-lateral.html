@@ -6,7 +6,7 @@
 
     <div *ngIf="estaExpandido()" class="position-absolute start-50 translate-middle-x">
       <a routerLink="/" class="text-decoration-none">
-        <img src="logoPromesaDeDios.png" alt="Logo" class="img-fluid" style="max-width: 120px; cursor: pointer;">
+        <img [src]="logo" alt="Logo" class="img-fluid" style="max-width: 120px; cursor: pointer;">
       </a>
     </div>
 
@@ -17,7 +17,7 @@
     </button>
   </div>
 
-  <ul class="nav nav-pills flex-column mb-auto">
+  <ul class="nav nav-pills flex-column flex-nowrap nav-scroll">
     <li class="nav-item mb-2" *ngFor="let item of itemsMenu">
       <a [routerLink]="item.ruta" routerLinkActive="active-link"
         class="nav-link d-flex align-items-center link-dark py-2 rounded-3 hover-effect"

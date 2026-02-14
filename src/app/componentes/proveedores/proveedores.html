@@ -2,7 +2,7 @@
     <!-- Header con botones y titulo -->
     <div class="proveedores-header">
         <button class="btn btn-export" [style.background-color]="colorSistema" (click)="exportarExcel()">
-            <i class="bi bi-file-earmark-spreadsheet"></i> Exportar a exel
+            <i class="bi bi-file-earmark-spreadsheet"></i> Exportar a Excel
         </button>
 
         <h2 class="proveedores-titulo" [style.color]="colorSistema">
@@ -15,82 +15,95 @@
     </div>
 
     <!-- Barra de busqueda -->
-    <div class="search-container">
+    <div class="search-container mb-4">
         <div class="search-box">
-            <input type="text" class="search-input" placeholder="Buscar" [value]="textoBusqueda()"
-                (input)="alCambiarBusqueda($event)">
+            <input type="text" class="search-input" placeholder="Buscar por nombre, NIT, telefono o correo..."
+                [value]="textoBusqueda()" (input)="alCambiarBusqueda($event)">
             <i class="bi bi-search search-icon"></i>
         </div>
     </div>
 
-    <!-- Tabla de proveedores -->
-    <div class="table-container">
-        <table class="proveedores-table">
-            <thead>
-                <tr>
-                    <th>No. <i class="bi bi-arrow-down-up"></i></th>
-                    <th>Nombre <i class="bi bi-arrow-down-up"></i></th>
-                    <th>Nit <i class="bi bi-arrow-down-up"></i></th>
-                    <th>Telefono <i class="bi bi-arrow-down-up"></i></th>
-                    <th>Direccion <i class="bi bi-arrow-down-up"></i></th>
-                    <th class="text-center">Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                @for (proveedor of proveedoresPaginados(); track proveedor.CodigoProveedor; let i = $index) {
-                <tr>
-                    <td>{{ formatearNumero(proveedor.CodigoProveedor) }}</td>
-                    <td>{{ proveedor.NombreProveedor }}</td>
-                    <td>{{ proveedor.NIT }}</td>
-                    <td>{{ proveedor.Telefono }}</td>
-                    <td>{{ proveedor.Direccion }}</td>
-                    <td class="acciones-cell">
-                        <button class="btn-accion btn-editar" (click)="editarProveedor(proveedor)" title="Editar">
-                            <i class="bi bi-pencil-square"></i>
-                        </button>
-                        <button class="btn-accion btn-eliminar" (click)="eliminarProveedor(proveedor.CodigoProveedor)"
-                            title="Eliminar">
-                            <i class="bi bi-trash-fill"></i>
-                        </button>
-                    </td>
-                </tr>
-                } @empty {
-                <tr>
-                    <td colspan="6" class="text-center py-4 text-muted">No se encontraron proveedores</td>
-                </tr>
-                }
-            </tbody>
-        </table>
-    </div>
+    <!-- Table Section -->
+    <div class="users-card shadow-sm border-0">
+        <div class="table-container p-0">
+            <div *ngIf="cargando()" class="text-center py-5">
+                <div class="spinner-border" [style.color]="colorSistema" role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+                <p class="mt-2 text-muted">Cargando proveedores...</p>
+            </div>
 
-    <!-- Paginacion -->
-    <div class="paginacion-container">
-        <span class="paginacion-info">
-            Mostrando {{ rangoInicio() }} al {{ rangoFin() }} de {{ totalRegistros() }} registros
-        </span>
-
-        <div class="paginacion-controles">
-            <button class="btn-paginacion" (click)="paginaAnterior()" [disabled]="paginaActual() === 1">
-                <i class="bi bi-chevron-left"></i>
-            </button>
-
-            @for (pagina of [].constructor(totalPaginas()); track $index) {
-            <button class="btn-paginacion" [class.activo]="paginaActual() === $index + 1"
-                [style.background-color]="paginaActual() === $index + 1 ? colorSistema : null"
-                [style.border-color]="paginaActual() === $index + 1 ? colorSistema : null"
-                (click)="irAPagina($index + 1)">
-                {{ $index + 1 }}
-            </button>
-            }
-
-            <button class="btn-paginacion" (click)="paginaSiguiente()" [disabled]="paginaActual() === totalPaginas()">
-                <i class="bi bi-chevron-right"></i>
-            </button>
+            <table *ngIf="!cargando()" class="proveedores-table">
+                <thead>
+                    <tr>
+                        <th>No. <i class="bi bi-arrow-down-up ms-1 small text-muted"></i></th>
+                        <th>Nombre <i class="bi bi-arrow-down-up ms-1 small text-muted"></i></th>
+                        <th>NIT <i class="bi bi-arrow-down-up ms-1 small text-muted"></i></th>
+                        <th>Telefono <i class="bi bi-arrow-down-up ms-1 small text-muted"></i></th>
+                        <th>Direccion <i class="bi bi-arrow-down-up ms-1 small text-muted"></i></th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let proveedor of proveedoresPaginados(); let i = index">
+                        <td>{{ (paginaActual() - 1) * itemsPorPagina + i + 1 }}</td>
+                        <td>{{ proveedor.NombreProveedor }}</td>
+                        <td>{{ proveedor.NIT }}</td>
+                        <td>{{ proveedor.Telefono }}</td>
+                        <td class="text-truncate" style="max-width: 200px;">{{ proveedor.Direccion }}</td>
+                        <td class="acciones-cell">
+                            <button class="btn-accion btn-editar" (click)="editarProveedor(proveedor)" title="Editar">
+                                <i class="bi bi-pencil-square"></i>
+                            </button>
+                            <button class="btn-accion btn-eliminar"
+                                (click)="eliminarProveedor(proveedor.CodigoProveedor)" title="Eliminar">
+                                <i class="bi bi-trash-fill"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr *ngIf="proveedoresPaginados().length === 0">
+                        <td colspan="6" class="text-center py-4 text-muted">No se encontraron proveedores</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 
-    <!-- Modal para crear proveedor -->
-    <app-modal-proveedor [visible]="mostrarModalCrear()" [colorSistema]="colorSistema" (alCerrar)="cerrarModalCrear()"
-        (alGuardar)="manejarGuardarProveedor($event)">
-    </app-modal-proveedor>
+    <!-- Pagination Section -->
+    <div class="pagination-footer mt-4 d-flex align-items-center justify-content-between">
+        <div class="pagination-info text-muted small">
+            Mostrando <strong>{{ rangoInicio() }}</strong> al <strong>{{ rangoFin() }}</strong> de <strong>{{
+                totalRegistros() }}</strong> registros
+        </div>
+
+        <nav aria-label="Page navigation">
+            <ul class="pagination pagination-sm mb-0">
+                <li class="page-item" [class.disabled]="paginaActual() === 1">
+                    <button class="page-link" (click)="paginaAnterior()">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                </li>
+
+                <li class="page-item" *ngFor="let p of [].constructor(totalPaginas()); let i = index"
+                    [class.active]="paginaActual() === i + 1">
+                    <button class="page-link" (click)="irAPagina(i + 1)"
+                        [style.backgroundColor]="paginaActual() === i + 1 ? colorSistema : ''"
+                        [style.borderColor]="paginaActual() === i + 1 ? colorSistema : ''">
+                        {{ i + 1 }}
+                    </button>
+                </li>
+
+                <li class="page-item" [class.disabled]="paginaActual() === totalPaginas() || totalPaginas() === 0">
+                    <button class="page-link" (click)="paginaSiguiente()">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                </li>
+            </ul>
+        </nav>
+    </div>
 </div>
+
+<!-- Modal para Crear/Editar Proveedor -->
+<app-modal-proveedor [visible]="mostrarModal()" [proveedorAEditar]="proveedorSeleccionado()"
+    [colorSistema]="colorSistema" (alCerrar)="cerrarModal()" (alGuardar)="manejarGuardarProveedor($event)">
+</app-modal-proveedor>

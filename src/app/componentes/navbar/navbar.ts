@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { Component, inject } from '@angular/core';
+import { RouterModule, Router } from '@angular/router';
 import { Entorno } from '../../Entorno/Entorno';
+import { ServicioAutenticacion } from '../../Servicios/auth.service';
 
 @Component({
   selector: 'app-navbar',
@@ -11,4 +12,11 @@ import { Entorno } from '../../Entorno/Entorno';
 })
 export class Navbar {
   public colorPrincipal = Entorno.ColorSistema;
+  servicioAutenticacion = inject(ServicioAutenticacion);
+  private router = inject(Router);
+
+  cerrarSesion(event: Event): void {
+    event.preventDefault();
+    this.servicioAutenticacion.cerrarSesion();
+  }
 }

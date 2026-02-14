@@ -1,6 +1,5 @@
 export interface ClasificacionMesa {
     CodigoClasificacionMesa: number;
-    NombreClasificacionMesa: string;
-    Descripcion: string;
+    NombreClasificacion: string;
     Estatus: number;
 }

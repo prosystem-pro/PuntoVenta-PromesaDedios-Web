@@ -1,7 +1,8 @@
 export const Entorno = {
   Produccion: false,
-  ApiUrl: 'http://localhost:1433/api/',
+  ApiUrl: 'https://puntoventa-promesadedios-api-production.up.railway.app/api/',
   NombreEmpresa: 'PromesaDeDios',
-  ColorSistema: '#FF9500'
-  // ColorSistema: '#006effff'
+  Logo: 'logoPromesaDeDios.png',
+  // ColorSistema: '#FF9500'
+  ColorSistema: '#599ceaff'
 };

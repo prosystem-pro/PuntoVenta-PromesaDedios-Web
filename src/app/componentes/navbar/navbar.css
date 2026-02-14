@@ -10,6 +10,13 @@
     padding-right: 15px;
 }
 
+/* Remover gutters de bootstrap que causan espacio a la derecha */
+.navbar .container-fluid {
+    padding-left: 0;
+    padding-right: 0;
+    --bs-gutter-x: 0;
+}
+
 /* Las capas decorativas usando pseudo-elementos */
 .gear-stack::before,
 .gear-stack::after {
@@ -51,7 +58,7 @@
     align-items: center;
     justify-content: center;
     font-size: 1.5rem;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
     transition: transform 0.3s ease;
 }
 
@@ -90,10 +97,17 @@
 .btn-gear:focus,
 .btn-gear:focus-visible {
     outline: none;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2), 0 0 0 3px rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2), 0 0 0 3px rgba(255, 255, 255, 0.3);
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }

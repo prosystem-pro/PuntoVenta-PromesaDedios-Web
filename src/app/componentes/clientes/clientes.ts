@@ -1,9 +1,11 @@
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Cliente } from '../../Modelos/cliente.modelo';
 import { Entorno } from '../../Entorno/Entorno';
 import { ModalCliente } from './modal-cliente/modal-cliente';
+import { ClienteServicio } from '../../Servicios/cliente.service';
+import { AlertaServicio } from '../../Servicios/alerta.service';
 import * as XLSX from 'xlsx';
 
 @Component({
@@ -14,19 +16,25 @@ import * as XLSX from 'xlsx';
     styleUrl: './clientes.css',
 })
 export class Clientes implements OnInit {
+    // Inyeccion de servicios
+    private servicioCliente = inject(ClienteServicio);
+    private servicioAlerta = inject(AlertaServicio);
+
     // Color del sistema desde Entorno
     colorSistema = Entorno.ColorSistema;
 
     // Datos
-    private todosLosClientes: Cliente[] = [];
+    clientes = signal<Cliente[]>([]);
+    cargando = signal(false);
 
     // Busqueda
     textoBusqueda = signal('');
 
     // Control del modal
-    mostrarModalCrear = signal(false);
+    mostrarModal = signal(false);
+    clienteSeleccionado = signal<Cliente | null>(null);
 
-    // Paginacion fija
+    // Paginacion
     paginaActual = signal(1);
     itemsPorPagina = 7;
 
@@ -34,9 +42,9 @@ export class Clientes implements OnInit {
     clientesFiltrados = computed(() => {
         const busqueda = this.textoBusqueda().toLowerCase().trim();
         if (!busqueda) {
-            return this.todosLosClientes;
+            return this.clientes();
         }
-        return this.todosLosClientes.filter(c =>
+        return this.clientes().filter(c =>
             c.NombreCliente.toLowerCase().includes(busqueda) ||
             c.NIT.toLowerCase().includes(busqueda) ||
             c.Telefono.includes(busqueda) ||
@@ -70,39 +78,16 @@ export class Clientes implements OnInit {
         this.cargarClientes();
     }
 
-    private cargarClientes(): void {
-        // Simulacion de JSON del API con 20 registros
-        const nombres = [
-            'Maria Luisa Castro Merida de Juarez',
-            'Juan Alberto Perez Maldonado',
-            'Ana Lucia Gonzalez Estrada',
-            'Carlos Roberto Hernandez Mendez',
-            'Silvia Patricia Lopez Ruiz',
-            'Ricardo Antonio Martinez Garcia',
-            'Claudia Maria Sanchez Diaz',
-            'Jorge Mario Torres Vega',
-            'Rosa Maria Ramirez Cruz',
-            'Luis Fernando Sanchez Luna',
-            'Elena Sofia Perez Ortiz',
-            'Victor Manuel Lopez Castillo',
-            'Beatriz Adriana Gutierrez Rios',
-            'Mario Rene Moreno Silva',
-            'Indira Cristina Vargas Ponce',
-            'Sergio David Reyes Aguilar',
-            'Karla Andrea Flores Navarro',
-            'Oscar Esteban Romero Campos',
-            'Marta Jose Herrera Delgado',
-            'Estuardo Alejandro Cruz Espinoza'
-        ];
+    async cargarClientes() {
+        this.cargando.set(true);
+        const res = await this.servicioCliente.listarClientes();
+        this.cargando.set(false);
 
-        this.todosLosClientes = Array(20).fill(null).map((_, i) => ({
-            CodigoCliente: i + 1,
-            NombreCliente: nombres[i],
-            NIT: `8897322-${i % 9 + 1}`,
-            Direccion: 'San Antonio Palopo, Solola',
-            Telefono: '4456-7665',
-            Estatus: 1
-        }));
+        if (res.success) {
+            this.clientes.set(res.data as Cliente[]);
+        } else {
+            // Error manejado silenciosamente si es necesario, cargando queda en false
+        }
     }
 
     // Metodos de paginacion
@@ -124,49 +109,65 @@ export class Clientes implements OnInit {
     alCambiarBusqueda(evento: Event): void {
         const input = evento.target as HTMLInputElement;
         this.textoBusqueda.set(input.value);
-        this.paginaActual.set(1); // Resetear a primera pagina al buscar
+        this.paginaActual.set(1);
     }
 
     // Metodos de acciones
-    eliminarCliente(id: number): void {
-        console.log('Eliminando cliente:', id);
-        if (confirm('¿Esta seguro de eliminar este cliente?')) {
-            this.todosLosClientes = this.todosLosClientes.filter(c => c.CodigoCliente !== id);
-            this.textoBusqueda.set(this.textoBusqueda()); // Forzar actualizacion
+    async eliminarCliente(id: number) {
+        const confirmado = await this.servicioAlerta.Confirmacion(
+            '¿Esta seguro de eliminar este cliente?',
+            'Esta accion no se puede deshacer'
+        );
+
+        if (confirmado) {
+            const res = await this.servicioCliente.eliminarCliente(id);
+            if (res.success) {
+                this.servicioAlerta.MostrarExito(res.message || 'Cliente eliminado correctamente');
+                this.cargarClientes();
+            } else {
+                this.servicioAlerta.MostrarError(res, 'Error al eliminar cliente');
+            }
         }
     }
 
     editarCliente(cliente: Cliente): void {
-        console.log('Editando cliente:', cliente.NombreCliente);
+        this.clienteSeleccionado.set(cliente);
+        this.mostrarModal.set(true);
     }
 
     crearCliente(): void {
-        this.mostrarModalCrear.set(true);
+        this.clienteSeleccionado.set(null);
+        this.mostrarModal.set(true);
     }
 
-    cerrarModalCrear(): void {
-        this.mostrarModalCrear.set(false);
+    cerrarModal(): void {
+        this.mostrarModal.set(false);
+        this.clienteSeleccionado.set(null);
     }
 
-    manejarGuardarCliente(datos: any): void {
-        console.log('Nuevo cliente capturado:', datos);
+    async manejarGuardarCliente(datos: any) {
+        let res;
 
-        const nuevo: Cliente = {
-            CodigoCliente: this.todosLosClientes.length + 1,
-            NombreCliente: datos.nombre,
-            NIT: datos.nit,
-            Direccion: datos.direccion,
-            Telefono: datos.telefono,
-            Estatus: datos.activo ? 1 : 0
-        };
+        if (this.clienteSeleccionado()) {
+            // Editar
+            res = await this.servicioCliente.editarCliente(this.clienteSeleccionado()!.CodigoCliente, datos);
+        } else {
+            // Crear
+            res = await this.servicioCliente.crearCliente(datos);
+        }
 
-        this.todosLosClientes = [nuevo, ...this.todosLosClientes];
-        this.textoBusqueda.set(this.textoBusqueda());
+        if (res.success) {
+            this.servicioAlerta.MostrarExito(res.message || 'Cliente guardado correctamente');
+            this.cargarClientes();
+            this.cerrarModal();
+        } else {
+            this.servicioAlerta.MostrarError(res, 'Error al guardar cliente');
+        }
     }
 
     exportarExcel(): void {
-        const datosParaExportar = this.clientesFiltrados().map(c => ({
-            'No.': this.formatearNumero(c.CodigoCliente),
+        const datosParaExportar = this.clientesFiltrados().map((c, index) => ({
+            'No.': index + 1,
             'Nombre': c.NombreCliente,
             'NIT': c.NIT,
             'Direccion': c.Direccion,
@@ -183,7 +184,7 @@ export class Clientes implements OnInit {
     }
 
     formatearNumero(num: number): string {
-        return num.toString().padStart(2, '0');
+        return num.toString();
     }
 
 }

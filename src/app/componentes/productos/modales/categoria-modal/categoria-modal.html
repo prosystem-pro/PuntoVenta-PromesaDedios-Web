@@ -1,0 +1,93 @@
+@if (visible) {
+<div class="modal-overlay">
+    <div class="modal-content animate__animated animate__fadeInDown">
+        <div class="modal-header">
+            <h2 class="modal-titulo">Crear categoría</h2>
+            <button class="btn-close-modal" (click)="cerrar()">
+                <i class="bi bi-x-circle-fill" [style.color]="colorSistema"></i>
+            </button>
+        </div>
+
+        <div class="modal-body p-4">
+            <div class="row g-3 mb-4">
+                <div class="col-8">
+                    <label class="form-label">Nombre de categoría<span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" [(ngModel)]="nuevaCategoria.NombreCategoriaProducto"
+                        placeholder="Ej. Bebidas">
+                </div>
+                <div class="col-4 d-flex align-items-end">
+                    <button class="btn w-100 text-white fw-bold py-2" [style.background-color]="colorSistema"
+                        (click)="guardar()">
+                        {{ modoEdicion() ? 'Actualizar' : 'Guardar' }}
+                    </button>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-5">
+                    <label class="form-label">Estado<span class="text-danger">*</span></label>
+                    <select class="form-select" [(ngModel)]="nuevaCategoria.Estatus">
+                        <option [ngValue]="1">Activo</option>
+                        <option [ngValue]="0">Inactivo</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="table-container shadow-sm rounded border overflow-hidden">
+                <table class="table align-middle m-0">
+                    <thead>
+                        <tr>
+                            <th>Categoría <i class="bi bi-arrow-down-up"></i></th>
+                            <th class="text-end">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="border-0">
+                        @for(cat of categoriasPaginadas(); track cat.CodigoCategoriaProducto) {
+                        <tr>
+                            <td class="fw-medium">{{ cat.NombreCategoriaProducto }}</td>
+                            <td class="text-end">
+                                <button class="btn-action" (click)="editar(cat)" title="Editar">
+                                    <i class="bi bi-pencil-square"></i>
+                                </button>
+                                <button class="btn-action text-danger" (click)="eliminar(cat.CodigoCategoriaProducto!)"
+                                    title="Eliminar">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination-footer mt-3 d-flex justify-content-end">
+                <nav>
+                    <ul class="pagination pagination-sm m-0">
+                        <li class="page-item" [class.disabled]="paginaActual() === 1">
+                            <button class="page-link" (click)="irAPagina(paginaActual() - 1)">
+                                <i class="bi bi-chevron-left"></i>
+                            </button>
+                        </li>
+
+                        @for (p of paginas; track p) {
+                        <li class="page-item" [class.active]="paginaActual() === p">
+                            <button class="page-link" (click)="irAPagina(p)"
+                                [style.background-color]="paginaActual() === p ? colorSistema : ''"
+                                [style.border-color]="paginaActual() === p ? colorSistema : ''">
+                                {{ p }}
+                            </button>
+                        </li>
+                        }
+
+                        <li class="page-item" [class.disabled]="paginaActual() === totalPaginas()">
+                            <button class="page-link" (click)="irAPagina(paginaActual() + 1)">
+                                <i class="bi bi-chevron-right"></i>
+                            </button>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+}

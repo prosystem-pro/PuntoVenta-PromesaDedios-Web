@@ -62,7 +62,7 @@
                 </div>
 
                 <button type="submit" class="btn-guardar" [style.background-color]="colorSistema">
-                    <i class="bi bi-download"></i> Actualizar
+                    <i class="bi bi-download"></i> {{ modoEdicion() ? 'Actualizar' : 'Guardar' }}
                 </button>
             </div>
         </form>

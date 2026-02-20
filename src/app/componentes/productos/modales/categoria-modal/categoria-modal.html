@@ -2,34 +2,32 @@
 <div class="modal-overlay">
     <div class="modal-content animate__animated animate__fadeInDown">
         <div class="modal-header">
-            <h2 class="modal-titulo">Crear categoría</h2>
+            <h2 class="modal-titulo">{{ modoEdicion() ? 'Editar categoría' : 'Crear categoría' }}</h2>
             <button class="btn-close-modal" (click)="cerrar()">
                 <i class="bi bi-x-circle-fill" [style.color]="colorSistema"></i>
             </button>
         </div>
 
         <div class="modal-body p-4">
-            <div class="row g-3 mb-4">
-                <div class="col-8">
+            <!-- Primera Fila: Nombre, Estado y Botón -->
+            <div class="row g-3 mb-4 align-items-end">
+                <div class="col-md-5">
                     <label class="form-label">Nombre de categoría<span class="text-danger">*</span></label>
                     <input type="text" class="form-control" [(ngModel)]="nuevaCategoria.NombreCategoriaProducto"
                         placeholder="Ej. Bebidas">
                 </div>
-                <div class="col-4 d-flex align-items-end">
-                    <button class="btn w-100 text-white fw-bold py-2" [style.background-color]="colorSistema"
-                        (click)="guardar()">
-                        {{ modoEdicion() ? 'Actualizar' : 'Guardar' }}
-                    </button>
-                </div>
-            </div>
-
-            <div class="row g-3 mb-4">
-                <div class="col-md-5">
+                <div class="col-md-4">
                     <label class="form-label">Estado<span class="text-danger">*</span></label>
                     <select class="form-select" [(ngModel)]="nuevaCategoria.Estatus">
                         <option [ngValue]="1">Activo</option>
                         <option [ngValue]="0">Inactivo</option>
                     </select>
+                </div>
+                <div class="col-md-3">
+                    <button class="btn w-100 text-white fw-bold py-2" [style.background-color]="colorSistema"
+                        (click)="guardar()">
+                        {{ modoEdicion() ? 'Actualizar' : 'Guardar' }}
+                    </button>
                 </div>
             </div>
 

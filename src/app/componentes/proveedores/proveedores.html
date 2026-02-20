@@ -40,6 +40,7 @@
                         <th>Nombre <i class="bi bi-arrow-down-up ms-1 small text-muted"></i></th>
                         <th>NIT <i class="bi bi-arrow-down-up ms-1 small text-muted"></i></th>
                         <th>Telefono <i class="bi bi-arrow-down-up ms-1 small text-muted"></i></th>
+                        <th>Correo <i class="bi bi-arrow-down-up ms-1 small text-muted"></i></th>
                         <th>Direccion <i class="bi bi-arrow-down-up ms-1 small text-muted"></i></th>
                         <th class="text-center">Acciones</th>
                     </tr>
@@ -50,6 +51,7 @@
                         <td>{{ proveedor.NombreProveedor }}</td>
                         <td>{{ proveedor.NIT }}</td>
                         <td>{{ proveedor.Telefono }}</td>
+                        <td>{{ proveedor.Correo }}</td>
                         <td class="text-truncate" style="max-width: 200px;">{{ proveedor.Direccion }}</td>
                         <td class="acciones-cell">
                             <button class="btn-accion btn-editar" (click)="editarProveedor(proveedor)" title="Editar">
@@ -62,7 +64,7 @@
                         </td>
                     </tr>
                     <tr *ngIf="proveedoresPaginados().length === 0">
-                        <td colspan="6" class="text-center py-4 text-muted">No se encontraron proveedores</td>
+                        <td colspan="7" class="text-center py-4 text-muted">No se encontraron proveedores</td>
                     </tr>
                 </tbody>
             </table>

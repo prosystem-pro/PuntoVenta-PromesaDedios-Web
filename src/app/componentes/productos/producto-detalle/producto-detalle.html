@@ -52,11 +52,11 @@
 
                         <div class="form-group">
                             <label class="form-label">Tipo producto</label>
-                                    <select formControlName="TipoProducto" class="form-select">
-                                        <option value="Ventanilla">Ventanilla</option>
-                                        <option value="Cocina">Cocina</option>
-                                        <option value="Insumo">Insumo</option>
-                                    </select>
+                            <select formControlName="TipoProducto" class="form-select">
+                                <option value="Ventanilla">Ventanilla</option>
+                                <option value="Cocina">Cocina</option>
+                                <option value="Insumo">Insumo</option>
+                            </select>
                         </div>
 
                         <!-- Fila Stock -->
@@ -230,6 +230,10 @@
                                             (click)="confirmarEdicion(i)">
                                             <i class="bi bi-check-lg text-success"></i>
                                         </button>
+                                        <button type="button" class="btn-accion" title="Cancelar"
+                                            (click)="cancelarEdicion()">
+                                            <i class="bi bi-x-lg text-danger"></i>
+                                        </button>
                                         } @else {
                                         <button type="button" class="btn-accion btn-editar" title="Editar"
                                             (click)="editarIngrediente(i)">
@@ -261,12 +265,6 @@
                     </div>
 
                     <div class="d-flex justify-content-between align-items-center">
-                        <div class="pagination-mini">
-                            <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-chevron-left"></i></button>
-                            <span class="px-2">1</span>
-                            <button class="btn btn-outline-secondary btn-sm"><i
-                                    class="bi bi-chevron-right"></i></button>
-                        </div>
                     </div>
                 </div>
             </div>

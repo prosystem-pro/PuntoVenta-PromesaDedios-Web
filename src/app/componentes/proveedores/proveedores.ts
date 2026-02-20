@@ -86,7 +86,7 @@ export class Proveedores implements OnInit {
         if (res.success) {
             this.proveedores.set(res.data as Proveedor[]);
         } else {
-            // Error manejado
+            this.servicioAlerta.MostrarError(res, 'Error al cargar proveedores');
         }
     }
 

@@ -12,7 +12,7 @@ import { AlertaServicio } from '../../../../Servicios/alerta.service';
     templateUrl: './presentacion-modal.html',
     styleUrl: '../categoria-modal/categoria-modal.css' // Reutilizamos estilos
 })
-export class PresentacionModal implements OnInit {
+export class PresentacionModal implements OnInit, OnChanges {
     private servicioProducto = inject(ProductoServicio);
     private servicioAlerta = inject(AlertaServicio);
 
@@ -57,14 +57,15 @@ export class PresentacionModal implements OnInit {
 
     async cargarUnidades() {
         const res = await this.servicioProducto.ListarUnidades();
-        if (res.tipo === 'Éxito') {
+        if (res.success) {
             const listado = Array.isArray(res.data) ? res.data : (res.data?.Listado || []);
             this.unidades.set(listado);
+            this.paginaActual.set(1);
         }
     }
 
     async guardar() {
-        if (!this.nuevaUnidad.NombreUnidad) return;
+        if (!this.nuevaUnidad.NombreUnidad || !this.nuevaUnidad.Abreviatura) return;
         try {
             let res;
             if (this.modoEdicion()) {
@@ -76,7 +77,7 @@ export class PresentacionModal implements OnInit {
                 res = await this.servicioProducto.CrearUnidad(this.nuevaUnidad);
             }
 
-            if (res.tipo === 'Éxito') {
+            if (res.success) {
                 this.servicioAlerta.MostrarExito(res.message);
                 this.limpiarFormulario();
                 this.cargarUnidades();
@@ -110,7 +111,7 @@ export class PresentacionModal implements OnInit {
 
         try {
             const res = await this.servicioProducto.EliminarUnidad(id);
-            if (res.tipo === 'Éxito') {
+            if (res.success) {
                 this.servicioAlerta.MostrarExito(res.message);
                 this.cargarUnidades();
                 this.alGuardar.emit();
@@ -143,6 +144,7 @@ export class PresentacionModal implements OnInit {
     }
 
     cerrar() {
+        this.limpiarFormulario();
         this.alCerrar.emit();
     }
 }

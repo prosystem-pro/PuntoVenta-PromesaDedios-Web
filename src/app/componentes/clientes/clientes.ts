@@ -86,7 +86,7 @@ export class Clientes implements OnInit {
         if (res.success) {
             this.clientes.set(res.data as Cliente[]);
         } else {
-            // Error manejado silenciosamente si es necesario, cargando queda en false
+            this.servicioAlerta.MostrarError(res, 'Error al cargar clientes');
         }
     }
 

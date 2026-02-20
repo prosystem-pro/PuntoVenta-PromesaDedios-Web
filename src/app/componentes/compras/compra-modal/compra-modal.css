@@ -1,0 +1,86 @@
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 1050;
+    backdrop-filter: blur(2px);
+}
+
+.modal-content {
+    width: 100%;
+    max-height: 95vh;
+    overflow-y: auto;
+}
+
+.btn-close-custom {
+    background: transparent;
+    border: none;
+    transition: transform 0.2s;
+}
+
+.btn-close-custom:hover {
+    transform: scale(1.1);
+}
+
+.search-input-container {
+    position: relative;
+}
+
+.search-input-container input {
+    border-radius: 10px;
+    padding-right: 40px;
+    background: #f8f9fa;
+}
+
+.btn-add-provider,
+.btn-add,
+.btn-save,
+.btn-select {
+    border: none;
+    border-radius: 8px;
+    transition: all 0.3s;
+}
+
+.btn-add-provider,
+.btn-add {
+    padding: 8px 12px;
+}
+
+.btn-add-provider:hover,
+.btn-add:hover,
+.btn-save:hover {
+    filter: brightness(1.1);
+    transform: translateY(-2px);
+}
+
+.form-select,
+.form-control {
+    border-radius: 8px;
+    padding: 10px;
+}
+
+.table thead th {
+    font-weight: bold;
+    border: none;
+}
+
+.table tbody td {
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.dropdown-toggle::after {
+    margin-left: 10px;
+}
+
+/* Custom Scrollbar */
+.modal-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+    background: #dee2e6;
+    border-radius: 10px;
+}

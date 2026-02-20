@@ -1,0 +1,144 @@
+<div class="venta-container bg-light h-100 d-flex flex-column overflow-hidden">
+    <!-- Header Superior -->
+    <header class="bg-white shadow-sm p-2 d-flex align-items-center gap-3">
+        <button class="btn btn-outline-secondary d-flex align-items-center gap-2" routerLink="/ventas">
+            <i class="bi bi-chevron-left"></i> Regresar a mesas
+        </button>
+
+        <div class="input-group d-none d-md-flex" style="max-width: 400px;">
+            <span class="input-group-text bg-white border-end-0"><i class="bi bi-upc-scan"></i></span>
+            <input type="text" class="form-control border-start-0" placeholder="Código de producto">
+        </div>
+
+        <div class="input-group flex-grow-1" style="max-width: 500px;">
+            <input type="text" class="form-control border-end-0" placeholder="Buscar producto" [ngModel]="textoFiltro()"
+                (ngModelChange)="textoFiltro.set($event)">
+            <span class="input-group-text bg-white border-start-0"><i class="bi bi-search"></i></span>
+        </div>
+    </header>
+
+    <div class="row g-0 flex-grow-1 overflow-hidden">
+        <!-- Panel Izquierdo: Productos -->
+        <div class="col-md-7 col-lg-8 d-flex flex-column h-100 p-2">
+            <!-- Categorías -->
+            <div class="categories-scroll d-flex gap-2 pb-3 mb-2 overflow-auto">
+                <button class="btn btn-category" [class.active]="categoriaSeleccionada() === null"
+                    (click)="seleccionarCategoria(null)">Todos</button>
+                @for (cat of categorias(); track cat.CodigoCategoriaProducto) {
+                <button class="btn btn-category"
+                    [class.active]="categoriaSeleccionada() === cat.CodigoCategoriaProducto"
+                    (click)="seleccionarCategoria(cat.CodigoCategoriaProducto)">
+                    {{ cat.NombreCategoriaProducto }}
+                </button>
+                }
+            </div>
+
+            <!-- Grid de Productos -->
+            <div class="flex-grow-1 overflow-auto pe-2">
+                <div class="row row-cols-2 row-cols-sm-3 row-cols-lg-4 row-cols-xl-5 g-3">
+                    @for (prod of productosFiltrados(); track prod.CodigoProducto) {
+                    <div class="col">
+                        <div class="card product-card border-0 shadow-sm h-100 rounded-4 overflow-hidden"
+                            (click)="agregarAlCarrito(prod)">
+                            <div class="position-absolute top-0 end-0 p-2">
+                                <span class="badge bg-price shadow-sm">Q {{ prod.PrecioVenta | number:'1.2-2' }}</span>
+                            </div>
+
+                            <img [src]="prod.ImagenUrl || 'assets/no-image.png'" class="card-img-top" alt="producto">
+
+                            <div class="card-body p-2 text-center">
+                                <h6 class="product-title m-0 text-truncate">{{ prod.NombreProducto }}</h6>
+                                @if(prod.Stock && prod.Stock < 5) { <small class="text-danger fw-bold">¡Stock
+                                    bajo!</small>
+                                    }
+                            </div>
+                        </div>
+                    </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel Derecho: Orden -->
+        <div class="col-md-5 col-lg-4 bg-white border-start shadow-sm d-flex flex-column h-100">
+            <div class="order-header p-3 text-white text-center fw-bold" [style.background-color]="colorSistema">
+                Orden de compra
+            </div>
+
+            <div class="order-items flex-grow-1 overflow-auto p-2">
+                <table class="table table-hover align-middle">
+                    <thead class="bg-light sticky-top">
+                        <tr>
+                            <th class="border-0 small text-muted">Producto</th>
+                            <th class="border-0 small text-muted">Precio</th>
+                            <th class="border-0 small text-muted text-center">Cant.</th>
+                            <th class="border-0"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (item of carrito(); track item.CodigoProducto; let i = $index) {
+                        <tr>
+                            <td class="small fw-bold">{{ item.NombreProducto }}</td>
+                            <td class="small">Q {{ item.PrecioUnitario | number:'1.2-2' }}</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-1">
+                                    <button class="btn btn-qty"
+                                        (click)="actualizarCantidad(item.CodigoProducto, item.Cantidad - 1)">-</button>
+                                    <span class="fw-bold small px-1">{{ item.Cantidad }}</span>
+                                    <button class="btn btn-qty"
+                                        (click)="actualizarCantidad(item.CodigoProducto, item.Cantidad + 1)">+</button>
+                                </div>
+                            </td>
+                            <td>
+                                <button class="btn btn-link btn-sm p-0 text-muted">
+                                    <i class="bi bi-chat-left-dots"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+
+                @if(carrito().length === 0) {
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-cart3 display-4 d-block mb-3 opacity-25"></i>
+                    No hay productos seleccionados
+                </div>
+                }
+            </div>
+
+            <div class="order-footer p-3 bg-light border-top">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="m-0 fw-bold">Total a pagar</h5>
+                    <div class="total-bubble bg-price-light px-4 py-2 rounded-3 fs-4 fw-bold"
+                        [style.color]="colorSistema">
+                        Q {{ total() | number:'1.2-2' }}
+                    </div>
+                </div>
+
+                <div class="row g-2">
+                    <div class="col-4">
+                        <button
+                            class="btn btn-outline-secondary w-100 h-100 py-2 d-flex flex-column gap-1 align-items-center"
+                            (click)="limpiar()">
+                            <i class="bi bi-trash"></i> <small>Limpiar</small>
+                        </button>
+                    </div>
+                    <div class="col-4">
+                        <button
+                            class="btn btn-outline-primary w-100 h-100 py-2 d-flex flex-column gap-1 align-items-center"
+                            (click)="facturar()">
+                            <i class="bi bi-receipt"></i> <small>Facturar</small>
+                        </button>
+                    </div>
+                    <div class="col-4">
+                        <button class="btn w-100 h-100 py-2 d-flex flex-column gap-1 align-items-center text-white"
+                            [style.background-color]="colorSistema" (click)="guardarOrden()">
+                            <i class="bi bi-save"></i> <small>Actualizar</small>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

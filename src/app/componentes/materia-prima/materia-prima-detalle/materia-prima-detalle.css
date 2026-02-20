@@ -1,0 +1,87 @@
+.materia-prima-detalle-container {
+    background-color: #f4f7f6;
+    min-height: 100vh;
+}
+
+.btn-regresar {
+    background: #ff9500;
+    color: white;
+    border: none;
+    border-radius: 10px;
+}
+
+.card {
+    border-radius: 12px;
+}
+
+.form-label {
+    color: #444;
+    margin-bottom: 4px;
+}
+
+.form-control,
+.form-select {
+    padding: 0.6rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+}
+
+.form-control:focus,
+.form-select:focus {
+    box-shadow: 0 0 0 0.2rem rgba(255, 149, 0, 0.1);
+    border-color: #ff9500;
+}
+
+.btn-add,
+.btn-save {
+    border: none;
+    border-radius: 10px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-add:hover,
+.btn-save:hover {
+    filter: brightness(1.1);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-add:active,
+.btn-save:active {
+    transform: translateY(0);
+}
+
+.table th {
+    background: #f8f9fa;
+    color: #666;
+    font-weight: 600;
+}
+
+.page-link {
+    color: #666;
+    border-radius: 6px;
+    margin: 0 2px;
+}
+
+.page-item.active .page-link {
+    color: white !important;
+}
+
+.image-preview-container {
+    border: 2px dashed #e0e0e0;
+    background: #fcfcfc;
+}
+
+/* Scrollbar table */
+.table-responsive::-webkit-scrollbar {
+    width: 6px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+    background: #ddd;
+    border-radius: 10px;
+}

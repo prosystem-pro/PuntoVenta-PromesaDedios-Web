@@ -104,11 +104,20 @@ export class ProductoServicio {
         return res.data;
     }
 
-    // --- IMAGENES ---
     async SubirImagen(formData: FormData): Promise<RespuestaAPI<any>> {
         const res = await axiosInstance.post('/subir-imagen', formData, {
             headers: { 'Content-Type': 'multipart/form-data' }
         });
+        return res.data;
+    }
+
+    async ActualizarStock(payload: any): Promise<RespuestaAPI<any>> {
+        const res = await axiosInstance.post('/producto/actualizarstock', payload);
+        return res.data;
+    }
+
+    async AbastecerInventario(payload: any): Promise<RespuestaAPI<any>> {
+        const res = await axiosInstance.post('/producto/abastecerinventarioproducto', payload);
         return res.data;
     }
 }

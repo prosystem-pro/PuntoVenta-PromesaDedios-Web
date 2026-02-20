@@ -52,12 +52,43 @@ export class ProductoDetalle implements OnInit {
 
     ingredientesDisponibles = computed(() => {
         const texto = this.textoFiltroIngrediente().toLowerCase();
-        return this.todosLosProductos().filter(p =>
-            p.NombreProducto &&
-            p.NombreProducto.toLowerCase().includes(texto) &&
-            p.CodigoProducto !== (this.productoId || -1)
-        );
+        return this.todosLosProductos().filter(p => {
+            const tipo = (p.TipoProducto || '').toLowerCase();
+            return tipo === 'insumo' &&
+                p.NombreProducto &&
+                p.NombreProducto.toLowerCase().includes(texto) &&
+                p.CodigoProducto !== (this.productoId || -1);
+        });
     });
+
+    // Paginación de ingredientes
+    paginaIngredientes = signal(1);
+    itemsPorPaginaIngredientes = signal(5);
+
+    totalPaginasIngredientes = computed(() => {
+        const total = this.ingredientes.length;
+        return total > 0 ? Math.ceil(total / this.itemsPorPaginaIngredientes()) : 1;
+    });
+
+    ingredientesPaginados = computed(() => {
+        const inicio = (this.paginaIngredientes() - 1) * this.itemsPorPaginaIngredientes();
+        const fin = inicio + this.itemsPorPaginaIngredientes();
+        return this.ingredientes.controls.slice(inicio, fin);
+    });
+
+    get paginasIngredientes() {
+        return Array.from({ length: this.totalPaginasIngredientes() }, (_, i) => i + 1);
+    }
+
+    irAPaginaIngredientes(p: number) {
+        if (p >= 1 && p <= this.totalPaginasIngredientes()) {
+            this.paginaIngredientes.set(p);
+        }
+    }
+
+    getIndiceAbsoluto(indexPaginado: number): number {
+        return (this.paginaIngredientes() - 1) * this.itemsPorPaginaIngredientes() + indexPaginado;
+    }
 
     productoId: number | null = null;
 
@@ -117,9 +148,9 @@ export class ProductoDetalle implements OnInit {
                 // Mapear para estandarizar el nombre del campo
                 const productosNormalizados = listado.map((p: any) => ({
                     ...p,
-                    NombreProducto: p.Producto,  // ← Crear el campo esperado
-                    CodigoCategoriaProducto: p.Categoria,  // ← También normalizar esto si es necesario
-                    // Agregar otros campos que necesites mapear
+                    NombreProducto: p.Producto,
+                    CodigoCategoriaProducto: p.Categoria,
+                    TipoProducto: (p.TipoProducto || p.Tipo || '').toLowerCase()
                 }));
 
                 this.todosLosProductos.set(productosNormalizados);

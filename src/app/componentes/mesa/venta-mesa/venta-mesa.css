@@ -1,0 +1,133 @@
+.venta-container {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 70px - 3rem);
+}
+
+:host {
+    display: block;
+    height: calc(100vh - 70px - 3rem);
+    overflow: hidden;
+}
+
+.btn-category {
+    background: white;
+    color: #6c757d;
+    border: 1px solid #dee2e6;
+    border-radius: 12px;
+    padding: 6px 15px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    white-space: nowrap;
+    transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.btn-category:hover {
+    background: #f8f9fa;
+    border-color: #adb5bd;
+}
+
+.btn-category.active {
+    background: orange;
+    color: white;
+    border-color: orange;
+    box-shadow: 0 4px 8px rgba(255, 165, 0, 0.3);
+}
+
+.product-card {
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    border-bottom: 4px solid orange !important;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1) !important;
+}
+
+.card-img-top {
+    height: 100px;
+    object-fit: cover;
+}
+
+.bg-price {
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    font-size: 0.8rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.product-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.order-header {
+    font-size: 1.1rem;
+    letter-spacing: 0.5px;
+}
+
+.order-items {
+    flex: 1 1 0;
+    overflow-y: auto;
+    min-height: 0;
+}
+
+.order-footer {
+    flex: 0 0 auto;
+}
+
+.btn-qty {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    background: orange;
+    color: white;
+    border: none;
+    font-weight: bold;
+}
+
+.bg-price-light {
+    background: #e8f5e9;
+}
+
+.total-bubble {
+    border: 2px solid currentColor;
+}
+
+/* Custom Scrollbar */
+.overflow-auto {
+    min-height: 0;
+}
+
+.overflow-auto::-webkit-scrollbar {
+    width: 6px;
+}
+
+.overflow-auto::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.overflow-auto::-webkit-scrollbar-thumb {
+    background: #dee2e6;
+    border-radius: 10px;
+}
+
+.overflow-auto::-webkit-scrollbar-thumb:hover {
+    background: #adb5bd;
+}
+
+.categories-scroll {
+    scrollbar-width: none;
+}
+
+.categories-scroll::-webkit-scrollbar {
+    display: none;
+}

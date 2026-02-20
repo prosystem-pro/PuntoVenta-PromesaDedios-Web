@@ -55,7 +55,6 @@
                             <select formControlName="TipoProducto" class="form-select">
                                 <option value="Ventanilla">Ventanilla</option>
                                 <option value="Cocina">Cocina</option>
-                                <option value="Insumo">Insumo</option>
                             </select>
                         </div>
 
@@ -202,11 +201,12 @@
                                 </tr>
                             </thead>
                             <tbody formArrayName="Ingredientes">
-                                @for(ing of ingredientes.controls; track $index; let i = $index) {
-                                <tr [formGroupName]="i" [class.table-active]="indiceEdicionIngrediente() === i">
+                                @for(ing of ingredientesPaginados(); track $index) {
+                                <tr [formGroupName]="getIndiceAbsoluto($index)"
+                                    [class.table-active]="indiceEdicionIngrediente() === getIndiceAbsoluto($index)">
                                     <td class="fw-bold">{{ ing.get('NombreProducto')?.value }}</td>
                                     <td>
-                                        @if(indiceEdicionIngrediente() === i) {
+                                        @if(indiceEdicionIngrediente() === getIndiceAbsoluto($index)) {
                                         <select formControlName="CodigoUnidadMedida" class="form-select form-select-sm">
                                             @for (uni of unidades(); track uni.CodigoUnidadMedida) {
                                             <option [ngValue]="uni.CodigoUnidadMedida">{{ uni.NombreUnidad }}</option>
@@ -217,7 +217,7 @@
                                         }
                                     </td>
                                     <td>
-                                        @if(indiceEdicionIngrediente() === i) {
+                                        @if(indiceEdicionIngrediente() === getIndiceAbsoluto($index)) {
                                         <input type="number" formControlName="Cantidad"
                                             class="form-control form-control-sm table-input">
                                         } @else {
@@ -225,9 +225,9 @@
                                         }
                                     </td>
                                     <td class="text-center">
-                                        @if(indiceEdicionIngrediente() === i) {
+                                        @if(indiceEdicionIngrediente() === getIndiceAbsoluto($index)) {
                                         <button type="button" class="btn-accion btn-editar" title="Confirmar"
-                                            (click)="confirmarEdicion(i)">
+                                            (click)="confirmarEdicion(getIndiceAbsoluto($index))">
                                             <i class="bi bi-check-lg text-success"></i>
                                         </button>
                                         <button type="button" class="btn-accion" title="Cancelar"
@@ -236,11 +236,11 @@
                                         </button>
                                         } @else {
                                         <button type="button" class="btn-accion btn-editar" title="Editar"
-                                            (click)="editarIngrediente(i)">
+                                            (click)="editarIngrediente(getIndiceAbsoluto($index))">
                                             <i class="bi bi-pencil-square"></i>
                                         </button>
                                         <button type="button" class="btn-accion btn-eliminar" title="Eliminar"
-                                            (click)="eliminarIngrediente(i)">
+                                            (click)="eliminarIngrediente(getIndiceAbsoluto($index))">
                                             <i class="bi bi-trash-fill"></i>
                                         </button>
                                         }
@@ -265,6 +265,21 @@
                     </div>
 
                     <div class="d-flex justify-content-between align-items-center">
+                        @if(totalPaginasIngredientes() > 1) {
+                        <div class="pagination-mini">
+                            <button type="button" class="btn btn-outline-secondary btn-sm"
+                                [disabled]="paginaIngredientes() === 1"
+                                (click)="irAPaginaIngredientes(paginaIngredientes() - 1)">
+                                <i class="bi bi-chevron-left"></i>
+                            </button>
+                            <span class="px-2">{{ paginaIngredientes() }} / {{ totalPaginasIngredientes() }}</span>
+                            <button type="button" class="btn btn-outline-secondary btn-sm"
+                                [disabled]="paginaIngredientes() === totalPaginasIngredientes()"
+                                (click)="irAPaginaIngredientes(paginaIngredientes() + 1)">
+                                <i class="bi bi-chevron-right"></i>
+                            </button>
+                        </div>
+                        }
                     </div>
                 </div>
             </div>

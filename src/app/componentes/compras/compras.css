@@ -1,0 +1,128 @@
+:host {
+    --color-text-dark: #333;
+    --color-text-muted: #666;
+    --color-border: #e0e0e0;
+    --color-bg-light: #fafafa;
+    --color-white: #fff;
+    --color-danger: #dc3545;
+}
+
+.compras-container {
+    padding: 1rem 1.5rem;
+    background-color: var(--color-bg-light);
+    min-height: 100%;
+}
+
+.compras-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.compras-titulo {
+    font-weight: 700;
+    font-size: 1.5rem;
+    margin: 0;
+    text-align: center;
+    position: relative;
+    padding-bottom: 0.75rem;
+}
+
+.compras-titulo::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 300px;
+    max-width: 100%;
+    height: 3px;
+    background-color: currentColor;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: white;
+}
+
+.search-box {
+    position: relative;
+    width: 300px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 0.5rem 2.5rem 0.5rem 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    font-size: 0.875rem;
+    outline: none;
+}
+
+.search-icon {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #999;
+}
+
+.users-card {
+    background-color: var(--color-white);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.compras-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.compras-table thead {
+    background-color: var(--color-bg-light);
+    border-bottom: 2px solid var(--color-border);
+}
+
+.compras-table th {
+    padding: 0.875rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.8rem;
+    color: var(--color-text-dark);
+}
+
+.compras-table tbody tr {
+    border-bottom: 1px solid var(--color-border);
+}
+
+.compras-table td {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+}
+
+.acciones-cell {
+    text-align: center;
+}
+
+.btn-accion {
+    background: none;
+    border: none;
+    padding: 0.35rem;
+    cursor: pointer;
+    font-size: 1.1rem;
+}
+
+.pagination-footer {
+    padding: 0.5rem 0;
+}

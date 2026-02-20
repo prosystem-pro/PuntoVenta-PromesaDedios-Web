@@ -1,0 +1,150 @@
+@if (visible) {
+<div class="modal-overlay d-flex align-items-center justify-content-center">
+    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden" [style.max-width]="'900px'">
+        <div class="modal-header bg-white border-bottom p-3 d-flex justify-content-center position-relative">
+            <h4 class="modal-title fw-bold m-0">Compra de productos</h4>
+            <button type="button" class="btn-close-custom position-absolute end-0 top-50 translate-middle-y me-3"
+                (click)="onCerrar()">
+                <i class="bi bi-x-circle-fill fs-3" [style.color]="colorSistema"></i>
+            </button>
+        </div>
+
+        <div class="modal-body p-4 bg-white" [formGroup]="form">
+            <!-- Proveedor selection -->
+            <div class="row mb-3 align-items-end">
+                <div class="col-8 col-md-5">
+                    <label class="form-label fw-bold">Nombre<span class="text-danger">*</span></label>
+                    <div class="search-input-container shadow-sm">
+                        <input type="text" class="form-control border-0" placeholder="Ingrese nombre de proveedor"
+                            formControlName="Proveedor">
+                        <i class="bi bi-search position-absolute top-50 end-0 translate-middle-y me-3 text-muted"></i>
+                    </div>
+                </div>
+                <div class="col-4 col-md-2">
+                    <button class="btn btn-add-provider text-white shadow-sm" [style.background-color]="colorSistema">
+                        <i class="bi bi-person-plus-fill"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Product Entry -->
+            <div class="mb-4">
+                <label class="form-label fw-bold">Producto</label>
+                <div class="search-input-container shadow-sm mb-3">
+                    <input type="text" class="form-control border-0" placeholder="Nombre de producto">
+                    <i class="bi bi-search position-absolute top-50 end-0 translate-middle-y me-3 text-muted"></i>
+                </div>
+
+                <div class="row g-2 align-items-end">
+                    <div class="col">
+                        <label class="small fw-bold">Categoría</label>
+                        <select class="form-select shadow-sm border-0 bg-white">
+                            @for (cat of categorias; track cat) { <option [value]="cat">{{ cat }}</option> }
+                        </select>
+                    </div>
+                    <div class="col">
+                        <label class="small fw-bold">Producto</label>
+                        <input type="text" class="form-control shadow-sm border-0" placeholder="Azucar caña real">
+                    </div>
+                    <div class="col">
+                        <label class="small fw-bold">Presentación</label>
+                        <select class="form-select shadow-sm border-0 bg-white">
+                            @for (p of presentaciones; track p) { <option [value]="p">{{ p }}</option> }
+                        </select>
+                    </div>
+                    <div class="col">
+                        <label class="small fw-bold">Precio</label>
+                        <input type="text" class="form-control shadow-sm border-0" placeholder="Q 4.00">
+                    </div>
+                    <div class="col">
+                        <label class="small fw-bold">Cantidad</label>
+                        <input type="text" class="form-control shadow-sm border-0" placeholder="Q 4.00">
+                    </div>
+                    <div class="col-auto">
+                        <button class="btn btn-add text-white shadow-sm" [style.background-color]="colorSistema">
+                            <i class="bi bi-plus-lg fw-bold"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Items Table -->
+            <div class="table-responsive shadow-sm rounded-3 mb-4 border overflow-hidden">
+                <table class="table table-hover align-middle m-0">
+                    <thead class="text-white" [style.background-color]="colorSistema">
+                        <tr>
+                            <th class="small py-2">No.</th>
+                            <th class="small py-2">Categoria</th>
+                            <th class="small py-2">Producto</th>
+                            <th class="small py-2">Presentación</th>
+                            <th class="small py-2">Precio</th>
+                            <th class="small py-2">Cantidad</th>
+                            <th class="small py-2 text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody formArrayName="Items">
+                        @for (item of items.controls; track $index) {
+                        <tr [formGroupName]="$index">
+                            <td class="small">{{ $index + 1 | number:'2.0' }}</td>
+                            <td class="small">{{ item.get('Categoria')?.value }}</td>
+                            <td class="small">{{ item.get('Producto')?.value }}</td>
+                            <td class="small">{{ item.get('Presentacion')?.value }}</td>
+                            <td class="small">Q {{ item.get('Precio')?.value | number:'1.2-2' }}</td>
+                            <td class="small">{{ item.get('Cantidad')?.value }}</td>
+                            <td class="text-center">
+                                <button class="btn btn-sm btn-link p-0 me-2"><i
+                                        class="bi bi-pencil-square text-dark fs-5"></i></button>
+                                <button class="btn btn-sm btn-link p-0" (click)="eliminarItem($index)"><i
+                                        class="bi bi-trash-fill text-danger fs-5"></i></button>
+                            </td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Payment Options -->
+            <div class="d-flex justify-content-end gap-3 align-items-center mb-4 pt-3">
+                <div class="dropdown">
+                    <button class="btn btn-select text-white dropdown-toggle px-4 py-2 shadow-sm" type="button"
+                        data-bs-toggle="dropdown" [style.background-color]="colorSistema">
+                        {{ form.get('MedioPago')?.value }}
+                    </button>
+                    <ul class="dropdown-menu shadow">
+                        @for (m of mediosPago; track m) {
+                        <li><a class="dropdown-item" (click)="form.get('MedioPago')?.setValue(m)">{{ m }}</a></li>
+                        }
+                    </ul>
+                </div>
+
+                <div class="dropdown">
+                    <button class="btn btn-select text-white dropdown-toggle px-4 py-2 shadow-sm" type="button"
+                        data-bs-toggle="dropdown" [style.background-color]="colorSistema">
+                        {{ form.get('MetodoPago')?.value }}
+                    </button>
+                    <ul class="dropdown-menu shadow">
+                        @for (m of metodosPago; track m) {
+                        <li><a class="dropdown-item" (click)="form.get('MetodoPago')?.setValue(m)">{{ m }}</a></li>
+                        }
+                    </ul>
+                </div>
+
+                @if (form.get('MetodoPago')?.value === 'Credito') {
+                <div class="d-flex align-items-center gap-2 ms-2">
+                    <label class="small fw-bold text-nowrap">Fecha vencimiento</label>
+                    <input type="date" class="form-control shadow-sm border" formControlName="FechaVencimiento">
+                </div>
+                }
+            </div>
+
+            <!-- Footer Action -->
+            <div class="d-flex justify-content-end mt-4">
+                <button class="btn btn-save text-white px-4 py-2 fw-bold shadow-sm d-flex align-items-center gap-2"
+                    [style.background-color]="colorSistema" (click)="onGuardar()">
+                    <i class="bi bi-save-fill"></i> Guardar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+}

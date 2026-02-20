@@ -40,6 +40,13 @@
                     <input type="text" id="Direccion" formControlName="Direccion" placeholder="Dirección del cliente"
                         [class.invalid]="clienteForm.get('Direccion')?.invalid && clienteForm.get('Direccion')?.touched">
                 </div>
+
+                <!-- Correo -->
+                <div class="form-group text-start sm-col-2">
+                    <label for="Correo">Correo Electrónico</label>
+                    <input type="email" id="Correo" formControlName="Correo" placeholder="Correo del cliente"
+                        [class.invalid]="clienteForm.get('Correo')?.invalid && clienteForm.get('Correo')?.touched">
+                </div>
             </div>
 
             <!-- Footer / Acciones -->

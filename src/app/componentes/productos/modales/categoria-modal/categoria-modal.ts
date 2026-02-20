@@ -55,9 +55,10 @@ export class CategoriaModal implements OnInit {
 
     async cargarCategorias() {
         const res = await this.servicioProducto.ListarCategorias();
-        if (res.tipo === 'Éxito') {
+        if (res.success) {
             const listado = Array.isArray(res.data) ? res.data : (res.data?.Listado || []);
             this.categorias.set(listado);
+            this.paginaActual.set(1);
         }
     }
 
@@ -74,7 +75,7 @@ export class CategoriaModal implements OnInit {
                 res = await this.servicioProducto.CrearCategoria(this.nuevaCategoria);
             }
 
-            if (res.tipo === 'Éxito') {
+            if (res.success) {
                 this.servicioAlerta.MostrarExito(res.message);
                 this.limpiarFormulario();
                 this.cargarCategorias();
@@ -105,7 +106,7 @@ export class CategoriaModal implements OnInit {
 
         try {
             const res = await this.servicioProducto.EliminarCategoria(id);
-            if (res.tipo === 'Éxito') {
+            if (res.success) {
                 this.servicioAlerta.MostrarExito(res.message);
                 this.cargarCategorias();
                 this.alGuardar.emit();
@@ -137,6 +138,7 @@ export class CategoriaModal implements OnInit {
     }
 
     cerrar() {
+        this.limpiarFormulario();
         this.alCerrar.emit();
     }
 }

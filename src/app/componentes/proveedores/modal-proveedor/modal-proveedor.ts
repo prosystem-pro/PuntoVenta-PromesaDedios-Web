@@ -32,19 +32,21 @@ export class ModalProveedor implements OnChanges {
     }
 
     ngOnChanges(changes: SimpleChanges): void {
-        if (changes['proveedorAEditar'] && this.proveedorAEditar) {
-            this.modoEdicion.set(true);
-            this.proveedorForm.patchValue({
-                NombreProveedor: this.proveedorAEditar.NombreProveedor,
-                NIT: this.proveedorAEditar.NIT,
-                Telefono: this.proveedorAEditar.Telefono,
-                Direccion: this.proveedorAEditar.Direccion,
-                Correo: this.proveedorAEditar.Correo,
-                Estatus: this.proveedorAEditar.Estatus === 1
-            });
-        } else if (changes['visible'] && this.visible && !this.proveedorAEditar) {
-            this.modoEdicion.set(false);
-            this.proveedorForm.reset({ Estatus: true });
+        if (changes['visible'] && this.visible) {
+            if (this.proveedorAEditar) {
+                this.modoEdicion.set(true);
+                this.proveedorForm.patchValue({
+                    NombreProveedor: this.proveedorAEditar.NombreProveedor,
+                    NIT: this.proveedorAEditar.NIT,
+                    Telefono: this.proveedorAEditar.Telefono,
+                    Direccion: this.proveedorAEditar.Direccion,
+                    Correo: this.proveedorAEditar.Correo,
+                    Estatus: this.proveedorAEditar.Estatus === 1
+                });
+            } else {
+                this.modoEdicion.set(false);
+                this.proveedorForm.reset({ Estatus: true });
+            }
         }
     }
 

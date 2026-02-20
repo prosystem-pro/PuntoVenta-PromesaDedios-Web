@@ -1,4 +1,5 @@
-import { Component, OnInit, signal, inject, computed } from '@angular/core';
+import { Component, OnInit, signal, inject, computed, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -22,6 +23,7 @@ export class ProductoDetalle implements OnInit {
     private router = inject(Router);
     private servicioProducto = inject(ProductoServicio);
     private servicioAlerta = inject(AlertaServicio);
+    private destroyRef = inject(DestroyRef);
 
     colorSistema = Entorno.ColorSistema;
     productoForm: FormGroup;
@@ -67,7 +69,7 @@ export class ProductoDetalle implements OnInit {
             TipoProducto: ['Ventanilla', [Validators.required]],
             CodigoBarra: [''],
             Iva: [0], // Porcentaje
-            PrecioVenta: [0, [Validators.required, Validators.min(0)]],
+            PrecioVenta: [0, [Validators.required, Validators.min(0.01)]],
             TieneReceta: [false],
             Estatus: [1],
             Stock: [0],
@@ -85,7 +87,7 @@ export class ProductoDetalle implements OnInit {
     async ngOnInit() {
         await this.cargarCatalogos();
 
-        this.route.params.subscribe(params => {
+        this.route.params.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
             if (params['id']) {
                 this.productoId = +params['id'];
                 this.modoEdicion.set(true);
@@ -109,11 +111,6 @@ export class ProductoDetalle implements OnInit {
                 const listado = Array.isArray(resUni.data) ? resUni.data : (resUni.data?.Listado || []);
                 this.unidades.set(listado);
             }
-            // if (resProd.tipo === 'Éxito') {
-            //     const listado = Array.isArray(resProd.data) ? resProd.data : (resProd.data?.Listado || []);
-            //     this.todosLosProductos.set(listado);
-            //     console.log(this.todosLosProductos());
-            // }
             if (resProd.success) {
                 const listado = Array.isArray(resProd.data) ? resProd.data : (resProd.data?.Listado || []);
 
@@ -135,21 +132,24 @@ export class ProductoDetalle implements OnInit {
     async cargarProducto(id: number) {
         this.cargando.set(true);
         try {
-            const res = await this.servicioProducto.Listar();
-            const listado: Producto[] = Array.isArray(res.data) ? res.data : (res.data?.Listado || []);
+            const res = await this.servicioProducto.ObtenerCompleto(id);
 
-            // Buscar el producto original en el listado
-            const productoOriginal = listado.find((p: any) => p.CodigoProducto === id);
+            if (res.success && res.data) {
+                const pData = res.data;
+                // El API devuelve "Recetum" para la lista de ingredientes (o Receta/Ingredientes)
+                const ingredientesData = pData.Recetum || pData.Receta || pData.Ingredientes || [];
+                const inv = pData.Inventario || {};
 
-            if (productoOriginal) {
-                console.log('API - Producto Original:', productoOriginal);
-
-                // Normalizar objeto para el formulario basándonos en lo que el listado provee
+                // Normalizar objeto para el formulario basándonos en la estructura real provista
                 const producto: Producto = {
-                    ...productoOriginal,
-                    NombreProducto: (productoOriginal as any).Producto || productoOriginal.NombreProducto,
-                    CodigoCategoriaProducto: (productoOriginal as any).Categoria || productoOriginal.CodigoCategoriaProducto,
-                    Stock: (productoOriginal as any).StockActual || productoOriginal.Stock
+                    ...pData,
+                    NombreProducto: pData.NombreProducto || '',
+                    CodigoCategoriaProducto: pData.CodigoCategoriaProducto,
+                    // Campos que vienen dentro del objeto Inventario
+                    Stock: inv.StockActual || 0,
+                    StockMinimo: inv.StockMinimo || 0,
+                    StockSugerido: inv.StockSugerido || 0,
+                    PrecioCompra: inv.PrecioCompra || 0
                 };
 
                 this.productoForm.patchValue({
@@ -160,15 +160,40 @@ export class ProductoDetalle implements OnInit {
                 this.imagenPreview.set(producto.ImagenUrl || null);
 
                 this.ingredientes.clear();
-                // Nota: El Listado general suele no traer los ingredientes.
-                // Si el backend no los envía aquí, la lista aparecerá vacía.
-                if (producto.TieneReceta && producto.Ingredientes) {
-                    producto.Ingredientes.forEach((ing: Ingrediente) => this.agregarIngredienteExistente(ing));
+
+                // Manejar la estructura de RecetaDetalles dentro de Recetum
+                const detalles = pData.Recetum?.RecetaDetalles || pData.Receta?.RecetaDetalles || (Array.isArray(ingredientesData) ? ingredientesData : []);
+
+                if (Array.isArray(detalles)) {
+                    detalles.forEach((det: any) => {
+                        // El API devuelve el producto ingrediente y la unidad en objetos anidados
+                        const prodIng = det.ProductoIngrediente || {};
+                        const unidad = det.UnidadMedida || {};
+
+                        // Si el API no trae el precio de compra en el objeto anidado,
+                        // intentamos buscarlo en nuestro catalogo local cargado previamente.
+                        let precioCompra = prodIng.PrecioCompra;
+                        if (!precioCompra) {
+                            const catalogado = this.todosLosProductos().find(p => p.CodigoProducto === det.CodigoProducto);
+                            precioCompra = catalogado?.PrecioCompra || 0;
+                        }
+
+                        this.agregarIngredienteExistente({
+                            CodigoProducto: det.CodigoProducto || det.CodigoMateriaPrima,
+                            NombreProducto: prodIng.NombreProducto || det.NombreProducto || det.Producto,
+                            CodigoUnidadMedida: det.CodigoUnidadMedida,
+                            NombreUnidad: unidad.NombreUnidad || det.NombreUnidad,
+                            Cantidad: det.Cantidad,
+                            PrecioUnitario: precioCompra
+                        });
+                    });
                 }
+            } else {
+                this.servicioAlerta.MostrarError(res, 'No se pudo cargar la información del producto');
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error cargando detalle producto:', error);
-            this.servicioAlerta.MostrarError({ message: 'Error al cargar el producto' });
+            this.servicioAlerta.MostrarError({ error: { message: 'Error al conectar con el servidor para cargar el detalle' } });
         } finally {
             this.cargando.set(false);
         }
@@ -263,14 +288,14 @@ export class ProductoDetalle implements OnInit {
         this.indiceEdicionIngrediente.set(null);
     }
 
-    private agregarIngredienteExistente(ing: Ingrediente) {
+    private agregarIngredienteExistente(ing: Ingrediente & { PrecioUnitario?: number }) {
         this.ingredientes.push(this.fb.group({
             CodigoProducto: [ing.CodigoProducto, Validators.required],
             NombreProducto: [ing.NombreProducto],
             CodigoUnidadMedida: [ing.CodigoUnidadMedida, Validators.required],
             NombreUnidad: [ing.NombreUnidad],
             Cantidad: [ing.Cantidad, [Validators.required, Validators.min(0.0001)]],
-            PrecioUnitario: [0] // Mock/Calculado
+            PrecioUnitario: [ing.PrecioUnitario || 0]
         }));
     }
 

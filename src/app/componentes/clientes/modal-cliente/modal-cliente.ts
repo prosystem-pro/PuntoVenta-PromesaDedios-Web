@@ -26,23 +26,27 @@ export class ModalCliente implements OnChanges {
             NIT: ['', [Validators.required]],
             Direccion: ['', [Validators.required]],
             Telefono: ['', [Validators.required]],
+            Correo: ['', [Validators.email]],
             Estatus: [true]
         });
     }
 
     ngOnChanges(changes: SimpleChanges): void {
-        if (changes['clienteAEditar'] && this.clienteAEditar) {
-            this.modoEdicion.set(true);
-            this.clienteForm.patchValue({
-                NombreCliente: this.clienteAEditar.NombreCliente,
-                NIT: this.clienteAEditar.NIT,
-                Direccion: this.clienteAEditar.Direccion,
-                Telefono: this.clienteAEditar.Telefono,
-                Estatus: this.clienteAEditar.Estatus === 1
-            });
-        } else if (changes['visible'] && this.visible && !this.clienteAEditar) {
-            this.modoEdicion.set(false);
-            this.clienteForm.reset({ Estatus: true });
+        if (changes['visible'] && this.visible) {
+            if (this.clienteAEditar) {
+                this.modoEdicion.set(true);
+                this.clienteForm.patchValue({
+                    NombreCliente: this.clienteAEditar.NombreCliente,
+                    NIT: this.clienteAEditar.NIT,
+                    Direccion: this.clienteAEditar.Direccion,
+                    Telefono: this.clienteAEditar.Telefono,
+                    Correo: this.clienteAEditar.Correo || '',
+                    Estatus: this.clienteAEditar.Estatus === 1
+                });
+            } else {
+                this.modoEdicion.set(false);
+                this.clienteForm.reset({ Estatus: true });
+            }
         }
     }
 

@@ -4,5 +4,6 @@ export interface Cliente {
     NIT: string;
     Direccion: string;
     Telefono: string;
+    Correo: string;
     Estatus: number;
 }

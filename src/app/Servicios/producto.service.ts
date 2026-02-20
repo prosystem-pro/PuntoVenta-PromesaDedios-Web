@@ -21,6 +21,11 @@ export class ProductoServicio {
         return res.data;
     }
 
+    async ObtenerCompleto(id: number): Promise<RespuestaAPI<any>> {
+        const res = await axiosInstance.get(`/producto/obtenercompleto/${id}`);
+        return res.data;
+    }
+
     async Crear(producto: Partial<Producto>): Promise<RespuestaAPI<Producto>> {
         const res = await axiosInstance.post('/producto/crear', producto);
         return res.data;

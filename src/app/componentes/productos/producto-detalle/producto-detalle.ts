@@ -52,13 +52,11 @@ export class ProductoDetalle implements OnInit {
 
     ingredientesDisponibles = computed(() => {
         const texto = this.textoFiltroIngrediente().toLowerCase();
-        return this.todosLosProductos().filter(p => {
-            const tipo = (p.TipoProducto || '').toLowerCase();
-            return tipo === 'insumo' &&
-                p.NombreProducto &&
-                p.NombreProducto.toLowerCase().includes(texto) &&
-                p.CodigoProducto !== (this.productoId || -1);
-        });
+        return this.todosLosProductos().filter(p =>
+            p.NombreProducto &&
+            p.NombreProducto.toLowerCase().includes(texto) &&
+            p.CodigoProducto !== (this.productoId || -1)
+        );
     });
 
     // Paginación de ingredientes
@@ -132,7 +130,7 @@ export class ProductoDetalle implements OnInit {
             const [resCat, resUni, resProd] = await Promise.all([
                 this.servicioProducto.ListarCategorias(),
                 this.servicioProducto.ListarUnidades(),
-                this.servicioProducto.Listar()
+                this.servicioProducto.ListarInsumos()
             ]);
             if (resCat.success) {
                 const listado = Array.isArray(resCat.data) ? resCat.data : (resCat.data?.Listado || []);
@@ -145,12 +143,12 @@ export class ProductoDetalle implements OnInit {
             if (resProd.success) {
                 const listado = Array.isArray(resProd.data) ? resProd.data : (resProd.data?.Listado || []);
 
-                // Mapear para estandarizar el nombre del campo
                 const productosNormalizados = listado.map((p: any) => ({
                     ...p,
-                    NombreProducto: p.Producto,
-                    CodigoCategoriaProducto: p.Categoria,
-                    TipoProducto: (p.TipoProducto || p.Tipo || '').toLowerCase()
+                    NombreProducto: p.Producto || p.NombreProducto,
+                    NombreCategoria: p.NombreCategoriaProducto || p.NombreCategoria,
+                    Stock: p.StockActual !== undefined ? p.StockActual : p.Stock,
+                    TipoProducto: 'INSUMO'
                 }));
 
                 this.todosLosProductos.set(productosNormalizados);

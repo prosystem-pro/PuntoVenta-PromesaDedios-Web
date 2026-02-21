@@ -110,23 +110,18 @@ export class MateriaPrima implements OnInit {
     async cargarInsumos() {
         this.cargando.set(true);
         try {
-            const res = await this.servicioProducto.Listar();
+            const res = await this.servicioProducto.ListarInsumos();
             const listadoRaw = Array.isArray(res.data) ? res.data : (res.data?.Listado || []);
-            const insumosMapeados = listadoRaw
-                .filter((p: any) => {
-                    const tipo = (p.TipoProducto || p.Tipo || '').toLowerCase();
-                    return tipo === 'insumo';
-                })
-                .map((p: any) => ({
-                    ...p,
-                    CodigoProducto: p.CodigoProducto,
-                    NombreProducto: p.Producto || p.NombreProducto,
-                    NombreCategoria: p.NombreCategoriaProducto || p.NombreCategoria,
-                    NombreUnidad: p.NombreUnidad || p.Abreviatura,
-                    Stock: p.StockActual !== undefined ? p.StockActual : p.Stock,
-                    TipoProducto: 'INSUMO',
-                    Estatus: p.Estatus
-                }));
+            const insumosMapeados = listadoRaw.map((p: any) => ({
+                ...p,
+                CodigoProducto: p.CodigoProducto,
+                NombreProducto: p.Producto || p.NombreProducto,
+                NombreCategoria: p.NombreCategoriaProducto || p.NombreCategoria,
+                NombreUnidad: p.NombreUnidad || p.Abreviatura,
+                Stock: p.StockActual !== undefined ? p.StockActual : p.Stock,
+                TipoProducto: 'INSUMO',
+                Estatus: p.Estatus
+            }));
 
             this.insumos.set(insumosMapeados);
         } catch (error) {

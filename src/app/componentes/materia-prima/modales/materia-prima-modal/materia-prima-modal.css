@@ -1,0 +1,76 @@
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+    z-index: 1050;
+    animation: fadeIn 0.3s ease;
+}
+
+.modal-content {
+    animation: slideUp 0.3s ease;
+}
+
+.btn-close-custom {
+    background: transparent;
+    border: none;
+    transition: transform 0.2s;
+}
+
+.btn-close-custom:hover {
+    transform: scale(1.1);
+}
+
+.form-label {
+    margin-bottom: 0.3rem;
+    color: #555;
+}
+
+.form-control,
+.form-select {
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    padding: 0.5rem;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--color-sistema);
+    box-shadow: 0 0 0 0.2rem rgba(255, 149, 0, 0.1);
+}
+
+.btn-save {
+    border: none;
+    border-radius: 10px;
+    transition: all 0.3s;
+}
+
+.btn-save:hover:not(:disabled) {
+    filter: brightness(1.1);
+    transform: translateY(-2px);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}

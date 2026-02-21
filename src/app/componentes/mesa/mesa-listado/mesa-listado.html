@@ -1,0 +1,99 @@
+<div class="container-fluid bg-light h-100 d-flex flex-column">
+    <!-- Header y Filtros -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <label class="form-label fw-bold text-muted small">Area de mesa</label>
+            <div class="input-group">
+                <select class="form-select shadow-sm border-0" (change)="filtrar($any($event.target).value)">
+                    <option value="null">Todos</option>
+                    @for (cat of clasificaciones(); track cat.CodigoClasificacionMesa) {
+                    <option [value]="cat.CodigoClasificacionMesa">{{ cat.NombreClasificacion }}</option>
+                    }
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Grid de Mesas -->
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-4 flex-grow-1 overflow-auto">
+        @for (mesa of mesas(); track mesa.CodigoMesa) {
+        <div class="col">
+            <div class="card h-100 border-0 shadow-sm transition-hover rounded-4 overflow-hidden"
+                [class.occupied-card]="mesa.Ocupada">
+
+                <!-- Top Actions Overlay (Sólo si está ocupada) -->
+                @if (mesa.Ocupada) {
+                <div class="card-overlay-actions d-flex justify-content-between p-2">
+                    <div class="d-flex gap-1">
+                        <button class="btn btn-icon-sm" title="Imprimir Comanda">
+                            <i class="bi bi-printer"></i>
+                        </button>
+                    </div>
+                    <div class="d-flex gap-1">
+                        <button class="btn btn-icon-sm" title="Agregar Cliente">
+                            <i class="bi bi-person-plus"></i>
+                        </button>
+                        <button class="btn btn-icon-sm" title="Mover Mesa">
+                            <i class="bi bi-arrow-left-right"></i>
+                        </button>
+                    </div>
+                </div>
+                }
+
+                <div class="card-body text-center p-4">
+                    <div class="text-start mb-2">
+                        <span class="badge bg-light text-muted fw-normal">{{ mesa.NombreClasificacion }}</span>
+                        <h5 class="card-title mt-1 fw-bold">{{ mesa.NombreMesa }}</h5>
+                    </div>
+
+                    <!-- Icono Principal -->
+                    <div class="table-icon-container my-3">
+                        <i class="bi bi-table display-4" [style.color]="mesa.Ocupada ? '#ff8c00' : '#dee2e6'"></i>
+                        @if (mesa.TotalVenta && mesa.TotalVenta > 0) {
+                        <div class="price-bubble" [style.color]="colorSistema">
+                            Q {{ mesa.TotalVenta | number:'1.2-2' }}
+                        </div>
+                        }
+                    </div>
+
+                    <!-- Info Cliente -->
+                    @if (mesa.NombreCliente) {
+                    <div class="client-name text-muted small mb-3 text-truncate">
+                        {{ mesa.NombreCliente }}
+                    </div>
+                    }
+
+                    <!-- Timer y Status Bar -->
+                    <div
+                        class="status-bar d-flex align-items-center justify-content-center gap-2 p-2 rounded-pill bg-light">
+                        <i class="bi bi-clock"></i>
+                        <span class="fw-bold fw-mono">{{ mesa.TiempoOcupada || '00:00:00' }}</span>
+                        @if (mesa.Ocupada) {
+                        <button class="btn btn-delete-order ms-2"
+                            (click)="$event.stopPropagation(); eliminarPedido(mesa)">
+                            <i class="bi bi-trash3-fill"></i>
+                        </button>
+                        }
+                    </div>
+                </div>
+
+                <!-- Bottom Action Bar (Cambiante según estado) -->
+                <div class="card-footer border-0 p-0">
+                    <button class="btn w-100 py-3 fw-bold btn-action-main"
+                        [style.background-color]="mesa.Ocupada ? colorSistema : '#fff'"
+                        [class.text-white]="mesa.Ocupada" [class.text-muted]="!mesa.Ocupada" (click)="irAVenta(mesa)">
+                        {{ mesa.Ocupada ? 'Gestionar Venta' : 'Abrir Mesa' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+        }
+    </div>
+
+    <!-- Spinner -->
+    @if (cargando()) {
+    <div class="loader-overlay">
+        <div class="spinner-border text-primary" role="status"></div>
+    </div>
+    }
+</div>

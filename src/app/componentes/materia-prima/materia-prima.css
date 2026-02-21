@@ -1,0 +1,102 @@
+.materia-prima-container {
+    padding: 1.5rem;
+    background-color: #fafafa;
+    min-height: 100%;
+    position: relative;
+}
+
+.title-underline {
+    width: 400px;
+    height: 3px;
+    margin-top: 5px;
+}
+
+.barcode-container {
+    background: white;
+    border: 1px solid #dee2e6;
+}
+
+.barcode-input-wrapper input:focus {
+    box-shadow: none;
+}
+
+.search-box {
+    border: 1px solid #dee2e6;
+    background: white;
+}
+
+.search-box input:focus {
+    box-shadow: none;
+}
+
+.table-container {
+    background: white;
+}
+
+.compras-table th {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #eee;
+}
+
+.btn-crear,
+.btn-save,
+.btn-adjust,
+.btn-supply {
+    border: none;
+    color: white;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-weight: bold;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-crear:hover,
+.btn-save:hover,
+.btn-adjust:hover,
+.btn-supply:hover {
+    filter: brightness(1.1);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.btn-adjust,
+.btn-supply {
+    border-radius: 12px;
+}
+
+.page-link {
+    color: #666;
+    border: 1px solid #dee2e6;
+    margin: 0 2px;
+    border-radius: 4px;
+}
+
+.page-item.active .page-link {
+    color: white !important;
+}
+
+.input-adjustment {
+    border: 2px solid #52c41a;
+}
+
+.input-supply {
+    border: 2px solid #1890ff;
+}
+
+/* Custom Scrollbar */
+.overflow-auto::-webkit-scrollbar {
+    width: 6px;
+}
+
+.overflow-auto::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.overflow-auto::-webkit-scrollbar-thumb {
+    background: #e0e0e0;
+    border-radius: 10px;
+}
+
+.overflow-auto::-webkit-scrollbar-thumb:hover {
+    background: #ccc;
+}

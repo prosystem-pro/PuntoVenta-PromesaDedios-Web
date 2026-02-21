@@ -39,7 +39,11 @@ export class Productos implements OnInit {
 
     // Productos filtrados
     productosFiltrados = computed(() => {
-        let filtrados = this.productos();
+        // Solo mostrar productos que NO sean Insumos
+        let filtrados = this.productos().filter(p => {
+            const tipo = (p.TipoProducto || '').toLowerCase();
+            return tipo !== 'insumo';
+        });
 
         // Filtro por codigo de barras
         const barra = this.codigoBarrasBusqueda().trim();

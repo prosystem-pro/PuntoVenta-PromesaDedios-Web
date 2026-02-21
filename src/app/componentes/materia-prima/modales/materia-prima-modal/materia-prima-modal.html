@@ -1,0 +1,137 @@
+@if (visible) {
+<div class="modal-overlay d-flex align-items-center justify-content-center">
+    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden" style="max-width: 500px; width: 95%;">
+
+        <div class="modal-header bg-white border-bottom p-3 d-flex justify-content-center position-relative">
+            <h4 class="modal-title fw-bold m-0">{{ insumoAEditar ? 'Editar' : 'Crear' }} materia prima</h4>
+            <button type="button" class="btn-close-custom position-absolute end-0 top-50 translate-middle-y me-3"
+                (click)="onCerrar()">
+                <i class="bi bi-x-circle-fill fs-3" [style.color]="colorSistema"></i>
+            </button>
+        </div>
+
+        <div class="modal-body p-4 bg-white" [formGroup]="form">
+            <div class="row g-3">
+                <!-- Categoria -->
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold">Categoría<span class="text-danger">*</span></label>
+                    <div class="d-flex gap-2">
+                        <select class="form-select shadow-sm" formControlName="CodigoCategoriaProducto">
+                            <option [ngValue]="null">Seleccionar</option>
+                            @for (cat of categorias; track cat.CodigoCategoriaProducto) {
+                            <option [ngValue]="cat.CodigoCategoriaProducto">{{ cat.NombreCategoriaProducto }}</option>
+                            }
+                        </select>
+                        <button class="btn p-1 text-white rounded-2" [style.background-color]="colorSistema"
+                            (click)="mostrarCategoriaModal.set(true)">
+                            <i class="bi bi-plus-lg"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Nombre -->
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold">Producto<span class="text-danger">*</span></label>
+                    <input type="text" class="form-control shadow-sm" placeholder="Nombre"
+                        formControlName="NombreProducto">
+                </div>
+
+                <!-- Presentacion -->
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold">Presentación<span class="text-danger">*</span></label>
+                    <div class="d-flex gap-2">
+                        <select class="form-select shadow-sm" formControlName="CodigoUnidadMedida">
+                            <option [ngValue]="null">Seleccionar</option>
+                            @for (u of unidades; track u.CodigoUnidadMedida) {
+                            <option [ngValue]="u.CodigoUnidadMedida">{{ u.NombreUnidad }}</option>
+                            }
+                        </select>
+                        <button class="btn p-1 text-white rounded-2" [style.background-color]="colorSistema"
+                            (click)="mostrarPresentacionModal.set(true)">
+                            <i class="bi bi-plus-lg"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Stock Inicial -->
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold">Stock</label>
+                    <input type="number" class="form-control shadow-sm" formControlName="Stock">
+                </div>
+
+                <!-- Stock Minimo -->
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold">Stock Mínimo</label>
+                    <input type="number" class="form-control shadow-sm" formControlName="StockMinimo">
+                </div>
+
+                <!-- Stock Sugerido -->
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold">Stock sugerido</label>
+                    <input type="number" class="form-control shadow-sm" formControlName="StockSugerido">
+                </div>
+
+                <!-- Precio Compra -->
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold">Precio compra</label>
+                    <input type="number" class="form-control shadow-sm" formControlName="PrecioCompra">
+                </div>
+
+                <!-- Codigo de Barra -->
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold">Codigo de barra</label>
+                    <input type="text" class="form-control shadow-sm" formControlName="CodigoBarra">
+                </div>
+
+                <!-- IVA -->
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold">Iva</label>
+                    <div class="input-group shadow-sm">
+                        <input type="number" class="form-control border-end-0" formControlName="Iva">
+                        <span class="input-group-text bg-white border-start-0">%</span>
+                    </div>
+                </div>
+
+                <!-- Imagen Selection -->
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold">Subir imagen</label>
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="image-upload-box border rounded-3 d-flex align-items-center justify-content-center overflow-hidden"
+                            style="width: 80px; height: 60px; background: #f8f9fa;">
+                            @if (imagenPreview()) {
+                            <img [src]="imagenPreview()" class="img-fluid object-fit-contain">
+                            } @else {
+                            <i class="bi bi-image text-muted fs-3"></i>
+                            }
+                        </div>
+                        <input type="file" #fileInput hidden (change)="alSeleccionarImagen($event)">
+                        <button class="btn btn-sm btn-outline-secondary" (click)="fileInput.click()">
+                            <i class="bi bi-upload"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action -->
+            <div class="mt-4 d-grid">
+                <button class="btn btn-save text-white py-2 fw-bold shadow" [style.background-color]="colorSistema"
+                    [disabled]="cargando()" (click)="onGuardar()">
+                    @if (cargando()) {
+                    <span class="spinner-border spinner-border-sm me-2"></span>
+                    }
+                    <i class="bi bi-plus-lg me-2"></i> {{ insumoAEditar ? 'Guardar Cambios' : 'Agregar' }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modales Auxiliares -->
+<app-categoria-modal [visible]="mostrarCategoriaModal()" (alCerrar)="mostrarCategoriaModal.set(false)"
+    (alGuardar)="guardado.emit()">
+</app-categoria-modal>
+
+<app-presentacion-modal [visible]="mostrarPresentacionModal()" (alCerrar)="mostrarPresentacionModal.set(false)"
+    (alGuardar)="guardado.emit()">
+</app-presentacion-modal>
+}

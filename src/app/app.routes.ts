@@ -26,6 +26,7 @@ export const routes: Routes = [
       { path: 'productos', component: Productos },
       { path: 'materia-prima', loadComponent: () => import('./componentes/materia-prima/materia-prima').then(m => m.MateriaPrima) },
       { path: 'materia-prima/nuevo', loadComponent: () => import('./componentes/materia-prima/materia-prima-detalle/materia-prima-detalle').then(m => m.MateriaPrimaDetalle) },
+      { path: 'materia-prima/editar/:id', loadComponent: () => import('./componentes/materia-prima/materia-prima-detalle/materia-prima-detalle').then(m => m.MateriaPrimaDetalle) },
       { path: 'productos/nuevo', loadComponent: () => import('./componentes/productos/producto-detalle/producto-detalle').then(m => m.ProductoDetalle) },
       { path: 'productos/editar/:id', loadComponent: () => import('./componentes/productos/producto-detalle/producto-detalle').then(m => m.ProductoDetalle) },
       { path: 'compras', loadComponent: () => import('./componentes/compras/compras').then(m => m.Compras) },

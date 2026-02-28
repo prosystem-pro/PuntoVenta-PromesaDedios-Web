@@ -1,164 +1,168 @@
-<div class="materia-prima-detalle-container p-4" [style.--color-sistema]="colorSistema">
+<div class="materia-prima-detalle-container" [style.--color-sistema]="colorSistema">
 
-    <!-- Header buttons -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <button class="btn btn-regresar shadow-sm px-4 py-2" (click)="cancelar()">
-            <i class="bi bi-chevron-left me-2"></i> Regresar
-        </button>
-        <h2 class="fw-bold m-0 text-center flex-grow-1" [style.color]="colorSistema">GESTIÓN DE MATERIA PRIMA</h2>
-    </div>
-
-    <div class="row g-4">
+    <div class="layout-grid" [class.edit-mode-center]="modoEdicion()">
         <!-- Columna Izquierda: Formulario -->
-        <div class="col-lg-6">
-            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
-                <div class="card-header bg-white p-3 text-center border-bottom-0">
-                    <h5 class="fw-bold m-0">Crear materia prima</h5>
+        <div class="col-form">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white text-center border-0 pt-4">
+                    <h2 class="card-title fw-bold">
+                        {{ modoEdicion() ? 'Editar materia prima' : 'Crear materia prima' }}
+                    </h2>
                 </div>
                 <div class="card-body p-4" [formGroup]="form">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold">Categoría<span class="text-danger">*</span></label>
-                            <div class="d-flex gap-2">
-                                <select class="form-select shadow-sm" formControlName="CodigoCategoriaProducto">
+                    <div class="form-row">
+                        <div class="form-group flex-1">
+                            <label class="form-label">Categoría<span class="text-danger">*</span></label>
+                            <div class="input-group-custom">
+                                <select class="form-select" formControlName="CodigoCategoriaProducto">
                                     <option [ngValue]="null">Seleccionar</option>
                                     @for (cat of categorias(); track cat.CodigoCategoriaProducto) {
                                     <option [ngValue]="cat.CodigoCategoriaProducto">{{ cat.NombreCategoriaProducto }}
                                     </option>
                                     }
                                 </select>
-                                <button class="btn p-1 text-white rounded-2" [style.background-color]="colorSistema"
+                                <button class="btn btn-add-mini" [style.background-color]="colorSistema"
                                     (click)="mostrarCategoriaModal.set(true)">
                                     <i class="bi bi-plus-lg"></i>
                                 </button>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold">Producto<span class="text-danger">*</span></label>
-                            <input type="text" class="form-control shadow-sm" placeholder="Nombre"
+                        <div class="form-group flex-1">
+                            <label class="form-label">Producto<span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" placeholder="Nombre"
                                 formControlName="NombreProducto">
                         </div>
+                    </div>
 
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold">Presentación<span
-                                    class="text-danger">*</span></label>
-                            <div class="d-flex gap-2">
-                                <select class="form-select shadow-sm" formControlName="CodigoUnidadMedida">
+                    <div class="form-row">
+                        <div class="form-group flex-1">
+                            <label class="form-label">Presentación<span class="text-danger">*</span></label>
+                            <div class="input-group-custom">
+                                <select class="form-select" formControlName="CodigoUnidadMedida">
                                     <option [ngValue]="null">Seleccionar</option>
                                     @for (u of unidades(); track u.CodigoUnidadMedida) {
                                     <option [ngValue]="u.CodigoUnidadMedida">{{ u.NombreUnidad }}</option>
                                     }
                                 </select>
-                                <button class="btn p-1 text-white rounded-2" [style.background-color]="colorSistema"
+                                <button class="btn btn-add-mini" [style.background-color]="colorSistema"
                                     (click)="mostrarPresentacionModal.set(true)">
                                     <i class="bi bi-plus-lg"></i>
                                 </button>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold">Stock</label>
-                            <input type="number" class="form-control shadow-sm" placeholder="Cantidad"
-                                formControlName="Stock">
+                        <div class="form-group flex-1">
+                            <label class="form-label">Stock</label>
+                            <input type="number" class="form-control" placeholder="Cantidad" formControlName="Stock"
+                                [readonly]="modoEdicion()">
                         </div>
+                    </div>
 
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold">Stock Mínimo</label>
-                            <input type="number" class="form-control shadow-sm" placeholder="Cantidad"
+                    <div class="form-row">
+                        <div class="form-group flex-1">
+                            <label class="form-label">Stock Mínimo</label>
+                            <input type="number" class="form-control" placeholder="Cantidad"
                                 formControlName="StockMinimo">
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold">Stock sugerido</label>
-                            <input type="number" class="form-control shadow-sm" placeholder="Cantidad"
+                        <div class="form-group flex-1">
+                            <label class="form-label">Stock sugerido</label>
+                            <input type="number" class="form-control" placeholder="Cantidad"
                                 formControlName="StockSugerido">
                         </div>
+                    </div>
 
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold">Precio compra</label>
-                            <input type="number" class="form-control shadow-sm" placeholder="Cantidad"
+                    <div class="form-row">
+                        <div class="form-group flex-1">
+                            <label class="form-label">Precio compra</label>
+                            <input type="number" class="form-control" placeholder="Cantidad"
                                 formControlName="PrecioCompra">
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold">Codigo de barra</label>
-                            <input type="text" class="form-control shadow-sm" placeholder="Cantidad"
+                        <div class="form-group flex-1">
+                            <label class="form-label">Codigo de barra</label>
+                            <input type="text" class="form-control" placeholder="Cantidad"
                                 formControlName="CodigoBarra">
                         </div>
+                    </div>
 
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold">Iva</label>
-                            <div class="input-group shadow-sm">
-                                <input type="number" class="form-control border-end-0" placeholder="%"
-                                    formControlName="Iva">
-                                <span class="input-group-text bg-white border-start-0 text-muted">%</span>
-                            </div>
+                    <div class="form-row align-items-end">
+                        <div class="form-group flex-1">
+                            <label class="form-label">Iva</label>
+                            <input type="number" class="form-control" placeholder="%" formControlName="Iva">
                         </div>
-
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold">Subir imagen</label>
+                        <div class="form-group flex-1">
+                            <label class="form-label">Subir imagen</label>
                             <div class="d-flex align-items-center gap-3">
-                                <div class="image-box border rounded-3 d-flex align-items-center justify-content-center overflow-hidden bg-light"
-                                    style="width: 80px; height: 60px;">
-                                    @if (imagenPreview()) {
-                                    <img [src]="imagenPreview()" class="img-fluid object-fit-contain">
-                                    } @else {
-                                    <i class="bi bi-image text-muted fs-3"></i>
-                                    }
-                                </div>
-                                <input type="file" #fileInput hidden (change)="alSeleccionarImagen($event)">
-                                <button class="btn btn-sm btn-outline-secondary rounded-3" (click)="fileInput.click()">
+                                <button class="btn btn-upload" (click)="fileInput.click()">
                                     <i class="bi bi-upload"></i>
                                 </button>
+                                <input type="file" #fileInput hidden (change)="alSeleccionarImagen($event)"
+                                    accept="image/*">
+                                <div class="image-preview shadow-sm">
+                                    @if (imagenPreview()) {
+                                    <img [src]="imagenPreview()">
+                                    } @else {
+                                    <i class="bi bi-image text-muted"></i>
+                                    }
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="d-flex justify-content-end mt-4">
-                        <button class="btn btn-add text-white px-4 py-2 fw-bold shadow-sm"
-                            [style.background-color]="colorSistema" (click)="agregarALista()">
-                            <i class="bi bi-plus-lg me-2"></i> Agregar
+                    <div class="d-flex justify-content-end mt-5">
+                        @if (modoEdicion()) {
+                        <div class="d-flex gap-3">
+                            <button class="btn btn-cancelar-main" (click)="cancelar()">
+                                Cancelar
+                            </button>
+                            <button class="btn btn-actualizar-main" [style.background-color]="colorSistema"
+                                (click)="actualizar()">
+                                <i class="bi bi-arrow-repeat"></i> Actualizar
+                            </button>
+                        </div>
+                        } @else {
+                        <button class="btn btn-agregar" [style.background-color]="colorSistema"
+                            (click)="agregarALista()">
+                            <i class="bi bi-plus-lg"></i> Agregar
                         </button>
+                        }
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Columna Derecha: Lista de Carga -->
-        <div class="col-lg-6">
-            <div class="card border-0 shadow-lg rounded-4 overflow-hidden h-100">
-                <div class="card-header bg-white p-3 text-center border-bottom-0">
-                    <h5 class="fw-bold m-0">Carga de materia prima</h5>
+        @if (!modoEdicion()) {
+        <div class="col-list">
+            <div class="card shadow-sm border-0 h-100 d-flex flex-column">
+                <div class="card-header bg-white text-center border-0 pt-4">
+                    <h2 class="card-title fw-bold">Carga de materia prima</h2>
                 </div>
                 <div class="card-body p-0 d-flex flex-column">
-                    <div class="table-responsive flex-grow-1" style="min-height: 380px;">
-                        <table class="table table-hover align-middle m-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
                             <thead>
                                 <tr>
-                                    <th class="small border-0 border-bottom">Producto <i
-                                            class="bi bi-arrow-down-up ms-1"></i></th>
-                                    <th class="small border-0 border-bottom">Present. <i
-                                            class="bi bi-arrow-down-up ms-1"></i></th>
-                                    <th class="small border-0 border-bottom">Stock <i
-                                            class="bi bi-arrow-down-up ms-1"></i></th>
-                                    <th class="small border-0 border-bottom text-center">Acciones</th>
+                                    <th>Producto <i class="bi bi-arrow-down-up ms-1"></i></th>
+                                    <th>Present. <i class="bi bi-arrow-down-up ms-1"></i></th>
+                                    <th>Stock <i class="bi bi-arrow-down-up ms-1"></i></th>
+                                    <th class="text-center">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @for (item of listaCargaPaginada(); track $index) {
                                 <tr>
-                                    <td class="small">{{ item.NombreProducto }}</td>
-                                    <td class="small">{{ item.NombreUnidad }}</td>
-                                    <td class="small fw-bold">{{ item.Stock }}</td>
+                                    <td class="fw-bold">{{ item.NombreProducto }}</td>
+                                    <td>{{ item.NombreUnidad }}</td>
+                                    <td>{{ item.Stock }}</td>
                                     <td class="text-center">
-                                        <button class="btn btn-link p-1 text-danger" (click)="eliminarDeLista($index)">
-                                            <i class="bi bi-trash-fill fs-5"></i>
+                                        <button class="btn-delete" (click)="eliminarDeLista($index)">
+                                            <i class="bi bi-trash"></i>
                                         </button>
                                     </td>
                                 </tr>
                                 } @empty {
                                 <tr>
                                     <td colspan="4" class="text-center py-5 text-muted">
-                                        <i
-                                            class="bi bi-cart shadow-sm p-3 rounded-circle bg-light d-inline-block mb-3 fs-3"></i>
-                                        <p class="m-0">La lista de carga está vacía</p>
+                                        La lista de carga está vacía
                                     </td>
                                 </tr>
                                 }
@@ -166,38 +170,41 @@
                         </table>
                     </div>
 
-                    <div class="p-3 bg-light d-flex justify-content-between align-items-center">
-                        <!-- Pagination -->
-                        <nav>
-                            <ul class="pagination pagination-sm m-0">
-                                <li class="page-item" [class.disabled]="paginaCarga() === 1">
-                                    <button class="page-link" (click)="irAPaginaCarga(paginaCarga() - 1)"><i
-                                            class="bi bi-chevron-left"></i></button>
-                                </li>
+                    <div class="mt-auto p-4">
+                        <div class="d-flex justify-content-end mb-4">
+                            <!-- Paginacion Estilo Prototipo -->
+                            <div class="pagination-custom">
+                                <button class="btn-page" [disabled]="paginaCarga() === 1"
+                                    (click)="irAPaginaCarga(paginaCarga() - 1)">
+                                    <i class="bi bi-chevron-left"></i>
+                                </button>
                                 @for (p of [].constructor(totalPaginasCarga()); track $index) {
-                                <li class="page-item" [class.active]="paginaCarga() === $index + 1">
-                                    <button class="page-link" (click)="irAPaginaCarga($index + 1)"
-                                        [style.background-color]="paginaCarga() === $index + 1 ? colorSistema : ''"
-                                        [style.border-color]="paginaCarga() === $index + 1 ? colorSistema : ''">
-                                        {{ $index + 1 }}
-                                    </button>
-                                </li>
+                                <button class="btn-page" [class.active]="$index + 1 === paginaCarga()"
+                                    (click)="irAPaginaCarga($index + 1)">
+                                    {{ $index + 1 }}
+                                </button>
                                 }
-                                <li class="page-item" [class.disabled]="paginaCarga() === totalPaginasCarga()">
-                                    <button class="page-link" (click)="irAPaginaCarga(paginaCarga() + 1)"><i
-                                            class="bi bi-chevron-right"></i></button>
-                                </li>
-                            </ul>
-                        </nav>
+                                <button class="btn-page" [disabled]="paginaCarga() === totalPaginasCarga()"
+                                    (click)="irAPaginaCarga(paginaCarga() + 1)">
+                                    <i class="bi bi-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
 
-                        <button class="btn btn-save text-white px-5 py-2 fw-bold shadow-sm"
-                            [style.background-color]="colorSistema" (click)="guardarTodo()">
-                            <i class="bi bi-save-fill me-2"></i> Guardar
-                        </button>
+                        <div class="d-flex justify-content-end gap-3">
+                            <button class="btn btn-cancelar-main" (click)="cancelar()">
+                                Cancelar
+                            </button>
+                            <button class="btn btn-guardar-main" [style.background-color]="colorSistema"
+                                (click)="guardarTodo()">
+                                <i class="bi bi-download"></i> Guardar
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+        }
     </div>
 </div>
 

@@ -127,9 +127,10 @@
     </div>
 </div>
 
-<app-compra-modal [visible]="mostrarModalCompra()" (cerrar)="mostrarModalCompra.set(false)"></app-compra-modal>
+<app-compra-modal [visible]="mostrarModalCompra()" (cerrar)="alCerrarModalCompra()"
+    (guardado)="alCerrarModalCompra()"></app-compra-modal>
 <app-pago-modal [visible]="mostrarModalPago()" [compraId]="compraSeleccionadaId()"
-    (cerrar)="mostrarModalPago.set(false)"></app-pago-modal>
+    (cerrar)="alCerrarModalPago()"></app-pago-modal>
 
 <!-- Loader -->
 @if (cargando()) {

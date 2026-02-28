@@ -96,8 +96,13 @@ export class Compras implements OnInit {
         }
     }
 
-    abrirNuevaCompra() {
+    async abrirNuevaCompra() {
         this.mostrarModalCompra.set(true);
+    }
+
+    async alCerrarModalCompra() {
+        this.mostrarModalCompra.set(false);
+        await this.cargarCompras();
     }
 
     abrirPagos(id: number) {
@@ -105,8 +110,13 @@ export class Compras implements OnInit {
         this.mostrarModalPago.set(true);
     }
 
+    async alCerrarModalPago() {
+        this.mostrarModalPago.set(false);
+        this.compraSeleccionadaId.set(null);
+        await this.cargarCompras();
+    }
+
     eliminarCompra(id: number) {
-        // Mockup delete
         console.log('Eliminar compra:', id);
     }
 

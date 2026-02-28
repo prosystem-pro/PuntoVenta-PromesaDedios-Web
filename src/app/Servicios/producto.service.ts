@@ -116,13 +116,13 @@ export class ProductoServicio {
         return res.data;
     }
 
-    async ActualizarStock(payload: any): Promise<RespuestaAPI<any>> {
-        const res = await axiosInstance.post('/producto/actualizarstock', payload);
+    async ActualizarStock(payload: { Productos: { CodigoProducto: number, StockActual: number }[] }): Promise<RespuestaAPI<any>> {
+        const res = await axiosInstance.put('/producto/actualizarstock', payload);
         return res.data;
     }
 
-    async AbastecerInventario(payload: any): Promise<RespuestaAPI<any>> {
-        const res = await axiosInstance.post('/producto/abastecerinventarioproducto', payload);
+    async AbastecerInventario(payload: { Productos: { CodigoProducto: number, CantidadProducida: number }[] }): Promise<RespuestaAPI<any>> {
+        const res = await axiosInstance.put('/producto/abastecerinventarioproducto', payload);
         return res.data;
     }
 }

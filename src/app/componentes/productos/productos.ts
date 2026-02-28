@@ -29,6 +29,11 @@ export class Productos implements OnInit {
     unidades = signal<UnidadMedida[]>([]);
     cargando = signal(false);
 
+    // Modos de edicion de stock
+    modoEdicion = signal<'lectura' | 'ajustar' | 'abastecer'>('lectura');
+    // Coleccion de cambios: { CodigoProducto: ValorDigitado }
+    cambiosPendientes = signal<Record<number, number>>({});
+
     // Busqueda
     textoBusqueda = signal('');
     codigoBarrasBusqueda = signal('');
@@ -128,10 +133,12 @@ export class Productos implements OnInit {
 
     // Acciones
     crearProducto() {
+        if (this.modoEdicion() !== 'lectura') return;
         this.router.navigate(['/productos/nuevo']);
     }
 
     editarProducto(producto: Producto) {
+        if (this.modoEdicion() !== 'lectura') return;
         this.router.navigate(['/productos/editar', producto.CodigoProducto]);
     }
 
@@ -158,11 +165,92 @@ export class Productos implements OnInit {
 
     // Stock Actions
     ajustarStock() {
-        this.servicioAlerta.MostrarInfo('Funcionalidad de Ajustar Stock proximamente');
+        if (this.modoEdicion() === 'ajustar') {
+            this.cancelarEdicion();
+        } else {
+            this.modoEdicion.set('ajustar');
+            this.cambiosPendientes.set({});
+            // Inicializar con valores actuales para facilitar edicion
+            const inicial: Record<number, number> = {};
+            this.productos().forEach(p => {
+                if (p.CodigoProducto) inicial[p.CodigoProducto] = p.Stock || 0;
+            });
+            this.cambiosPendientes.set(inicial);
+        }
     }
 
     abastecerStock() {
-        this.servicioAlerta.MostrarInfo('Funcionalidad de Abastecer Stock proximamente');
+        if (this.modoEdicion() === 'abastecer') {
+            this.cancelarEdicion();
+        } else {
+            this.modoEdicion.set('abastecer');
+            this.cambiosPendientes.set({});
+        }
+    }
+
+    cancelarEdicion() {
+        this.modoEdicion.set('lectura');
+        this.cambiosPendientes.set({});
+    }
+
+    alCambiarValorStock(codigo: number | undefined, valor: string) {
+        if (!codigo) return;
+        const num = parseFloat(valor) || 0;
+        this.cambiosPendientes.update(c => ({ ...c, [codigo]: num }));
+    }
+
+    async guardarCambiosStock() {
+        const cambios = this.cambiosPendientes();
+        const listaCodigos = Object.keys(cambios).map(Number);
+
+        if (listaCodigos.length === 0) {
+            this.cancelarEdicion();
+            return;
+        }
+
+        this.cargando.set(true);
+        try {
+            if (this.modoEdicion() === 'ajustar') {
+                // El API incrementa (StockActual + X), asi que enviamos la diferencia
+                const payload = {
+                    Productos: listaCodigos.map(id => {
+                        const productoReal = this.productos().find(p => p.CodigoProducto === id);
+                        const stockActual = productoReal?.Stock || 0;
+                        const nuevoStock = cambios[id];
+                        return {
+                            CodigoProducto: id,
+                            StockActual: nuevoStock - stockActual
+                        };
+                    }).filter(p => p.StockActual !== 0) // Solo enviar si hay cambio real
+                };
+
+                if (payload.Productos.length > 0) {
+                    const res = await this.servicioProducto.ActualizarStock(payload);
+                    if (res.success) this.servicioAlerta.MostrarExito(res.message);
+                    else this.servicioAlerta.MostrarError(res);
+                }
+            } else if (this.modoEdicion() === 'abastecer') {
+                const payload = {
+                    Productos: listaCodigos.map(id => ({
+                        CodigoProducto: id,
+                        CantidadProducida: cambios[id]
+                    })).filter(p => p.CantidadProducida > 0)
+                };
+
+                if (payload.Productos.length > 0) {
+                    const res = await this.servicioProducto.AbastecerInventario(payload);
+                    if (res.success) this.servicioAlerta.MostrarExito(res.message);
+                    else this.servicioAlerta.MostrarError(res);
+                }
+            }
+
+            await this.cargarProductos();
+            this.cancelarEdicion();
+        } catch (error) {
+            this.servicioAlerta.MostrarError({ error: { message: 'Error al procesar cambios de stock' } });
+        } finally {
+            this.cargando.set(false);
+        }
     }
 
     // Utils

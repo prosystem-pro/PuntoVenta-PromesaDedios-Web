@@ -1,7 +1,7 @@
 import { Component, OnInit, signal, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { Producto, CategoriaProducto, UnidadMedida } from '../../../Modelos/producto.modelo';
 import { ProductoServicio } from '../../../Servicios/producto.service';
 import { AlertaServicio } from '../../../Servicios/alerta.service';
@@ -21,6 +21,7 @@ export class MateriaPrimaDetalle implements OnInit {
     private router = inject(Router);
     private servicioProducto = inject(ProductoServicio);
     private servicioAlerta = inject(AlertaServicio);
+    private route = inject(ActivatedRoute);
 
     colorSistema = Entorno.ColorSistema;
     form: FormGroup;
@@ -41,12 +42,17 @@ export class MateriaPrimaDetalle implements OnInit {
     mostrarCategoriaModal = signal(false);
     mostrarPresentacionModal = signal(false);
 
+    // Modo Edicion
+    modoEdicion = signal(this.route.snapshot.paramMap.has('id'));
+    insumoId = signal<number | null>(Number(this.route.snapshot.paramMap.get('id')) || null);
+
     // Imagen
     imagenPreview = signal<string | null>(null);
     archivoImagen: File | null = null;
 
     constructor() {
         this.form = this.fb.group({
+            CodigoProducto: [null],
             CodigoCategoriaProducto: [null, [Validators.required]],
             NombreProducto: ['', [Validators.required]],
             CodigoUnidadMedida: [null, [Validators.required]],
@@ -55,12 +61,46 @@ export class MateriaPrimaDetalle implements OnInit {
             StockSugerido: [0],
             PrecioCompra: [0, [Validators.required]],
             CodigoBarra: [''],
-            Iva: [0]
+            Iva: [0],
+            Estatus: [1]
         });
     }
 
     async ngOnInit() {
         await this.cargarCatalogos();
+
+        // Si es modo edicion, cargar los datos
+        if (this.modoEdicion() && this.insumoId()) {
+            await this.cargarInsumo(this.insumoId()!);
+        }
+    }
+
+    async cargarInsumo(id: number) {
+        this.cargando.set(true);
+        try {
+            const res = await this.servicioProducto.ObtenerCompleto(id);
+            if (res.success) {
+                const p = res.data;
+                this.form.patchValue({
+                    CodigoProducto: p.CodigoProducto,
+                    CodigoCategoriaProducto: p.CodigoCategoriaProducto || p.Categoria?.CodigoCategoriaProducto,
+                    NombreProducto: p.NombreProducto,
+                    CodigoUnidadMedida: p.CodigoUnidadMedida || p.UnidadMedida?.CodigoUnidadMedida,
+                    Stock: p.Inventario?.StockActual || 0,
+                    StockMinimo: p.Inventario?.StockMinimo || 0,
+                    StockSugerido: p.Inventario?.StockSugerido || 0,
+                    PrecioCompra: p.Inventario?.PrecioCompra || 0,
+                    CodigoBarra: p.CodigoBarra || '',
+                    Iva: Number(p.Iva || 0),
+                    Estatus: p.Estatus
+                });
+                this.imagenPreview.set(p.ImagenUrl || null);
+            }
+        } catch (error) {
+            this.servicioAlerta.MostrarError({ error: { message: 'Error al cargar los datos de la materia prima' } });
+        } finally {
+            this.cargando.set(false);
+        }
     }
 
     async cargarCatalogos() {
@@ -200,11 +240,39 @@ export class MateriaPrimaDetalle implements OnInit {
             this.router.navigate(['/materia-prima']);
         } else {
             this.servicioAlerta.MostrarAlerta(`Proceso terminado. Éxitos: ${exitos}, Errores: ${errores}`);
-            // Limpiar solo los exitosos es mas complejo, por ahora si hay errores podria dejar la lista
-            if (exitos > 0) {
-                // Podriamos refrescar o navegar? 
-                // Por ahora asumimos exito o error total para simplicidad
+        }
+    }
+
+    async actualizar() {
+        if (this.form.invalid) {
+            this.form.markAllAsTouched();
+            return;
+        }
+
+        this.cargando.set(true);
+        try {
+            const val = this.form.value;
+            const payload: Partial<Producto> = {
+                ...val,
+                TipoProducto: 'Insumo',
+                PrecioVenta: 0,
+                TieneReceta: false
+            };
+
+            const res = await this.servicioProducto.Editar(payload);
+            if (res.success) {
+                if (this.archivoImagen && this.insumoId()) {
+                    await this.subirImagen(this.insumoId()!, this.archivoImagen, val.CodigoCategoriaProducto);
+                }
+                this.servicioAlerta.MostrarExito('Materia prima actualizada correctamente');
+                this.router.navigate(['/materia-prima']);
+            } else {
+                this.servicioAlerta.MostrarError(res);
             }
+        } catch (error) {
+            this.servicioAlerta.MostrarError({ error: { message: 'Error al actualizar' } });
+        } finally {
+            this.cargando.set(false);
         }
     }
 

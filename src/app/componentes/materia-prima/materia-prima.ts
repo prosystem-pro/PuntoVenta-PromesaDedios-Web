@@ -43,7 +43,7 @@ export class MateriaPrima implements OnInit {
 
     // Paginacion
     paginaActual = signal(1);
-    itemsPorPagina = 10;
+    itemsPorPagina = 7;
 
     // Modales (Obsoleto, ahora navegamos)
     mostrarModal = signal(false);
@@ -74,6 +74,10 @@ export class MateriaPrima implements OnInit {
     // Paginacion computada
     totalRegistros = computed(() => this.insumosFiltrados().length);
     totalPaginas = computed(() => Math.ceil(this.totalRegistros() / this.itemsPorPagina));
+
+    // Generar array de paginas para el @for
+    paginas = computed(() => Array.from({ length: this.totalPaginas() }, (_, i) => i + 1));
+
     insumosPaginados = computed(() => {
         const inicio = (this.paginaActual() - 1) * this.itemsPorPagina;
         const fin = inicio + this.itemsPorPagina;
@@ -116,9 +120,12 @@ export class MateriaPrima implements OnInit {
                 ...p,
                 CodigoProducto: p.CodigoProducto,
                 NombreProducto: p.Producto || p.NombreProducto,
-                NombreCategoria: p.NombreCategoriaProducto || p.NombreCategoria,
-                NombreUnidad: p.NombreUnidad || p.Abreviatura,
-                Stock: p.StockActual !== undefined ? p.StockActual : p.Stock,
+                NombreCategoria: p.NombreCategoriaProducto || p.NombreCategoria || (p.CategoriaProducto?.NombreCategoriaProducto),
+                NombreUnidad: p.NombreUnidad || p.Abreviatura || (p.UnidadMedida?.NombreUnidad),
+                Stock: p.StockActual !== undefined ? p.StockActual : (p.Inventario?.StockActual ?? p.Stock),
+                StockMinimo: p.StockMinimo !== undefined ? p.StockMinimo : (p.Inventario?.StockMinimo),
+                StockSugerido: p.StockSugerido !== undefined ? p.StockSugerido : (p.Inventario?.StockSugerido),
+                PrecioCompra: p.PrecioCompra !== undefined ? p.PrecioCompra : (p.Inventario?.PrecioCompra),
                 TipoProducto: 'INSUMO',
                 Estatus: p.Estatus
             }));
@@ -236,8 +243,7 @@ export class MateriaPrima implements OnInit {
     }
 
     editarInsumo(insumo: Producto) {
-        this.insumoSeleccionado.set(insumo);
-        this.mostrarModal.set(true);
+        this.router.navigate(['/materia-prima/editar', insumo.CodigoProducto]);
     }
 
     async eliminarInsumo(id: number | undefined) {

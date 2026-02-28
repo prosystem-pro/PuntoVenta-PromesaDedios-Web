@@ -1,15 +1,30 @@
 <div class="productos-container" [style.--color-sistema]="colorSistema">
     <!-- Header -->
     <div class="productos-header d-flex justify-content-between align-items-center mb-4">
-        <button class="btn btn-export" [style.background-color]="colorSistema" (click)="exportarExcel()">
+        <!-- Boton Regresar (Solo en edicion) -->
+        <button *ngIf="modoEdicion() !== 'lectura'" class="btn btn-regresar" (click)="cancelarEdicion()">
+            <i class="bi bi-chevron-left"></i> Regresar
+        </button>
+
+        <!-- Boton Exportar (Solo en lectura) -->
+        <button *ngIf="modoEdicion() === 'lectura'" class="btn btn-export" [style.background-color]="colorSistema"
+            (click)="exportarExcel()">
             <i class="bi bi-file-earmark-spreadsheet"></i> Exportar a Excel
         </button>
 
         <h2 class="productos-titulo m-0" [style.color]="colorSistema">
-            LISTADO PRODUCTOS
+            {{ modoEdicion() === 'ajustar' ? 'AJUSTAR INVENTARIO' : (modoEdicion() === 'abastecer' ? 'ABASTECER
+            INVENTARIO' : 'LISTADO PRODUCTOS') }}
         </h2>
 
-        <button class="btn btn-crear" [style.background-color]="colorSistema" (click)="crearProducto()">
+        <!-- Boton Guardar (Solo en edicion) -->
+        <button *ngIf="modoEdicion() !== 'lectura'" class="btn btn-guardar" (click)="guardarCambiosStock()">
+            <i class="bi bi-download"></i> Guardar
+        </button>
+
+        <!-- Boton Crear (Solo en lectura) -->
+        <button *ngIf="modoEdicion() === 'lectura'" class="btn btn-crear" [style.background-color]="colorSistema"
+            (click)="crearProducto()">
             <i class="bi bi-plus-circle"></i> Crear producto
         </button>
     </div>
@@ -35,22 +50,25 @@
     </div>
 
     <!-- Tabla -->
-    <div class="products-card shadow-sm border-0">
-        <div class="table-responsive">
+    <div class="products-card card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="table-container p-0 overflow-auto" style="max-height: 480px;">
             <div *ngIf="cargando()" class="text-center py-5">
                 <div class="spinner-border" [style.color]="colorSistema" role="status"></div>
                 <p class="mt-2 text-muted text-latin">Cargando productos...</p>
             </div>
 
-            <table *ngIf="!cargando()" class="table productos-table align-middle m-0">
+            <table *ngIf="!cargando()" class="productos-table table table-hover align-middle m-0">
                 <thead>
                     <tr>
                         <th class="text-latin">No. <i class="bi bi-arrow-down-up small ms-1"></i></th>
                         <th class="text-latin">Categoría <i class="bi bi-arrow-down-up small ms-1"></i></th>
                         <th class="text-latin">Producto <i class="bi bi-arrow-down-up small ms-1"></i></th>
-                        <th class="text-latin">Tipo <i class="bi bi-arrow-down-up small ms-1"></i></th>
+                        <th class="text-latin" *ngIf="modoEdicion() === 'lectura'">Tipo <i
+                                class="bi bi-arrow-down-up small ms-1"></i></th>
                         <th class="text-latin">Unidad <i class="bi bi-arrow-down-up small ms-1"></i></th>
                         <th class="text-latin">Stock <i class="bi bi-arrow-down-up small ms-1"></i></th>
+                        <th class="text-latin" *ngIf="modoEdicion() === 'abastecer'">Abastecer <i
+                                class="bi bi-arrow-down-up small ms-1"></i></th>
                         <th class="text-latin">Estatus <i class="bi bi-arrow-down-up small ms-1"></i></th>
                         <th class="text-center text-latin">Acciones</th>
                     </tr>
@@ -61,7 +79,7 @@
                         <td class="text-latin">{{ (paginaActual() - 1) * itemsPorPagina + i + 1 | number:'2.0-0' }}</td>
                         <td class="text-latin">{{ producto.NombreCategoria || 'Sin categoria' }}</td>
                         <td class="text-latin">{{ producto.NombreProducto }}</td>
-                        <td class="text-latin">
+                        <td class="text-latin" *ngIf="modoEdicion() === 'lectura'">
                             <span class="badge" [ngClass]="{
                                 'bg-info text-dark': producto.TipoProducto === 'VENTANILLA',
                                 'bg-secondary': producto.TipoProducto === 'INSUMO',
@@ -73,28 +91,42 @@
                         </td>
                         <td class="td-unidad text-latin">{{ producto.NombreUnidad || 'Unidad' }}</td>
                         <td class="text-latin">
-                            <span [ngClass]="{'text-danger fw-bold': (producto.Stock || 0) <= 0}">
-                                {{ (producto.Stock || 0) === 0 ? '0' : producto.Stock }}
-                            </span>
+                            <ng-container *ngIf="modoEdicion() !== 'ajustar'">
+                                <span [ngClass]="{'text-danger fw-bold': (producto.Stock || 0) <= 0}">
+                                    {{ (producto.Stock || 0) === 0 ? '0' : producto.Stock }}
+                                </span>
+                            </ng-container>
+                            <input *ngIf="modoEdicion() === 'ajustar'" type="number"
+                                class="form-control form-control-sm stock-input"
+                                [value]="cambiosPendientes()[producto.CodigoProducto || 0] || 0"
+                                (input)="alCambiarValorStock(producto.CodigoProducto, $any($event.target).value)">
+                        </td>
+                        <td class="text-latin" *ngIf="modoEdicion() === 'abastecer'">
+                            <input type="number" class="form-control form-control-sm stock-input"
+                                [value]="cambiosPendientes()[producto.CodigoProducto || 0] || ''" placeholder="-"
+                                (input)="alCambiarValorStock(producto.CodigoProducto, $any($event.target).value)">
                         </td>
                         <td class="text-latin">
-                            <span [class.text-danger]="producto.Estatus === 0"
-                                [class.text-success]="producto.Estatus === 1">
+                            <span class="badge rounded-pill px-3"
+                                [style.color]="producto.Estatus === 1 ? 'green' : 'red'"
+                                [style.backgroundColor]="producto.Estatus === 1 ? 'rgba(0,128,0,0.1)' : 'rgba(255,0,0,0.1)'">
                                 {{ producto.Estatus === 1 ? 'Activo' : 'Inactivo' }}
                             </span>
                         </td>
                         <td class="acciones-cell text-center">
-                            <button class="btn-accion btn-editar" (click)="editarProducto(producto)" title="Editar">
+                            <button class="btn-accion btn-editar" [disabled]="modoEdicion() !== 'lectura'"
+                                (click)="editarProducto(producto)" title="Editar">
                                 <i class="bi bi-pencil-square"></i>
                             </button>
-                            <button class="btn-accion btn-eliminar" (click)="eliminarProducto(producto.CodigoProducto)"
-                                title="Eliminar">
+                            <button class="btn-accion btn-eliminar" [disabled]="modoEdicion() !== 'lectura'"
+                                (click)="eliminarProducto(producto.CodigoProducto)" title="Eliminar">
                                 <i class="bi bi-trash"></i>
                             </button>
                         </td>
                     </tr>
                     <tr *ngIf="productosPaginados().length === 0">
-                        <td colspan="7" class="text-center py-4 text-muted">No se encontraron productos</td>
+                        <td [attr.colspan]="modoEdicion() === 'abastecer' ? 8 : (modoEdicion() === 'lectura' ? 8 : 7)"
+                            class="text-center py-4 text-muted">No se encontraron productos</td>
                     </tr>
                 </tbody>
             </table>

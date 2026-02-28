@@ -1,14 +1,14 @@
 .detalle-container {
-    padding: 2rem;
+    padding: 0.5rem;
     background-color: #f4f6f8;
-    min-height: calc(100vh - 64px);
 }
 
 .layout-grid {
     display: grid;
-    grid-template-columns: 1.2fr 0.8fr;
-    gap: 2rem;
-    align-items: start;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 1.5rem;
+    align-items: stretch;
+    width: 100%;
 }
 
 .card {
@@ -204,12 +204,44 @@
     background: #eef0f2;
 }
 
-.global-actions {
+/* Pagination Custom (reused from Materia Prima) */
+.col-actions-card {
+    margin-top: auto;
+}
+
+.pagination-custom {
+    display: flex;
+    gap: 0.5rem;
     background: white;
-    padding: 1.5rem 2rem;
-    border-radius: 16px;
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.03);
-    margin-top: 2rem;
+    padding: 5px;
+    border: 1px solid #ced4da;
+    border-radius: 8px;
+}
+
+.btn-page {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    border-radius: 5px;
+    font-weight: 600;
+    color: #666;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-page:hover:not(:disabled) {
+    background-color: #f8f9fa;
+}
+
+.btn-page.active {
+    background-color: var(--color-sistema);
+    color: white;
+}
+
+.btn-page:disabled {
+    opacity: 0.3;
 }
 
 @media (max-width: 1200px) {
@@ -234,16 +266,19 @@
 }
 
 .btn-editar {
-    color: #333; /* --color-text-dark from clients */
+    color: #333;
+    /* --color-text-dark from clients */
 }
 
 .btn-editar:hover {
-    color: var(--color-sistema); /* --color-primary from clients roughly */
+    color: var(--color-sistema);
+    /* --color-primary from clients roughly */
     background-color: rgba(255, 149, 0, 0.1);
 }
 
 .btn-eliminar {
-    color: #dc3545; /* --color-danger */
+    color: #dc3545;
+    /* --color-danger */
 }
 
 .btn-eliminar:hover {

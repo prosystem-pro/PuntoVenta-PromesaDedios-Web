@@ -42,6 +42,7 @@ export class ProductoDetalle implements OnInit {
     cargando = signal(false);
     imagenPreview = signal<string | null>(null);
     archivoImagen: File | null = null;
+    triggerRecargaIngredientes = signal(0); // Para forzar actualizacion de computed
 
     // Filtro de ingredientes (Buscador)
     textoFiltroIngrediente = signal('');
@@ -69,14 +70,16 @@ export class ProductoDetalle implements OnInit {
     });
 
     ingredientesPaginados = computed(() => {
+        this.triggerRecargaIngredientes(); // Dependencia para refrescar
         const inicio = (this.paginaIngredientes() - 1) * this.itemsPorPaginaIngredientes();
         const fin = inicio + this.itemsPorPaginaIngredientes();
         return this.ingredientes.controls.slice(inicio, fin);
     });
 
-    get paginasIngredientes() {
+    paginasNumeros = computed(() => {
+        this.triggerRecargaIngredientes();
         return Array.from({ length: this.totalPaginasIngredientes() }, (_, i) => i + 1);
-    }
+    });
 
     irAPaginaIngredientes(p: number) {
         if (p >= 1 && p <= this.totalPaginasIngredientes()) {
@@ -162,7 +165,7 @@ export class ProductoDetalle implements OnInit {
         this.cargando.set(true);
         try {
             const res = await this.servicioProducto.ObtenerCompleto(id);
-
+            console.log(res.data)
             if (res.success && res.data) {
                 const pData = res.data;
                 // El API devuelve "Recetum" para la lista de ingredientes (o Receta/Ingredientes)
@@ -183,40 +186,40 @@ export class ProductoDetalle implements OnInit {
 
                 this.productoForm.patchValue({
                     ...producto,
-                    Iva: Number(producto.Iva || 0)
+                    Iva: Number(producto.Iva || 0),
+                    TieneReceta: pData.TieneReceta === true || pData.TieneReceta === 1 || !!pData.Recetum || !!pData.Receta
                 });
 
-                this.imagenPreview.set(producto.ImagenUrl || null);
+                this.imagenPreview.set(pData.ImagenUrl || null);
 
                 this.ingredientes.clear();
 
-                // Manejar la estructura de RecetaDetalles dentro de Recetum
-                const detalles = pData.Recetum?.RecetaDetalles || pData.Receta?.RecetaDetalles || (Array.isArray(ingredientesData) ? ingredientesData : []);
+                // Manejar la estructura de RecetaDetalles dentro de Recetum (según el JSON que pasaste)
+                const receta = pData.Recetum || pData.Receta || {};
+                const detalles = receta.RecetaDetalles || (Array.isArray(ingredientesData) ? ingredientesData : []);
 
                 if (Array.isArray(detalles)) {
                     detalles.forEach((det: any) => {
-                        // El API devuelve el producto ingrediente y la unidad en objetos anidados
                         const prodIng = det.ProductoIngrediente || {};
                         const unidad = det.UnidadMedida || {};
 
-                        // Si el API no trae el precio de compra en el objeto anidado,
-                        // intentamos buscarlo en nuestro catalogo local cargado previamente.
                         let precioCompra = prodIng.PrecioCompra;
-                        if (!precioCompra) {
+                        if (precioCompra === undefined) {
                             const catalogado = this.todosLosProductos().find(p => p.CodigoProducto === det.CodigoProducto);
                             precioCompra = catalogado?.PrecioCompra || 0;
                         }
 
                         this.agregarIngredienteExistente({
-                            CodigoProducto: det.CodigoProducto || det.CodigoMateriaPrima,
-                            NombreProducto: prodIng.NombreProducto || det.NombreProducto || det.Producto,
+                            CodigoProducto: det.CodigoProducto,
+                            NombreProducto: prodIng.NombreProducto || det.NombreProducto || 'Sin nombre',
                             CodigoUnidadMedida: det.CodigoUnidadMedida,
-                            NombreUnidad: unidad.NombreUnidad || det.NombreUnidad,
+                            NombreUnidad: unidad.NombreUnidad || 'No def.',
                             Cantidad: det.Cantidad,
                             PrecioUnitario: precioCompra
                         });
                     });
                 }
+                this.triggerRecargaIngredientes.update(v => v + 1);
             } else {
                 this.servicioAlerta.MostrarError(res, 'No se pudo cargar la información del producto');
             }
@@ -289,6 +292,7 @@ export class ProductoDetalle implements OnInit {
             return;
         }
         this.ingredientes.push(nuevoIngrediente);
+        this.triggerRecargaIngredientes.update(v => v + 1);
 
         // Limpiar
         this.ingredienteSeleccionado.set(null);
@@ -330,6 +334,7 @@ export class ProductoDetalle implements OnInit {
 
     eliminarIngrediente(index: number) {
         this.ingredientes.removeAt(index);
+        this.triggerRecargaIngredientes.update(v => v + 1);
     }
 
     calcularCostoTotal(): number {

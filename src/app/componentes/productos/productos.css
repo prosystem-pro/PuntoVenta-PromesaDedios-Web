@@ -32,6 +32,63 @@
     color: white;
 }
 
+.btn-regresar {
+    background-color: #FF9500;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 8px 25px;
+    font-weight: 700;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+
+.btn-regresar:hover {
+    filter: brightness(1.1);
+    transform: translateY(-2px);
+    color: white;
+}
+
+.btn-guardar {
+    background-color: #FF9500;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 8px 25px;
+    font-weight: 700;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+
+.btn-guardar:hover {
+    filter: brightness(1.1);
+    transform: translateY(-2px);
+    color: white;
+}
+
+.stock-input {
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 700;
+    max-width: 120px;
+    margin: 0 auto;
+    padding: 5px;
+    transition: border-color 0.2s;
+}
+
+.stock-input:focus {
+    border-color: var(--color-sistema);
+    box-shadow: 0 0 0 0.2rem rgba(255, 149, 0, 0.25);
+    outline: none;
+}
+
 /* Buscadores */
 .barcode-search-box,
 .text-search-box {
@@ -80,18 +137,20 @@
 }
 
 .productos-table thead th {
-    background: white;
-    padding: 20px 15px;
+    background-color: #f8f9fa !important;
+    padding: 15px !important;
     font-weight: 700;
-    color: #000;
-    border-bottom: 3px solid #eee;
+    color: #666;
+    border-bottom: 2px solid #eee !important;
+    font-size: 0.85rem;
 }
 
 .productos-table tbody td {
-    padding: 15px;
+    padding: 12px 15px;
     color: #444;
     font-weight: 500;
     border-bottom: 1px solid #f0f0f0;
+    font-size: 0.9rem;
 }
 
 .inactive-row td {

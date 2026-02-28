@@ -50,7 +50,7 @@
 
     <!-- Tabla -->
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-        <div class="table-container p-0 overflow-auto" style="max-height: 480px;">
+        <div class="table-container p-0">
             <table class="table table-hover align-middle m-0">
                 <thead class="sticky-top bg-white shadow-sm">
                     <tr>
@@ -151,12 +151,12 @@
                     <li class="page-item" [class.disabled]="paginaActual() === 1">
                         <button class="page-link" (click)="paginaAnterior()"><i class="bi bi-chevron-left"></i></button>
                     </li>
-                    @for (p of [].constructor(totalPaginas()); track $index; let i = $index) {
-                    <li class="page-item" [class.active]="paginaActual() === i + 1">
-                        <button class="page-link" (click)="irAPagina(i + 1)"
-                            [style.background-color]="paginaActual() === i + 1 ? colorSistema : ''"
-                            [style.border-color]="paginaActual() === i + 1 ? colorSistema : ''">
-                            {{ i + 1 }}
+                    @for (p of paginas(); track $index; let i = $index) {
+                    <li class="page-item" [class.active]="paginaActual() === p">
+                        <button class="page-link" (click)="irAPagina(p)"
+                            [style.background-color]="paginaActual() === p ? colorSistema : ''"
+                            [style.border-color]="paginaActual() === p ? colorSistema : ''">
+                            {{ p }}
                         </button>
                     </li>
                     }

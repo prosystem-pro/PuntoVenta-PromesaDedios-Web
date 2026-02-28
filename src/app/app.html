@@ -2,11 +2,11 @@
   <!-- Menu lateral solo si esta autenticado -->
   <app-menu-lateral *ngIf="servicioAutenticacion.estaAutenticado()"></app-menu-lateral>
 
-  <div class="d-flex flex-column flex-grow-1 overflow-y-auto overflow-x-hidden bg-light">
-    <!-- Navbar solo si esta autenticado -->
+  <div class="d-flex flex-column flex-grow-1 overflow-hidden bg-light">
+    <!-- Navbar siempre arriba -->
     <app-navbar *ngIf="servicioAutenticacion.estaAutenticado()"></app-navbar>
 
-    <main [ngClass]="{'p-4': servicioAutenticacion.estaAutenticado()}">
+    <main class="flex-grow-1 overflow-y-auto" [ngClass]="{'p-2': servicioAutenticacion.estaAutenticado()}">
       <router-outlet></router-outlet>
     </main>
   </div>

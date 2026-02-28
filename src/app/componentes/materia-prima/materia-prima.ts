@@ -188,9 +188,7 @@ export class MateriaPrima implements OnInit {
             };
 
             // Usar endpoint de actualizar stock
-            // Suponiendo que el servicio tiene este metodo segun el API doc del usuario
-            // @ts-ignore
-            const res = await this.servicioProducto.ActualizarStock(payload);
+            const res = await this.servicioProducto.ActualizarStockInsumo(payload);
             if (res.success) {
                 this.servicioAlerta.MostrarExito('Stock ajustado correctamente');
                 await this.cargarInsumos();

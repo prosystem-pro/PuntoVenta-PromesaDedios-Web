@@ -116,8 +116,13 @@ export class ProductoServicio {
         return res.data;
     }
 
-    async ActualizarStock(payload: { Productos: { CodigoProducto: number, StockActual: number }[] }): Promise<RespuestaAPI<any>> {
-        const res = await axiosInstance.put('/producto/actualizarstock', payload);
+    async ActualizarStockProducto(payload: { Productos: { CodigoProducto: number, StockActual: number }[] }): Promise<RespuestaAPI<any>> {
+        const res = await axiosInstance.put('/producto/actualizarstockproducto', payload);
+        return res.data;
+    }
+
+    async ActualizarStockInsumo(payload: { Productos: { CodigoProducto: number, StockActual: number }[] }): Promise<RespuestaAPI<any>> {
+        const res = await axiosInstance.put('/producto/actualizarstockinsumo', payload);
         return res.data;
     }
 

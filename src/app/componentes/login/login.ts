@@ -30,7 +30,7 @@ export class PaginaLogin {
 
     async alEnviarFormulario() {
         if (!this.NombreUsuario || !this.Clave) {
-            this.error.set('Por favor, ingrese usuario y contrasena');
+            this.error.set('Por favor, ingrese usuario y contraseña');
             return;
         }
 
@@ -44,7 +44,7 @@ export class PaginaLogin {
         if (res.success) {
             this.router.navigate(['/usuario']);
         } else {
-            this.error.set(res.message || 'Error al iniciar sesion');
+            this.error.set(res.message || 'Error al iniciar sesión');
         }
     }
 }

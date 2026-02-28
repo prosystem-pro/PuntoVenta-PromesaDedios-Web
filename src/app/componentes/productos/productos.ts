@@ -225,7 +225,7 @@ export class Productos implements OnInit {
                 };
 
                 if (payload.Productos.length > 0) {
-                    const res = await this.servicioProducto.ActualizarStock(payload);
+                    const res = await this.servicioProducto.ActualizarStockProducto(payload);
                     if (res.success) this.servicioAlerta.MostrarExito(res.message);
                     else this.servicioAlerta.MostrarError(res);
                 }

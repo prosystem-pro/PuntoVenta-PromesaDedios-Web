@@ -1,150 +1,205 @@
 @if (visible) {
 <div class="modal-overlay d-flex align-items-center justify-content-center">
-    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden" [style.max-width]="'900px'">
-        <div class="modal-header bg-white border-bottom p-3 d-flex justify-content-center position-relative">
-            <h4 class="modal-title fw-bold m-0">Compra de productos</h4>
+    <div class="modal-content border-0 shadow rounded-4 overflow-hidden" [style.max-width]="'1000px'">
+        <!-- Header -->
+        <div class="modal-header border-0 p-3 d-flex justify-content-center position-relative shadow-sm bg-white">
+            <h2 class="modal-title fw-bold m-0 text-dark">Compra de productos</h2>
             <button type="button" class="btn-close-custom position-absolute end-0 top-50 translate-middle-y me-3"
                 (click)="onCerrar()">
-                <i class="bi bi-x-circle-fill fs-3" [style.color]="colorSistema"></i>
+                <i class="bi bi-x-circle-fill fs-2" [style.color]="colorSistema"></i>
             </button>
         </div>
 
-        <div class="modal-body p-4 bg-white" [formGroup]="form">
-            <!-- Proveedor selection -->
-            <div class="row mb-3 align-items-end">
-                <div class="col-8 col-md-5">
-                    <label class="form-label fw-bold">Nombre<span class="text-danger">*</span></label>
-                    <div class="search-input-container shadow-sm">
-                        <input type="text" class="form-control border-0" placeholder="Ingrese nombre de proveedor"
-                            formControlName="Proveedor">
-                        <i class="bi bi-search position-absolute top-50 end-0 translate-middle-y me-3 text-muted"></i>
+        <div class="modal-body p-4 bg-white">
+            <!-- Proveedor Section -->
+            <div class="row mb-4 align-items-end">
+                <div class="col-md-5">
+                    <label class="form-label fw-bold mb-1">Nombre<span class="text-danger">*</span></label>
+                    <div class="search-box">
+                        <input type="text" class="form-control input-custom" placeholder="Ingrese nombre de proveedor"
+                            [value]="textoBusquedaProveedor()"
+                            (input)="textoBusquedaProveedor.set($any($event.target).value)">
+                        <i class="bi bi-search search-icon"></i>
+
+                        <!-- Dropdown Sugerencias Proveedor -->
+                        @if (textoBusquedaProveedor() && !form.get('CodigoProveedor')?.value) {
+                        <div class="search-suggestions shadow-sm">
+                            @for (p of proveedoresFiltrados(); track p.CodigoProveedor) {
+                            <div class="suggestion-item" (click)="seleccionarProveedor(p)">
+                                {{ p.NombreProveedor }} <small class="text-muted">({{ p.NIT }})</small>
+                            </div>
+                            }
+                            @if (proveedoresFiltrados().length === 0) {
+                            <div class="suggestion-item text-muted">No se encontraron resultados</div>
+                            }
+                        </div>
+                        }
                     </div>
                 </div>
-                <div class="col-4 col-md-2">
-                    <button class="btn btn-add-provider text-white shadow-sm" [style.background-color]="colorSistema">
+                <div class="col-auto">
+                    <button class="btn btn-orange-square shadow-sm" [style.background-color]="colorSistema"
+                        (click)="abrirModalProveedor()" title="Nuevo proveedor">
                         <i class="bi bi-person-plus-fill"></i>
                     </button>
                 </div>
             </div>
 
-            <!-- Product Entry -->
-            <div class="mb-4">
-                <label class="form-label fw-bold">Producto</label>
-                <div class="search-input-container shadow-sm mb-3">
-                    <input type="text" class="form-control border-0" placeholder="Nombre de producto">
-                    <i class="bi bi-search position-absolute top-50 end-0 translate-middle-y me-3 text-muted"></i>
-                </div>
+            <!-- Producto Selection Section -->
+            <div class="row mb-4 g-2">
+                <div class="col-md-5">
+                    <label class="form-label fw-bold mb-1">Producto</label>
+                    <div class="search-box">
+                        <input type="text" class="form-control input-custom" placeholder="Nombre de producto"
+                            [value]="textoBusquedaProducto()"
+                            (input)="textoBusquedaProducto.set($any($event.target).value)">
+                        <i class="bi bi-search search-icon"></i>
 
-                <div class="row g-2 align-items-end">
-                    <div class="col">
-                        <label class="small fw-bold">Categoría</label>
-                        <select class="form-select shadow-sm border-0 bg-white">
-                            @for (cat of categorias; track cat) { <option [value]="cat">{{ cat }}</option> }
-                        </select>
-                    </div>
-                    <div class="col">
-                        <label class="small fw-bold">Producto</label>
-                        <input type="text" class="form-control shadow-sm border-0" placeholder="Azucar caña real">
-                    </div>
-                    <div class="col">
-                        <label class="small fw-bold">Presentación</label>
-                        <select class="form-select shadow-sm border-0 bg-white">
-                            @for (p of presentaciones; track p) { <option [value]="p">{{ p }}</option> }
-                        </select>
-                    </div>
-                    <div class="col">
-                        <label class="small fw-bold">Precio</label>
-                        <input type="text" class="form-control shadow-sm border-0" placeholder="Q 4.00">
-                    </div>
-                    <div class="col">
-                        <label class="small fw-bold">Cantidad</label>
-                        <input type="text" class="form-control shadow-sm border-0" placeholder="Q 4.00">
-                    </div>
-                    <div class="col-auto">
-                        <button class="btn btn-add text-white shadow-sm" [style.background-color]="colorSistema">
-                            <i class="bi bi-plus-lg fw-bold"></i>
-                        </button>
+                        <!-- Dropdown Sugerencias Producto -->
+                        @if (textoBusquedaProducto() && !itemForm.get('CodigoProducto')?.value) {
+                        <div class="search-suggestions shadow-sm">
+                            @for (p of productosFiltrados(); track p.CodigoProducto) {
+                            <div class="suggestion-item" (click)="seleccionarProducto(p)">
+                                {{ p.Producto }} <small class="text-muted">({{ p.NombreCategoriaProducto }})</small>
+                            </div>
+                            }
+                        </div>
+                        }
                     </div>
                 </div>
             </div>
 
-            <!-- Items Table -->
-            <div class="table-responsive shadow-sm rounded-3 mb-4 border overflow-hidden">
-                <table class="table table-hover align-middle m-0">
+            <!-- Inputs Row (Top Table Row) -->
+            <div class="row g-2 mb-3 mt-2" [formGroup]="itemForm">
+                <div class="col">
+                    <label class="form-label fw-bold small text-muted mb-1">Categoría</label>
+                    <input type="text" class="form-control input-custom-flat" formControlName="NombreCategoria">
+                </div>
+                <div class="col">
+                    <label class="form-label fw-bold small text-muted mb-1">Producto</label>
+                    <input type="text" class="form-control input-custom-flat" formControlName="NombreProducto">
+                </div>
+                <div class="col">
+                    <label class="form-label fw-bold small text-muted mb-1">Presentación</label>
+                    <input type="text" class="form-control input-custom-flat" formControlName="NombrePresentacion">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-bold small text-muted mb-1">Precio</label>
+                    <div class="input-group-custom">
+                        <span class="prefix">Q</span>
+                        <input type="number" class="form-control input-custom-flat" formControlName="Precio">
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-bold small text-muted mb-1">Cantidad</label>
+                    <div class="input-group-custom">
+                        <input type="number" class="form-control input-custom-flat" formControlName="Cantidad">
+                    </div>
+                </div>
+                <div class="col-auto d-flex align-items-end">
+                    <button class="btn btn-orange-square shadow-sm mb-1" [style.background-color]="colorSistema"
+                        (click)="agregarItemALista()">
+                        <i class="bi bi-plus fs-4"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Detalle Table -->
+            <div class="table-container-custom shadow-sm mb-4">
+                <table class="table align-middle m-0">
                     <thead class="text-white" [style.background-color]="colorSistema">
                         <tr>
-                            <th class="small py-2">No.</th>
-                            <th class="small py-2">Categoria</th>
-                            <th class="small py-2">Producto</th>
-                            <th class="small py-2">Presentación</th>
-                            <th class="small py-2">Precio</th>
-                            <th class="small py-2">Cantidad</th>
-                            <th class="small py-2 text-center">Acciones</th>
+                            <th width="50">No.</th>
+                            <th>Categoria</th>
+                            <th>Producto</th>
+                            <th>Presentación</th>
+                            <th width="120">Precio</th>
+                            <th width="100">Cantidad</th>
+                            <th width="100" class="text-center">Acciones</th>
                         </tr>
                     </thead>
-                    <tbody formArrayName="Items">
+                    <tbody>
                         @for (item of items.controls; track $index) {
-                        <tr [formGroupName]="$index">
-                            <td class="small">{{ $index + 1 | number:'2.0' }}</td>
-                            <td class="small">{{ item.get('Categoria')?.value }}</td>
-                            <td class="small">{{ item.get('Producto')?.value }}</td>
-                            <td class="small">{{ item.get('Presentacion')?.value }}</td>
-                            <td class="small">Q {{ item.get('Precio')?.value | number:'1.2-2' }}</td>
-                            <td class="small">{{ item.get('Cantidad')?.value }}</td>
+                        <tr>
+                            <td class="text-muted">{{ $index + 1 | number:'2.0-0' }}</td>
+                            <td>{{ item.get('NombreCategoria')?.value }}</td>
+                            <td>{{ item.get('NombreProducto')?.value }}</td>
+                            <td>{{ item.get('NombrePresentacion')?.value }}</td>
+                            <td class="fw-bold">Q {{ item.get('Precio')?.value | number:'1.2-2' }}</td>
+                            <td class="fw-bold">{{ item.get('Cantidad')?.value }}</td>
                             <td class="text-center">
-                                <button class="btn btn-sm btn-link p-0 me-2"><i
-                                        class="bi bi-pencil-square text-dark fs-5"></i></button>
-                                <button class="btn btn-sm btn-link p-0" (click)="eliminarItem($index)"><i
-                                        class="bi bi-trash-fill text-danger fs-5"></i></button>
+                                <div class="d-flex justify-content-center gap-2">
+                                    <button class="btn-icon-action" title="Editar" (click)="editarItem($index)">
+                                        <i class="bi bi-pencil-square fs-5"></i>
+                                    </button>
+                                    <button class="btn-icon-action text-danger" (click)="eliminarItem($index)"
+                                        title="Eliminar">
+                                        <i class="bi bi-trash-fill fs-5"></i>
+                                    </button>
+                                </div>
                             </td>
+                        </tr>
+                        }
+                        @if (items.length === 0) {
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-muted">No hay productos agregados</td>
                         </tr>
                         }
                     </tbody>
                 </table>
             </div>
 
-            <!-- Payment Options -->
-            <div class="d-flex justify-content-end gap-3 align-items-center mb-4 pt-3">
-                <div class="dropdown">
-                    <button class="btn btn-select text-white dropdown-toggle px-4 py-2 shadow-sm" type="button"
-                        data-bs-toggle="dropdown" [style.background-color]="colorSistema">
-                        {{ form.get('MedioPago')?.value }}
-                    </button>
-                    <ul class="dropdown-menu shadow">
-                        @for (m of mediosPago; track m) {
-                        <li><a class="dropdown-item" (click)="form.get('MedioPago')?.setValue(m)">{{ m }}</a></li>
-                        }
-                    </ul>
-                </div>
+            <!-- Footer Actions -->
+            <div class="d-flex flex-wrap justify-content-end align-items-center gap-3 mt-4" [formGroup]="form">
 
-                <div class="dropdown">
-                    <button class="btn btn-select text-white dropdown-toggle px-4 py-2 shadow-sm" type="button"
-                        data-bs-toggle="dropdown" [style.background-color]="colorSistema">
-                        {{ form.get('MetodoPago')?.value }}
-                    </button>
-                    <ul class="dropdown-menu shadow">
+                <!-- Custom Metodo de Pago Dropdown -->
+                <div class="custom-dropdown-container">
+                    <div class="custom-dropdown-header shadow-sm" [style.background-color]="colorSistema"
+                        (click)="mostrarMetodoPago.set(!mostrarMetodoPago()); mostrarMedioPago.set(false); $event.stopPropagation()">
+                        <span>{{ form.get('MetodoPago')?.value || 'Método de pago' }}</span>
+                        <i class="bi bi-caret-down-fill text-white ms-2"></i>
+                    </div>
+                    @if (mostrarMetodoPago()) {
+                    <ul class="custom-dropdown-menu shadow">
+                        <li class="dropdown-header-only">Método de pago</li>
                         @for (m of metodosPago; track m) {
-                        <li><a class="dropdown-item" (click)="form.get('MetodoPago')?.setValue(m)">{{ m }}</a></li>
+                        <li (click)="form.get('MetodoPago')?.setValue(m); mostrarMetodoPago.set(false)">{{ m }}</li>
                         }
                     </ul>
+                    }
                 </div>
 
-                @if (form.get('MetodoPago')?.value === 'Credito') {
-                <div class="d-flex align-items-center gap-2 ms-2">
-                    <label class="small fw-bold text-nowrap">Fecha vencimiento</label>
-                    <input type="date" class="form-control shadow-sm border" formControlName="FechaVencimiento">
+                <!-- Custom Medio de Pago Dropdown -->
+                <div class="custom-dropdown-container">
+                    <div class="custom-dropdown-header shadow-sm" [style.background-color]="colorSistema"
+                        (click)="mostrarMedioPago.set(!mostrarMedioPago()); mostrarMetodoPago.set(false); $event.stopPropagation()">
+                        <span>{{ form.get('MedioPago')?.value || 'Medio de pago' }}</span>
+                        <i class="bi bi-caret-down-fill text-white ms-2"></i>
+                    </div>
+                    @if (mostrarMedioPago()) {
+                    <ul class="custom-dropdown-menu shadow">
+                        <li class="dropdown-header-only">Medio de pago</li>
+                        @for (m of mediosPago; track m) {
+                        <li (click)="form.get('MedioPago')?.setValue(m); mostrarMedioPago.set(false)">{{ m }}</li>
+                        }
+                    </ul>
+                    }
                 </div>
-                }
-            </div>
 
-            <!-- Footer Action -->
-            <div class="d-flex justify-content-end mt-4">
-                <button class="btn btn-save text-white px-4 py-2 fw-bold shadow-sm d-flex align-items-center gap-2"
-                    [style.background-color]="colorSistema" (click)="onGuardar()">
-                    <i class="bi bi-save-fill"></i> Guardar
+                <button class="btn btn-save-orange shadow" [style.background-color]="colorSistema" (click)="onGuardar()"
+                    [disabled]="cargando()">
+                    @if (cargando()) {
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    } @else {
+                    <i class="bi bi-box-arrow-in-down"></i>
+                    }
+                    Guardar
                 </button>
             </div>
         </div>
     </div>
 </div>
 }
+
+<app-modal-proveedor [visible]="mostrarModalProveedor()" [colorSistema]="colorSistema"
+    (alCerrar)="cerrarModalProveedor()" (alGuardar)="manejarGuardarProveedor($event)">
+</app-modal-proveedor>

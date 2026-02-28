@@ -9,11 +9,17 @@
             </button>
         </div>
 
-        <div class="modal-body p-4 bg-white">
+        <div class="modal-body p-4 bg-white position-relative">
+            @if (cargando() && !detalle()) {
+            <div class="d-flex justify-content-center py-5">
+                <div class="spinner-border" [style.color]="colorSistema" role="status"></div>
+            </div>
+            }
+
             @if (detalle()) {
             <div class="row g-3 mb-4">
                 <div class="col-md-6">
-                    <label class="small fw-bold text-muted">Fecha</label>
+                    <label class="small fw-bold text-muted">Fecha Compra</label>
                     <div class="info-box p-2 bg-light border-secondary-subtle rounded-3">
                         {{ detalle()?.Fecha }}
                     </div>
@@ -24,45 +30,38 @@
                         {{ detalle()?.NoDocumento }}
                     </div>
                 </div>
-                <div class="col-md-6">
-                    <label class="small fw-bold text-muted">Proveedor</label>
-                    <div class="info-box p-2 bg-light border-secondary-subtle rounded-3">
-                        {{ detalle()?.Proveedor }}
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <label class="small fw-bold text-muted">Telefono</label>
-                    <div class="info-box p-2 bg-light border-secondary-subtle rounded-3">
-                        {{ detalle()?.Telefono }}
-                    </div>
-                </div>
+                <!-- ... other fields ... -->
             </div>
 
             <!-- Agregar abono section -->
-            <div class="pago-section p-3 rounded-4 border mb-4">
-                <h6 class="fw-bold mb-3">Agregar abono</h6>
+            <div class="pago-section p-3 rounded-4 border mb-4 bg-light">
+                <h6 class="fw-bold mb-3">Registrar nuevo abono</h6>
                 <div class="row g-3 align-items-end">
                     <div class="col-md-4">
                         <label class="small fw-bold">Medio de pago</label>
-                        <select class="form-select shadow-sm border" [(ngModel)]="nuevoMedioPago">
+                        <select class="form-select shadow-sm border bg-white" [(ngModel)]="nuevoMedioPago"
+                            [disabled]="cargando()">
                             @for (m of mediosPago; track m) { <option [value]="m">{{ m }}</option> }
                         </select>
                     </div>
                     <div class="col-md-3">
-                        <label class="small fw-bold">Valor</label>
-                        <input type="number" class="form-control shadow-sm border" [(ngModel)]="nuevoValor">
+                        <label class="small fw-bold">Valor a pagar</label>
+                        <input type="number" class="form-control shadow-sm border bg-white" [(ngModel)]="nuevoValor"
+                            [disabled]="cargando()">
                     </div>
                     <div class="col-md-3">
                         <label class="small fw-bold">Saldo pendiente</label>
-                        <div class="pending-box p-2 bg-light border rounded-3 fw-bold text-dark">
+                        <div
+                            class="pending-box p-2 bg-white border rounded-3 fw-bold text-danger text-center shadow-sm">
                             Q {{ detalle()!.SaldoPendiente | number:'1.2-2' }}
                         </div>
                     </div>
                     <div class="col-md-2">
                         <button
-                            class="btn btn-add-pago text-white w-100 py-2 shadow-sm d-flex align-items-center justify-content-center gap-1"
-                            [style.background-color]="colorSistema" (click)="agregarPago()">
-                            <i class="bi bi-plus-circle"></i> Agregar
+                            class="btn text-white w-100 py-2 shadow-sm d-flex align-items-center justify-content-center gap-1"
+                            [style.background-color]="colorSistema" (click)="agregarPago()"
+                            [disabled]="cargando() || nuevoValor <= 0">
+                            {{ cargando() ? '...' : 'Abonar' }}
                         </button>
                     </div>
                 </div>
@@ -70,15 +69,14 @@
 
             <!-- Pagos realizados table -->
             <div class="pago-history p-3 rounded-4 border">
-                <h6 class="fw-bold mb-3">Pagos realizados</h6>
-                <div class="table-responsive">
+                <h6 class="fw-bold mb-3">Historial de pagos</h6>
+                <div class="table-responsive" [style.max-height]="'250px'">
                     <table class="table table-hover align-middle m-0">
                         <thead>
                             <tr>
-                                <th class="small border-0 border-bottom">Fecha de pago</th>
-                                <th class="small border-0 border-bottom">Medio de pago</th>
-                                <th class="small border-0 border-bottom">Valor pagado</th>
-                                <th class="small border-0 border-bottom text-center">Acciones</th>
+                                <th class="small py-2 border-bottom">Fecha</th>
+                                <th class="small py-2 border-bottom">Medio de pago</th>
+                                <th class="small py-2 border-bottom text-end">Monto</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -86,13 +84,13 @@
                             <tr>
                                 <td class="small">{{ p.FechaPago }}</td>
                                 <td class="small">{{ p.MedioPago }}</td>
-                                <td class="small fw-bold">Q {{ p.ValorPagado | number:'1.2-2' }}</td>
-                                <td class="text-center">
-                                    <button class="btn btn-sm btn-link p-0 me-2"><i
-                                            class="bi bi-file-earmark-pdf fs-5 text-dark"></i></button>
-                                    <button class="btn btn-sm btn-link p-0" (click)="eliminarPago($index)"><i
-                                            class="bi bi-trash fs-5 text-danger"></i></button>
+                                <td class="small fw-bold text-end text-success">Q {{ p.ValorPagado | number:'1.2-2' }}
                                 </td>
+                            </tr>
+                            }
+                            @if (detalle()?.Pagos?.length === 0) {
+                            <tr>
+                                <td colspan="3" class="text-center py-3 text-muted">No se han registrado pagos.</td>
                             </tr>
                             }
                         </tbody>
@@ -102,10 +100,8 @@
             }
 
             <div class="d-flex justify-content-end mt-4">
-                <button
-                    class="btn btn-save-modal text-white px-5 py-2 fw-bold shadow-sm d-flex align-items-center gap-2"
-                    [style.background-color]="colorSistema" (click)="onGuardar()">
-                    <i class="bi bi-save"></i> Guardar
+                <button class="btn btn-outline-secondary px-5 py-2 fw-bold" (click)="onCerrar()">
+                    Cerrar
                 </button>
             </div>
         </div>

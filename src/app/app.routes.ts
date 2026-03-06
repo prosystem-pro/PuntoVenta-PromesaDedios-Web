@@ -32,6 +32,8 @@ export const routes: Routes = [
       { path: 'compras', loadComponent: () => import('./componentes/compras/compras').then(m => m.Compras) },
       { path: 'ventas', loadComponent: () => import('./componentes/mesa/mesa-listado/mesa-listado').then(m => m.MesaListado) },
       { path: 'ventas/mesa/:id', loadComponent: () => import('./componentes/mesa/venta-mesa/venta-mesa').then(m => m.VentaMesa) },
+      { path: 'produccion', loadComponent: () => import('./componentes/produccion/produccion-listado/produccion-listado').then(m => m.ProduccionListado) },
+      { path: 'produccion/ingresar/:id', loadComponent: () => import('./componentes/produccion/produccion-ingresar/produccion-ingresar').then(m => m.ProduccionIngresar) },
       { path: 'configuracion', component: Configuracion },
       { path: '', redirectTo: 'usuario', pathMatch: 'full' },
     ],

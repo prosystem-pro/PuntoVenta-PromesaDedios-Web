@@ -1,0 +1,95 @@
+.btn-regresar {
+    background-color: var(--color-system, #FF9500);
+    color: white;
+    font-weight: bold;
+    border-radius: 20px 8px 8px 20px;
+}
+
+.btn-regresar:hover {
+    opacity: 0.9;
+    color: white;
+}
+
+.input-sugerido {
+    border: 1px solid #28a745;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(40, 167, 69, 0.1);
+    font-weight: bold;
+    color: #333;
+}
+
+.input-sugerido:focus {
+    border-color: #28a745;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+
+.crear-pedido-container .titulo-pagina {
+    color: var(--color-system, #FF9500);
+    font-size: 2rem;
+    letter-spacing: 2px;
+}
+
+.header-line {
+    height: 3px;
+    background-color: var(--color-system, #FF9500);
+    width: 40%;
+    margin: 0.5rem auto 2rem;
+    opacity: 0.7;
+}
+
+.custom-table thead th {
+    border-bottom: 2px solid #333;
+    padding: 1rem 0.5rem;
+    font-weight: 700;
+}
+
+.custom-table tbody td {
+    padding: 0.75rem 0.5rem;
+    border-bottom: 1px solid #eee;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    height: auto;
+    color: transparent;
+    background: transparent;
+    cursor: pointer;
+}
+
+.text-orange {
+    color: var(--color-system, #FF9500);
+}
+
+.shadow-xs {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.crear-pedido-container {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.pagination .page-link {
+    color: #333;
+    cursor: pointer;
+}
+
+.pagination .page-item.active .page-link {
+    color: white;
+}

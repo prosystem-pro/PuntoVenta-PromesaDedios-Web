@@ -1,0 +1,213 @@
+<div class="container-fluid p-4 bg-light min-vh-100">
+    <!-- Header -->
+    <div class="row align-items-center mb-4 bg-white p-3 rounded shadow-sm mx-0 border-start border-4"
+        [style.border-color]="colorSistema">
+        <div class="col-auto">
+            <button class="btn btn-outline-secondary btn-sm rounded-pill px-3" (click)="cancelar()">
+                <i class="bi bi-arrow-left me-1"></i> Regresar
+            </button>
+        </div>
+        <div class="col">
+            <div class="d-flex align-items-center gap-3">
+                <span class="badge rounded-pill px-3 py-2 text-white" [style.background-color]="colorSistema">Pedido: {{
+                    codigoPedido() }}</span>
+                <h5 class="m-0 fw-bold text-dark">{{ datosPedido().Nombre }}</h5>
+                <span class="text-muted small border-start ps-3"><i class="bi bi-calendar-event me-1"></i> {{
+                    datosPedido().FechaEntrega | date:'dd/MM/yyyy' }}</span>
+            </div>
+        </div>
+        <div class="col-auto d-flex gap-2">
+            <div class="search-box position-relative">
+                <input type="text" class="form-control form-control-sm pe-5 border-light-subtle rounded-pill shadow-sm"
+                    placeholder="Buscar..." [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event)">
+                <i class="bi bi-search position-absolute top-50 end-0 translate-middle-y me-3 text-muted"></i>
+            </div>
+            <button class="btn btn-naranja px-4 rounded-pill shadow-sm text-white fw-bold" (click)="guardar()"
+                [style.background-color]="colorSistema" [disabled]="guardando() || cargando()">
+                @if (guardando()) {
+                <span class="spinner-border spinner-border-sm me-2"></span> Guardando...
+                } @else {
+                <i class="bi bi-save me-2"></i> Guardar
+                }
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content Tables -->
+    <div class="bg-white rounded shadow-sm overflow-hidden position-relative" style="min-height: 500px;">
+        <!-- VISTA PRODUCTOS -->
+        @if (vistaActiva() === 'productos') {
+        <div class="table-responsive">
+            <table class="table table-hover align-middle m-0">
+                <thead class="bg-dark text-white">
+                    <tr>
+                        <th class="ps-3 py-3" style="width: 60px;">No.</th>
+                        <th class="py-3">Categoría</th>
+                        <th class="py-3">Producto</th>
+                        <th class="py-3">Unidad</th>
+                        <th class="py-3 text-center" style="width: 120px;">Producir</th>
+                        <th class="py-3 text-center" style="width: 140px;">Producido</th>
+                        <th class="py-3 text-center" style="width: 60px;"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (cargando()) {
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted"><span
+                                class="spinner-border spinner-border-sm me-2"></span> Cargando...</td>
+                    </tr>
+                    } @else {
+                    @for (d of detallesFiltrados(); track d.CodigoProducto; let i = $index) {
+                    <tr>
+                        <td class="ps-3 text-muted small">{{ i + 1 }}</td>
+                        <td><span class="badge bg-light text-dark border">{{ d.NombreCategoriaProducto }}</span></td>
+                        <td class="fw-bold">{{ d.Producto || d.NombreProducto }}</td>
+                        <td>{{ d.NombreUnidad || 'UND' }}</td>
+                        <td class="text-center">
+                            <span class="badge rounded-pill px-3" [style.color]="colorSistema"
+                                style="background-color: rgba(255,149,0,0.1)">
+                                {{ d.CantidadSolicitada }}
+                            </span>
+                        </td>
+                        <td>
+                            <input type="number"
+                                class="form-control form-control-sm text-center border-dark shadow-sm mx-auto"
+                                style="width: 100px;" [(ngModel)]="d.CantidadProducida" min="0">
+                        </td>
+                        <td class="text-center">
+                            <button class="btn btn-sm text-muted" (click)="mostrarObservaciones(d, $event)"
+                                [class.text-primary]="d.ObservacionesDetalle">
+                                <i class="bi bi-journal-text fs-5"></i>
+                            </button>
+
+                            <!-- Popover de Observaciones -->
+                            @if (itemConObservacion() === d) {
+                            <div class="popover-observations position-absolute bg-white shadow-lg border rounded p-3 text-start"
+                                style="z-index: 1050; width: 300px; right: 60px;">
+                                <div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2">
+                                    <h6 class="m-0 fw-bold small">Observaciones</h6>
+                                    <button type="button" class="btn-close small" style="font-size: 0.7rem;"
+                                        (click)="mostrarObservaciones(d, $event)"></button>
+                                </div>
+                                <div class="small">
+                                    @if (d.ObservacionesDetalle) {
+                                    <table class="table table-sm table-borderless mb-0">
+                                        <thead>
+                                            <tr class="text-muted">
+                                                <th class="px-0">Cant.</th>
+                                                <th class="px-0">Comentario</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td style="width: 40px;">{{ d.CantidadSolicitada }}</td>
+                                                <td>{{ d.ObservacionesDetalle }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    } @else {
+                                    <div class="text-center text-muted py-2 italic font-sm">Sin observaciones</div>
+                                    }
+                                </div>
+                            </div>
+                            }
+                        </td>
+                    </tr>
+                    }
+                    @if (detallesFiltrados().length === 0 && !cargando()) {
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted italic">No hay productos para producir</td>
+                    </tr>
+                    }
+                    }
+                </tbody>
+            </table>
+        </div>
+        }
+
+        <!-- VISTA INSUMOS -->
+        @if (vistaActiva() === 'insumos') {
+        <div class="table-responsive">
+            <table class="table table-hover align-middle m-0">
+                <thead class="bg-dark text-white">
+                    <tr>
+                        <th class="ps-3 py-3" style="width: 60px;">No.</th>
+                        <th class="py-3">Categoría</th>
+                        <th class="py-3">Insumo</th>
+                        <th class="py-3">Unidad</th>
+                        <th class="py-3 text-center" style="width: 120px;">Estimado</th>
+                        <th class="py-3 text-center" style="width: 140px;">Utilizado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (cargando()) {
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-muted"><span
+                                class="spinner-border spinner-border-sm me-2"></span> Cargando...</td>
+                    </tr>
+                    } @else {
+                    @for (i of insumosFiltrados(); track i.CodigoProducto; let idx = $index) {
+                    <tr>
+                        <td class="ps-3 text-muted small">{{ idx + 1 }}</td>
+                        <td><span class="badge bg-light text-dark border">{{ i.NombreCategoriaProducto }}</span></td>
+                        <td class="fw-bold">{{ i.Producto || i.NombreProducto }}</td>
+                        <td>{{ i.Abreviatura || i.UnidadMedida || 'UND' }}</td>
+                        <td class="text-center">
+                            <span class="badge rounded-pill bg-secondary bg-opacity-10 text-secondary px-3">
+                                {{ i.CantidadSolicitada }}
+                            </span>
+                        </td>
+                        <td>
+                            <input type="number"
+                                class="form-control form-control-sm text-center border-dark shadow-sm mx-auto"
+                                style="width: 100px;" [(ngModel)]="i.ConsumoReal" min="0">
+                        </td>
+                    </tr>
+                    }
+                    @if (insumosFiltrados().length === 0 && !cargando()) {
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-muted italic">No hay insumos registrados para este
+                            pedido</td>
+                    </tr>
+                    }
+                    }
+                </tbody>
+            </table>
+        </div>
+        }
+    </div>
+
+    <!-- Footer Controls -->
+    <div class="d-flex justify-content-between align-items-center mt-4 bg-white p-3 rounded shadow-sm">
+        <div class="small text-muted">
+            Mostrando {{ vistaActiva() === 'productos' ? detallesFiltrados().length : insumosFiltrados().length }}
+            registros
+        </div>
+
+        <div class="d-flex gap-3 h-100">
+            <button class="btn btn-naranja btn-sm px-4 rounded-pill fw-bold"
+                [class.btn-outline-naranja]="vistaActiva() !== 'productos'"
+                [style.background-color]="vistaActiva() === 'productos' ? colorSistema : 'transparent'"
+                [style.color]="vistaActiva() === 'productos' ? 'white' : colorSistema"
+                [style.border-color]="colorSistema" (click)="cambiarVista('productos')">
+                <i class="bi bi-box-seam me-2"></i> PRODUCTOS
+            </button>
+            <button class="btn btn-naranja btn-sm px-4 rounded-pill fw-bold"
+                [class.btn-outline-naranja]="vistaActiva() !== 'insumos'"
+                [style.background-color]="vistaActiva() === 'insumos' ? colorSistema : 'transparent'"
+                [style.color]="vistaActiva() === 'insumos' ? 'white' : colorSistema" [style.border-color]="colorSistema"
+                (click)="cambiarVista('insumos')">
+                <i class="bi bi-droplet me-2"></i> INSUMO
+            </button>
+        </div>
+
+        <button class="btn btn-success px-4 rounded-pill shadow-sm fw-bold" (click)="guardar()"
+            [disabled]="guardando() || cargando()">
+            @if (guardando()) {
+            <span class="spinner-border spinner-border-sm me-2"></span>
+            } @else {
+            <i class="bi bi-boxes me-2"></i> Abastecer
+            }
+        </button>
+    </div>
+</div>

@@ -1,0 +1,139 @@
+<div class="crear-pedido-container bg-white h-100 d-flex flex-column overflow-hidden p-4">
+    <!-- Action Header -->
+    <div class="row align-items-center mb-0">
+        <div class="col">
+            <button class="btn btn-regresar shadow-sm px-4" (click)="cerrar()">
+                <i class="bi bi-chevron-left me-2"></i> Regresar
+            </button>
+        </div>
+        <div class="col-6 text-center">
+            <h2 class="titulo-pagina m-0 fw-bold">CREAR PEDIDO</h2>
+        </div>
+        <div class="col text-end">
+            <button class="btn btn-naranja shadow-sm px-4 text-white fw-bold" (click)="guardar()"
+                [style.background-color]="colorSistema" [disabled]="guardando()">
+                <i class="bi bi-clipboard-check-fill me-2"></i>
+                @if (guardando()) {
+                PROCESANDO...
+                } @else {
+                Crear pedido
+                }
+            </button>
+        </div>
+    </div>
+
+    <div class="header-line mb-4"></div>
+
+    <!-- Controls Row -->
+    <div class="row align-items-center mb-4 g-3 bg-white p-2 px-0 mx-0">
+        <div class="col-auto">
+            <span class="fw-bold fs-5">Agregar producto</span>
+        </div>
+        <div class="col-auto">
+            <div class="search-box position-relative" style="width: 250px;">
+                <input type="text" class="form-control border-light-subtle rounded shadow-xs"
+                    placeholder="Nombre producto" [ngModel]="busquedaProducto()"
+                    (ngModelChange)="busquedaProducto.set($event)">
+            </div>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-naranja px-4 shadow-sm text-white fw-bold" (click)="agregarProducto()"
+                [style.background-color]="colorSistema">
+                Agregar
+            </button>
+        </div>
+        <div class="col-auto ms-auto d-flex align-items-center bg-white border rounded shadow-xs p-1 px-3 position-relative"
+            style="min-width: 200px;">
+            <input type="date" class="form-control border-0 p-0 fs-5 fw-bold position-relative"
+                style="width: 100%; outline: none; box-shadow: none; background: transparent; z-index: 2;"
+                [ngModel]="fechaEntrega()" (ngModelChange)="fechaEntrega.set($event)">
+            <i class="bi bi-calendar3 ms-2 opacity-50 position-absolute end-0 me-3" style="z-index: 1;"></i>
+        </div>
+        <div class="col-auto">
+            <div class="search-box position-relative" style="width: 300px;">
+                <input type="text" class="form-control pe-5 border-light-subtle rounded-pill shadow-sm"
+                    placeholder="Buscar" [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event)">
+                <i class="bi bi-search position-absolute top-50 end-0 translate-middle-y me-3 text-muted"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="flex-grow-1 overflow-auto border-top">
+        <table class="table table-hover align-middle custom-table">
+            <thead>
+                <tr>
+                    <th style="width: 60px;">No. <i class="bi bi-arrow-down-up small opacity-50 ms-1"></i></th>
+                    <th>Categoría <i class="bi bi-arrow-down-up small opacity-50 ms-1"></i></th>
+                    <th>Producto <i class="bi bi-arrow-down-up small opacity-50 ms-1"></i></th>
+                    <th>Unidad <i class="bi bi-arrow-down-up small opacity-50 ms-1"></i></th>
+                    <th style="width: 100px;">Stock <i class="bi bi-arrow-down-up small opacity-50 ms-1"></i></th>
+                    <th class="text-center" style="width: 120px;">Sugerido <i
+                            class="bi bi-arrow-down-up small opacity-50 ms-1"></i></th>
+                    <th class="text-center" style="width: 100px;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (cargando()) {
+                <tr>
+                    <td colspan="7" class="text-center py-5">
+                        <div class="spinner-border text-orange" role="status"></div>
+                    </td>
+                </tr>
+                } @else {
+                @for (p of productosPaginados(); track p.CodigoProducto; let i = $index) {
+                <tr>
+                    <td class="text-muted">{{ (rangoInicio() + i).toString().padStart(2, '0') }}</td>
+                    <td>{{ p.NombreCategoriaProducto }}</td>
+                    <td>{{ p.Producto }}</td>
+                    <td>{{ p.Abreviatura || p.NombreUnidad || 'Unidad' }}</td>
+                    <td>{{ p.StockActual }}</td>
+                    <td class="text-center">
+                        <input type="number" class="form-control form-control-sm text-center mx-auto input-sugerido"
+                            [ngModel]="p.CantidadSolicitada" (ngModelChange)="actualizarCantidad(p, $event)" min="0"
+                            style="width: 80px;">
+                    </td>
+                    <td class="text-center">
+                        <button class="btn btn-sm text-danger border-0 p-1" (click)="eliminarFila(p)">
+                            <i class="bi bi-trash3 fs-5"></i>
+                        </button>
+                    </td>
+                </tr>
+                }
+                @if (productosFiltrados().length === 0) {
+                <tr>
+                    <td colspan="7" class="text-center py-5 text-muted">No hay productos seleccionados o encontrados
+                    </td>
+                </tr>
+                }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Footer -->
+    <div class="d-flex justify-content-between align-items-center mt-3 pt-3">
+        <div class="small text-muted fw-bold">
+            Mostrando {{ rangoInicio() }} al {{ rangoFin() }} de {{ totalRegistros() }} registros
+        </div>
+
+        <nav>
+            <ul class="pagination pagination-sm m-0 shadow-sm border-0">
+                <li class="page-item" [class.disabled]="paginaActual() === 1">
+                    <a class="page-link border-0 bg-light me-1 rounded" (click)="paginaAnterior()"><i
+                            class="bi bi-chevron-left"></i></a>
+                </li>
+                @for (p of paginasArray(); track p) {
+                <li class="page-item" [class.active]="paginaActual() === p">
+                    <a class="page-link border-0 mx-1 rounded" (click)="irAPagina(p)"
+                        [style.background-color]="paginaActual() === p ? colorSistema : ''">{{ p }}</a>
+                </li>
+                }
+                <li class="page-item" [class.disabled]="paginaActual() === totalPaginas()">
+                    <a class="page-link border-0 bg-light ms-1 rounded" (click)="paginaSiguiente()"><i
+                            class="bi bi-chevron-right"></i></a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>

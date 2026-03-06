@@ -30,8 +30,8 @@ export class CompraServicio {
         return res.data;
     }
 
-    async obtenerDetalle(id: number): Promise<RespuestaAPI<CompraDetalleCompleto>> {
-        const res = await axiosInstance.get(`/compra/detalle/${id}`);
+    async obtenerDetalle(CodigoCompra: number): Promise<RespuestaAPI<CompraDetalleCompleto>> {
+        const res = await axiosInstance.get(`/compra/detalle/${CodigoCompra}`);
         return res.data;
     }
 
@@ -41,7 +41,7 @@ export class CompraServicio {
     }
 
     async registrarAbono(datos: any): Promise<RespuestaAPI<any>> {
-        const res = await axiosInstance.post('/compra/abono', datos);
+        const res = await axiosInstance.post('/compra/abonar', datos);
         return res.data;
     }
 }

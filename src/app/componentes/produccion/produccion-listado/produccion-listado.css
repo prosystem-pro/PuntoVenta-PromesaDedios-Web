@@ -1,0 +1,144 @@
+:host {
+    --color-system: #FF9500;
+    --color-success: #28a745;
+    --color-border: #dee2e6;
+    --color-text-dark: #333;
+}
+
+.titulo-pagina {
+    color: var(--color-system);
+    font-size: 2rem;
+    letter-spacing: 2px;
+    text-align: center;
+}
+
+.header-line {
+    height: 3px;
+    background-color: var(--color-system);
+    width: 40%;
+    margin: 0.5rem auto 2rem;
+    opacity: 0.7;
+}
+
+.btn-export,
+.btn-create,
+.btn-buscar {
+    background-color: var(--color-system);
+    color: white;
+    font-weight: 600;
+    border: none;
+    padding: 0.5rem 1.25rem;
+    border-radius: 8px;
+    transition: transform 0.2s;
+}
+
+.btn-export:hover,
+.btn-create:hover,
+.btn-buscar:hover {
+    transform: translateY(-1px);
+    opacity: 0.9;
+    color: white;
+}
+
+.custom-table {
+    border-top: 1px solid var(--color-border);
+}
+
+.custom-table thead th {
+    font-weight: 700;
+    color: var(--color-text-dark);
+    text-transform: none;
+    border-bottom: 2px solid #333;
+    padding: 1rem 0.5rem;
+}
+
+.custom-table tbody td {
+    padding: 1rem 0.5rem;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.badge-estado {
+    font-weight: 700;
+    padding: 0.25rem 0.5rem;
+}
+
+.estado-espera {
+    color: var(--color-text-dark);
+    opacity: 0.7;
+}
+
+.estado-proceso {
+    color: var(--color-system);
+}
+
+.estado-finalizado {
+    color: var(--color-success);
+}
+
+.btn-accion {
+    border-radius: 8px;
+    padding: 0.4rem 1.5rem;
+    font-weight: 700;
+    border: none;
+    color: white;
+}
+
+.btn-iniciar {
+    background-color: #4CAF50;
+}
+
+.btn-ingresar {
+    background-color: var(--color-system);
+}
+
+.btn-trabajar-todo {
+    background-color: #28a745;
+    color: white;
+    font-weight: 700;
+    padding: 0.6rem 2.5rem;
+    border-radius: 8px;
+    border: none;
+    box-shadow: 0 4px 6px rgba(40, 167, 69, 0.2);
+}
+
+.btn-trabajar-todo:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 8px rgba(40, 167, 69, 0.3);
+}
+
+/* Pagination custom styles */
+.pagination .page-link {
+    color: var(--color-text-dark);
+    border: 1px solid #ddd;
+    padding: 0.4rem 0.8rem;
+    cursor: pointer;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: var(--color-system);
+    border-color: var(--color-system);
+    color: white;
+}
+
+.pagination .page-item.disabled .page-link {
+    color: #ccc;
+    pointer-events: none;
+    border-color: #eee;
+}
+
+.pagination .page-link i {
+    font-size: 0.8rem;
+}
+
+.btn-naranja {
+    background-color: var(--color-system);
+    color: white;
+    border: none;
+    transition: transform 0.2s;
+}
+
+.btn-naranja:hover {
+    transform: translateY(-1px);
+    opacity: 0.9;
+    color: white;
+}

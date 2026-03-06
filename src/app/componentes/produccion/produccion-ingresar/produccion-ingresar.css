@@ -1,0 +1,123 @@
+:host {
+    --color-system: #FF9500;
+    --color-bg: #f8f9fa;
+    --color-text: #333;
+}
+
+.ingresar-container {
+    background-color: var(--color-bg);
+}
+
+.titulo-pagina {
+    color: var(--color-system);
+    font-size: 1.5rem;
+    letter-spacing: 0.5px;
+}
+
+.btn-back {
+    background-color: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text);
+    font-size: 1.2rem;
+    transition: background-color 0.2s;
+}
+
+.btn-back:hover {
+    background-color: #eee;
+}
+
+.btn-guardar {
+    background-color: var(--color-system);
+    color: white;
+    border: none;
+}
+
+.btn-guardar:hover:not(:disabled) {
+    opacity: 0.9;
+    color: white;
+}
+
+.text-system {
+    color: var(--color-system);
+}
+
+.card {
+    border-radius: 12px;
+}
+
+.table thead th {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: #666;
+    font-weight: 700;
+    border-bottom: 2px solid #eee;
+}
+
+.table tbody td {
+    padding: 1rem 0.5rem;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+input[type="number"] {
+    border-radius: 6px;
+}
+
+input[type="number"]:focus {
+    border-color: var(--color-system);
+    box-shadow: 0 0 0 0.2rem rgba(255, 149, 0, 0.25);
+}
+
+.popover-observations {
+    z-index: 1060;
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    animation: fadeIn 0.15s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.btn-naranja {
+    background-color: var(--color-system) !important;
+    color: white !important;
+    border: none !important;
+    transition: all 0.2s ease;
+}
+
+.btn-naranja:hover:not(:disabled) {
+    background-color: #e68600 !important;
+    color: white !important;
+    transform: translateY(-1px);
+}
+
+.btn-outline-naranja {
+    background-color: transparent !important;
+    border: 1px solid var(--color-system) !important;
+    color: var(--color-system) !important;
+    transition: all 0.2s ease;
+}
+
+.btn-outline-naranja:hover {
+    background-color: var(--color-system) !important;
+    color: white !important;
+}
+
+.badge-naranja-light {
+    background-color: rgba(255, 149, 0, 0.1) !important;
+    color: var(--color-system) !important;
+}

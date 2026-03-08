@@ -8,6 +8,7 @@ export interface PedidoProduccion {
     Origen?: string;
     FechaEntrega: string;
     Observaciones?: string;
+    Estado?: string; // Nuevo (API retorna texto como PENDIENTE, EN_PROCESO, etc)
     Estatus: number; // 1: Pendiente, 2: Iniciado, 3: Finalizado
 }
 

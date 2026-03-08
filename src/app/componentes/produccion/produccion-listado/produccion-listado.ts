@@ -28,8 +28,10 @@ export class ProduccionListado implements OnInit {
     cargando = signal(false);
 
     // Filtros
-    fechaInicio = signal('2025-11-25');
-    fechaFinal = signal('2025-11-25');
+    fechaInicioInput = signal('');
+    fechaFinalInput = signal('');
+    fechaInicioFiltro = signal('');
+    fechaFinalFiltro = signal('');
     busqueda = signal('');
 
     // Paginación
@@ -43,10 +45,21 @@ export class ProduccionListado implements OnInit {
     }
 
     async cargarPedidos() {
+        // Validaciones de fecha
+        const inicioValue = this.fechaInicioInput();
+        const finValue = this.fechaFinalInput();
+
+        if (inicioValue && finValue && inicioValue > finValue) {
+            this.servicioAlerta.MostrarError('La fecha de inicio no puede ser mayor a la fecha final');
+            return;
+        }
+
         this.cargando.set(true);
+        // Aplicamos los filtros de fecha manualmente al presionar buscar
+        this.fechaInicioFiltro.set(inicioValue);
+        this.fechaFinalFiltro.set(finValue);
+
         try {
-            // Aquí se podrían pasar las fechas si el endpoint las aceptara
-            // const res = await this.servicioProduccion.listarPedidos(this.fechaInicio(), this.fechaFinal());
             const res = await this.servicioProduccion.listarPedidos();
             if (res.success) {
                 this.pedidos.set(res.data || []);
@@ -59,13 +72,29 @@ export class ProduccionListado implements OnInit {
 
     listadoFiltrado = computed(() => {
         const text = this.busqueda().toLowerCase().trim();
-        return this.pedidos().filter(p =>
-            p.CodigoPedidoProduccion?.toString().includes(text) ||
-            p.Nombre?.toLowerCase().includes(text) ||
-            p.NumeroVenta?.toLowerCase().includes(text) ||
-            p.Origen?.toLowerCase().includes(text) ||
-            p.Observaciones?.toLowerCase().includes(text)
-        );
+        const inicio = this.fechaInicioFiltro();
+        const fin = this.fechaFinalFiltro();
+
+        return this.pedidos().filter(p => {
+            // Filtrado por texto
+            const coincideTexto =
+                p.CodigoPedidoProduccion?.toString().includes(text) ||
+                p.Nombre?.toLowerCase().includes(text) ||
+                p.NumeroVenta?.toLowerCase().includes(text) ||
+                p.Origen?.toLowerCase().includes(text) ||
+                p.Observaciones?.toLowerCase().includes(text);
+
+            if (!coincideTexto) return false;
+
+            // Filtrado por fecha (solo si se ingresaron fechas)
+            if (p.FechaEntrega) {
+                const fechaPedido = p.FechaEntrega.split('T')[0];
+                if (inicio && fechaPedido < inicio) return false;
+                if (fin && fechaPedido > fin) return false;
+            }
+
+            return true;
+        });
     });
 
     // Paginación computada
@@ -132,20 +161,32 @@ export class ProduccionListado implements OnInit {
         }
     }
 
-    obtenerClaseEstado(estatus: number): string {
-        switch (estatus) {
+    obtenerClaseEstado(pedido: PedidoProduccion): string {
+        const estado = pedido.Estado || '';
+        if (estado === 'PENDIENTE') return 'estado-espera';
+        if (estado === 'EN_PROCESO') return 'estado-proceso';
+        if (estado === 'PENDIENTE_AUTORIZACION' || estado === 'FINALIZADO') return 'estado-finalizado';
+
+        switch (pedido.Estatus) {
             case 1: return 'estado-espera';
             case 2: return 'estado-proceso';
-            case 3: return 'estado-finalizado';
+            case 3:
+            case 4: return 'estado-finalizado';
             default: return '';
         }
     }
 
-    obtenerTextoEstado(estatus: number): string {
-        switch (estatus) {
+    obtenerTextoEstado(pedido: PedidoProduccion): string {
+        const estado = pedido.Estado || '';
+        if (estado === 'PENDIENTE') return 'En espera';
+        if (estado === 'EN_PROCESO') return 'En proceso';
+        if (estado === 'PENDIENTE_AUTORIZACION' || estado === 'FINALIZADO') return 'Finalizado';
+
+        switch (pedido.Estatus) {
             case 1: return 'En espera';
             case 2: return 'En proceso';
-            case 3: return 'Finalizado';
+            case 3:
+            case 4: return 'Finalizado';
             default: return 'Desconocido';
         }
     }
@@ -157,7 +198,7 @@ export class ProduccionListado implements OnInit {
             'No. Venta': p.NumeroVenta || 'N/A', // Añadido
             'Cliente': p.Nombre || 'Consumidor Final', // Añadido
             'Origen': p.Origen || 'Tienda',
-            'Estado': this.obtenerTextoEstado(p.Estatus),
+            'Estado': this.obtenerTextoEstado(p),
             'Fecha Entrega': p.FechaEntrega
         }));
         const hoja = XLSX.utils.json_to_sheet(datos);

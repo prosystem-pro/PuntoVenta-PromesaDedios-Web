@@ -24,12 +24,12 @@
         <div class="col-auto">
             <span class="fw-bold me-2">Fecha Inicio</span>
             <input type="date" class="form-control d-inline-block border-dark shadow-sm" style="width: 170px;"
-                [ngModel]="fechaInicio()" (ngModelChange)="fechaInicio.set($event)">
+                [ngModel]="fechaInicioInput()" (ngModelChange)="fechaInicioInput.set($event)">
         </div>
         <div class="col-auto">
             <span class="fw-bold mx-2">Fecha Final</span>
             <input type="date" class="form-control d-inline-block border-dark shadow-sm" style="width: 170px;"
-                [ngModel]="fechaFinal()" (ngModelChange)="fechaFinal.set($event)">
+                [ngModel]="fechaFinalInput()" (ngModelChange)="fechaFinalInput.set($event)">
         </div>
         <div class="col-auto">
             <button class="btn btn-buscar shadow-sm px-4 ms-2" (click)="cargarPedidos()"
@@ -65,19 +65,26 @@
                     <!-- Hardcoded for prototype similarity as API doesn't return name yet -->
                     <td class="fw-bold">{{ pedido.Origen || 'Tienda' }}</td>
                     <td>
-                        <span [class]="'badge-estado ' + obtenerClaseEstado(pedido.Estatus)">
-                            {{ obtenerTextoEstado(pedido.Estatus) }}
+                        <span [class]="'badge-estado ' + obtenerClaseEstado(pedido)">
+                            {{ obtenerTextoEstado(pedido) }}
                         </span>
                     </td>
-                    <td>{{ pedido.FechaEntrega | date:'dd/MM/yyyy' }}</td>
+                    <td>{{ pedido.FechaEntrega | date:'dd/MM/yyyy':'UTC' }}</td>
                     <td class="text-center">
-                        @if (pedido.Estatus === 1) {
+                        @if (pedido.Estado === 'PENDIENTE' || pedido.Estatus === 1) {
                         <button class="btn-accion btn-iniciar"
                             (click)="iniciarPedido(pedido.CodigoPedidoProduccion)">Iniciar</button>
-                        } @else if (pedido.Estatus === 2) {
+                        } @else if (pedido.Estado === 'EN_PROCESO' || pedido.Estatus === 2) {
                         <button class="btn-accion btn-ingresar"
                             (click)="ingresarProduccion(pedido.CodigoPedidoProduccion)">Ingresar</button>
                         }
+                    </td>
+                </tr>
+                } @empty {
+                <tr>
+                    <td colspan="6" class="text-center py-4 text-muted">
+                        <i class="bi bi-info-circle me-2"></i>
+                        No se encontraron pedidos con los filtros seleccionados
                     </td>
                 </tr>
                 }

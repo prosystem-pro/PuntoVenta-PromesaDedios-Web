@@ -93,3 +93,36 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .pagination .page-item.active .page-link {
     color: white;
 }
+
+/* Autocomplete styles */
+.search-suggestions {
+    width: 100%;
+    max-height: 250px;
+    overflow-y: auto;
+    z-index: 1050;
+    top: 100%;
+    left: 0;
+}
+
+.suggestion-item {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.suggestion-item:hover {
+    background-color: #fff4e5;
+    /* Color sutil naranja/crema */
+}
+
+.suggestion-item .fw-bold {
+    color: #333;
+    font-size: 0.9rem;
+}
+
+.suggestion-item .small {
+    font-size: 0.75rem;
+}
+
+.search-box input:focus+.search-suggestions {
+    display: block;
+}

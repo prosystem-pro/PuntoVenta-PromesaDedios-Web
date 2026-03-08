@@ -33,7 +33,19 @@
             <div class="search-box position-relative" style="width: 250px;">
                 <input type="text" class="form-control border-light-subtle rounded shadow-xs"
                     placeholder="Nombre producto" [ngModel]="busquedaProducto()"
-                    (ngModelChange)="busquedaProducto.set($event)">
+                    (ngModelChange)="busquedaProducto.set($event)" autocomplete="off">
+
+                <!-- Autocomplete Dropdown -->
+                @if (sugerenciasBusqueda().length > 0) {
+                <div class="search-suggestions position-absolute bg-white shadow-lg rounded border mt-1">
+                    @for (s of sugerenciasBusqueda(); track s.CodigoProducto) {
+                    <div class="suggestion-item p-2 border-bottom" (click)="seleccionarProducto(s)">
+                        <div class="fw-bold">{{ s.Producto }}</div>
+                        <div class="small text-muted">{{ s.NombreCategoriaProducto }} - Stock: {{ s.StockActual }}</div>
+                    </div>
+                    }
+                </div>
+                }
             </div>
         </div>
         <div class="col-auto">

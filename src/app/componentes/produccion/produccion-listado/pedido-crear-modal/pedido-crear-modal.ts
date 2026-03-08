@@ -66,6 +66,16 @@ export class PedidoCrearModal implements OnInit {
         });
     });
 
+    sugerenciasBusqueda = computed(() => {
+        const query = this.busquedaProducto().toLowerCase().trim();
+        if (query.length < 2) return [];
+
+        return this.productos().filter(p =>
+            p.Producto?.toLowerCase().includes(query) ||
+            p.NombreCategoriaProducto?.toLowerCase().includes(query)
+        ).slice(0, 10); // Limitamos a 10 sugerencias
+    });
+
     totalRegistros = computed(() => this.productosFiltrados().length);
     totalPaginas = computed(() => Math.ceil(this.totalRegistros() / this.itemsPorPagina));
     productosPaginados = computed(() => {
@@ -83,6 +93,12 @@ export class PedidoCrearModal implements OnInit {
         this.productos.update(list => list.map(p =>
             p.CodigoProducto === prod.CodigoProducto ? { ...p, CantidadSolicitada: num } : p
         ));
+    }
+
+    seleccionarProducto(prod: any) {
+        this.busquedaProducto.set(prod.Producto);
+        // Pequeño delay para que el usuario vea que se seleccionó antes de que se limpie por agregarProducto
+        // O simplemente lo dejamos listo para el botón Agregar
     }
 
     agregarProducto() {

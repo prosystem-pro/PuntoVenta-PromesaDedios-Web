@@ -43,24 +43,7 @@ export interface ProduccionDetalle {
     Cantidad: number;
 }
 
-export interface ProduccionInsumo {
-    CodigoPedidoProduccionInsumo?: number;
-    CodigoProducto: number;
-    Producto?: string; // Para uniformidad
-    NombreProducto: string;
-    NombreCategoriaProducto?: string;
-    CantidadSolicitada: number;
-    CantidadConsumida: number;
-    UnidadMedida: string;
-    Abreviatura?: string;
-}
-
 export interface DetalleAbastecimiento {
     CodigoProducto: number;
     CantidadProducida: number;
-}
-
-export interface ConsumoInsumoRequest {
-    CodigoProducto: number;
-    CantidadConsumida: number;
 }

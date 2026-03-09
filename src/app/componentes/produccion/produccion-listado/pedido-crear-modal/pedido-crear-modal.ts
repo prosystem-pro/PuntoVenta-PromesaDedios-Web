@@ -57,13 +57,11 @@ export class PedidoCrearModal implements OnInit {
 
     productosFiltrados = computed(() => {
         const query = this.busqueda().toLowerCase().trim();
-        // Solo mostramos en la tabla los que tengan CantidadSolicitada > 0 (seleccionados)
-        // O si hay una búsqueda activa en el buscador de la tabla
-        return this.productos().filter(p => {
-            const coincideBusqueda = p.Producto?.toLowerCase().includes(query) ||
-                p.NombreCategoriaProducto?.toLowerCase().includes(query);
-            return (p.CantidadSolicitada > 0 || query !== '') && coincideBusqueda;
-        });
+        // Mostramos todos los productos del listado de producción, filtrados solo por el buscador derecho
+        return this.productos().filter(p =>
+            p.Producto?.toLowerCase().includes(query) ||
+            p.NombreCategoriaProducto?.toLowerCase().includes(query)
+        );
     });
 
     sugerenciasBusqueda = computed(() => {

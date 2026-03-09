@@ -10,9 +10,9 @@
             <h2 class="titulo-pagina m-0 fw-bold">CREAR PEDIDO</h2>
         </div>
         <div class="col text-end">
-            <button class="btn btn-naranja shadow-sm px-4 text-white fw-bold" (click)="guardar()"
-                [style.background-color]="colorSistema" [disabled]="guardando()">
-                <i class="bi bi-clipboard-check-fill me-2"></i>
+            <button class="btn btn-naranja shadow-sm px-4 text-white fw-bold d-inline-flex align-items-center"
+                (click)="guardar()" [style.background-color]="colorSistema" [disabled]="guardando()">
+                <i class="bi bi-clipboard-check mb-0 me-2" style="font-size: 1.3rem;"></i>
                 @if (guardando()) {
                 PROCESANDO...
                 } @else {
@@ -72,15 +72,15 @@
 
     <!-- Table -->
     <div class="flex-grow-1 overflow-auto border-top">
-        <table class="table table-hover align-middle custom-table">
+        <table class="table table-hover align-middle custom-table mb-0">
             <thead>
                 <tr>
-                    <th style="width: 60px;">No. <i class="bi bi-arrow-down-up small opacity-50 ms-1"></i></th>
+                    <th style="width: 80px;">No. <i class="bi bi-arrow-down-up small opacity-50 ms-1"></i></th>
                     <th>Categoría <i class="bi bi-arrow-down-up small opacity-50 ms-1"></i></th>
                     <th>Producto <i class="bi bi-arrow-down-up small opacity-50 ms-1"></i></th>
                     <th>Unidad <i class="bi bi-arrow-down-up small opacity-50 ms-1"></i></th>
-                    <th style="width: 100px;">Stock <i class="bi bi-arrow-down-up small opacity-50 ms-1"></i></th>
-                    <th class="text-center" style="width: 120px;">Sugerido <i
+                    <th style="width: 120px;">Stock <i class="bi bi-arrow-down-up small opacity-50 ms-1"></i></th>
+                    <th class="text-center" style="width: 140px;">Sugerido <i
                             class="bi bi-arrow-down-up small opacity-50 ms-1"></i></th>
                     <th class="text-center" style="width: 100px;">Acciones</th>
                 </tr>
@@ -95,19 +95,19 @@
                 } @else {
                 @for (p of productosPaginados(); track p.CodigoProducto; let i = $index) {
                 <tr>
-                    <td class="text-muted">{{ (rangoInicio() + i).toString().padStart(2, '0') }}</td>
+                    <td class="text-muted fw-bold">{{ (rangoInicio() + i).toString().padStart(2, '0') }}</td>
                     <td>{{ p.NombreCategoriaProducto }}</td>
-                    <td>{{ p.Producto }}</td>
-                    <td>{{ p.Abreviatura || p.NombreUnidad || 'Unidad' }}</td>
-                    <td>{{ p.StockActual }}</td>
+                    <td class="fw-bold text-dark">{{ p.Producto }}</td>
+                    <td>{{ p.NombreUnidad }}</td>
+                    <td class="fw-bold">{{ p.StockActual }}</td>
                     <td class="text-center">
                         <input type="number" class="form-control form-control-sm text-center mx-auto input-sugerido"
                             [ngModel]="p.CantidadSolicitada" (ngModelChange)="actualizarCantidad(p, $event)" min="0"
-                            style="width: 80px;">
+                            style="width: 90px;">
                     </td>
                     <td class="text-center">
-                        <button class="btn btn-sm text-danger border-0 p-1" (click)="eliminarFila(p)">
-                            <i class="bi bi-trash3 fs-5"></i>
+                        <button class="btn btn-sm text-danger border-0 p-1 hover-scale" (click)="eliminarFila(p)">
+                            <i class="bi bi-trash3 fs-4"></i>
                         </button>
                     </td>
                 </tr>

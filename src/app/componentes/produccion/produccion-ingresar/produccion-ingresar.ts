@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { ProduccionServicio } from '../../../Servicios/produccion.service';
-import { PedidoProduccion, PedidoProduccionDetalle, ProduccionInsumo } from '../../../Modelos/produccion.modelo';
+import { ProductoServicio } from '../../../Servicios/producto.service';
+import { PedidoProduccion, PedidoProduccionDetalle } from '../../../Modelos/produccion.modelo';
 import { AlertaServicio } from '../../../Servicios/alerta.service';
 import { Entorno } from '../../../Entorno/Entorno';
 
@@ -17,6 +18,7 @@ import { Entorno } from '../../../Entorno/Entorno';
 export class ProduccionIngresar implements OnInit {
     private servicioProduccion = inject(ProduccionServicio);
     private servicioAlerta = inject(AlertaServicio);
+    private servicioProducto = inject(ProductoServicio); // Agregamos el servicio de productos
     private router = inject(Router);
     private route = inject(ActivatedRoute);
 
@@ -28,61 +30,98 @@ export class ProduccionIngresar implements OnInit {
     // Observaciones popover
     itemConObservacion = signal<any | null>(null);
 
-    detalles = signal<(PedidoProduccionDetalle & { CantidadProducida: number })[]>([]);
-    insumos = signal<(ProduccionInsumo & { ConsumoReal: number })[]>([]);
+    detalles = signal<any[]>([]);
+    insumos = signal<any[]>([]);
 
     cargando = signal(false);
     guardando = signal(false);
 
     // Datos del pedido para el header
     datosPedido = signal<any>({
-        Nombre: 'Cargando...',
+        Nombre: '',
         FechaEntrega: ''
     });
 
     async ngOnInit() {
-        const id = this.route.snapshot.params['id'];
-        if (id) {
-            this.codigoPedido.set(+id);
-            await this.cargarDatos();
-        }
+        this.route.params.subscribe(params => {
+            this.codigoPedido.set(+params['id']);
+            this.cargarDatos();
+        });
     }
 
     async cargarDatos() {
         this.cargando.set(true);
         try {
-            const [resListado, resDetalle, resInsumos] = await Promise.all([
-                this.servicioProduccion.listarPedidos(), // Para sacar nombre y fecha
-                this.servicioProduccion.obtenerDetallePedido(this.codigoPedido()),
-                this.servicioProduccion.listarInsumosProduccion(this.codigoPedido())
-            ]);
+            const resDetalle = await this.servicioProduccion.obtenerDetallePedido(this.codigoPedido());
 
-            if (resListado.success) {
-                const p = resListado.data?.find((x: PedidoProduccion) => x.CodigoPedidoProduccion === this.codigoPedido());
-                if (p) {
+            if (resDetalle.success && resDetalle.data) {
+                const { Cabecera, Detalle } = resDetalle.data;
+
+                if (Cabecera) {
                     this.datosPedido.set({
-                        Nombre: p.Nombre || 'Consumidor Final',
-                        FechaEntrega: p.FechaEntrega
+                        Nombre: Cabecera.NombreCliente || 'Consumidor Final',
+                        FechaEntrega: Cabecera.FechaEntrega,
+                        NumeroVenta: Cabecera.NumeroVenta
                     });
                 }
-            }
 
-            if (resDetalle.success) {
-                this.detalles.set(resDetalle.data?.map((d: PedidoProduccionDetalle) => ({
-                    ...d,
-                    CantidadProducida: d.CantidadSolicitada
-                })) || []);
-            }
+                if (Detalle) {
+                    this.detalles.set(Detalle.map((d: any) => ({
+                        ...d,
+                        CantidadProducida: d.Producido // Inicializamos con lo ya producido
+                    })));
 
-            if (resInsumos.success) {
-                this.insumos.set(resInsumos.data?.map((i: ProduccionInsumo) => ({
-                    ...i,
-                    ConsumoReal: i.CantidadSolicitada
-                })) || []);
+                    // Calculamos los insumos dinámicamente desde las recetas
+                    await this.calcularInsumosDesdeRecetas(Detalle);
+                }
             }
         } finally {
             this.cargando.set(false);
         }
+    }
+
+    async calcularInsumosDesdeRecetas(detallesPedido: any[]) {
+        const insumosMap = new Map();
+
+        // Buscamos las recetas de todos los productos en paralelo
+        const promesas = detallesPedido.map(d => this.servicioProducto.ObtenerCompleto(d.CodigoProducto));
+        const resultados = await Promise.all(promesas);
+
+        resultados.forEach((res: any, index: number) => {
+            if (res.success && res.data && res.data.Receta) {
+                const cantidadPedido = detallesPedido[index].Producir || detallesPedido[index].CantidadSolicitada || 0;
+                const receta = res.data.Receta;
+
+                // El backend retorna los detalles de la receta en la propiedad 'RecetaDetalles' (plural del modelo)
+                // o segun el include. Vamos a usar una verificación flexible.
+                const detallesReceta = receta.RecetaDetalles || receta.Detalles || [];
+
+                detallesReceta.forEach((rd: any) => {
+                    const insumo = rd.ProductoIngrediente;
+                    if (!insumo) return;
+
+                    const key = insumo.CodigoProducto;
+                    const totalNecesario = rd.Cantidad * cantidadPedido;
+
+                    if (insumosMap.has(key)) {
+                        insumosMap.get(key).CantidadSolicitada += totalNecesario;
+                    } else {
+                        insumosMap.set(key, {
+                            CodigoProducto: insumo.CodigoProducto,
+                            NombreProducto: insumo.NombreProducto, // Para compatibilidad con el template
+                            Producto: insumo.NombreProducto,       // Para que el filtro por 'Producto' funcione
+                            NombreCategoriaProducto: insumo.CategoriaProducto?.NombreCategoriaProducto || 'Insumo',
+                            UnidadMedida: rd.UnidadMedida ? `${rd.UnidadMedida.NombreUnidad} (${rd.UnidadMedida.Abreviatura})` : 'UND',
+                            Abreviatura: rd.UnidadMedida?.Abreviatura || 'UND',
+                            CantidadSolicitada: totalNecesario,
+                            ConsumoReal: totalNecesario
+                        });
+                    }
+                });
+            }
+        });
+
+        this.insumos.set(Array.from(insumosMap.values()));
     }
 
     detallesFiltrados = computed(() => {
@@ -126,24 +165,6 @@ export class ProduccionIngresar implements OnInit {
             const resA = await this.servicioProduccion.abastecerPedido(datosAbastecer);
 
             if (resA.success) {
-                const codigoProduccion = resA.data?.CodigoProduccion || resA.data?.codigoProduccion || 0;
-
-                if (this.insumos().length > 0) {
-                    if (codigoProduccion > 0) {
-                        const datosConsumo = {
-                            CodigoProduccion: codigoProduccion,
-                            Insumos: this.insumos().map((i: ProduccionInsumo & { ConsumoReal: number }) => ({
-                                CodigoProducto: i.CodigoProducto,
-                                CantidadConsumida: i.ConsumoReal
-                            }))
-                        };
-                        await this.servicioProduccion.registrarConsumoInsumos(datosConsumo);
-                    } else {
-                        console.warn('No se obtuvo CodigoProduccion para registrar insumos');
-                        this.servicioAlerta.MostrarError('No se pudo obtener el código de producción para registrar insumos');
-                    }
-                }
-
                 this.servicioAlerta.MostrarExito('Producción registrada correctamente');
                 this.router.navigate(['/produccion']);
             } else {

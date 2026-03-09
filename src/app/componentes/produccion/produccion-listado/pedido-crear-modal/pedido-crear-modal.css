@@ -39,13 +39,17 @@
 
 .custom-table thead th {
     border-bottom: 2px solid #333;
-    padding: 1rem 0.5rem;
-    font-weight: 700;
+    padding: 1.2rem 0.5rem;
+    font-weight: 800;
+    text-transform: none;
+    font-size: 1.1rem;
+    color: #333;
 }
 
 .custom-table tbody td {
-    padding: 0.75rem 0.5rem;
-    border-bottom: 1px solid #eee;
+    padding: 1rem 0.5rem;
+    border-bottom: 1.5px solid #f0f0f0;
+    font-size: 1rem;
 }
 
 input[type="date"]::-webkit-calendar-picker-indicator {
@@ -125,4 +129,12 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 .search-box input:focus+.search-suggestions {
     display: block;
+}
+
+.hover-scale {
+    transition: transform 0.2s ease;
+}
+
+.hover-scale:hover {
+    transform: scale(1.2);
 }

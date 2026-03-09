@@ -4,9 +4,7 @@ import { RespuestaAPI } from '../Modelos/producto.modelo';
 import {
     PedidoProduccion,
     PedidoProduccionDetalle,
-    ProduccionInsumo,
-    DetalleAbastecimiento,
-    ConsumoInsumoRequest
+    DetalleAbastecimiento
 } from '../Modelos/produccion.modelo';
 
 @Injectable({
@@ -41,16 +39,6 @@ export class ProduccionServicio {
 
     async abastecerPedido(datos: { CodigoPedidoProduccion: number, Detalle: DetalleAbastecimiento[], Estatus: boolean }): Promise<RespuestaAPI<any>> {
         const res = await axiosInstance.put('/produccion/abastecerpedido', datos);
-        return res.data;
-    }
-
-    async listarInsumosProduccion(id: number): Promise<RespuestaAPI<ProduccionInsumo[]>> {
-        const res = await axiosInstance.get(`/produccion/listadoinsumos/${id}`);
-        return res.data;
-    }
-
-    async registrarConsumoInsumos(datos: { CodigoProduccion: number, Insumos: ConsumoInsumoRequest[] }): Promise<RespuestaAPI<any>> {
-        const res = await axiosInstance.post('/produccion/registrarconsumoinsumos', datos);
         return res.data;
     }
 

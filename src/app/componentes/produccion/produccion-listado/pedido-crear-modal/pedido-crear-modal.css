@@ -1,5 +1,5 @@
 .btn-regresar {
-    background-color: var(--color-system, #FF9500);
+    background-color: var(--color-sistema);
     color: white;
     font-weight: bold;
     border-radius: 20px 8px 8px 20px;
@@ -11,9 +11,9 @@
 }
 
 .input-sugerido {
-    border: 1px solid #28a745;
+    border: 1px solid #4CAF50;
     border-radius: 6px;
-    box-shadow: 0 2px 4px rgba(40, 167, 69, 0.1);
+    box-shadow: 0 2px 4px rgba(76, 175, 80, 0.1);
     font-weight: bold;
     color: #333;
 }
@@ -24,14 +24,14 @@
 }
 
 .crear-pedido-container .titulo-pagina {
-    color: var(--color-system, #FF9500);
+    color: var(--color-sistema);
     font-size: 2rem;
     letter-spacing: 2px;
 }
 
 .header-line {
     height: 3px;
-    background-color: var(--color-system, #FF9500);
+    background-color: var(--color-sistema);
     width: 40%;
     margin: 0.5rem auto 2rem;
     opacity: 0.7;
@@ -66,7 +66,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 .text-orange {
-    color: var(--color-system, #FF9500);
+    color: var(--color-sistema);
 }
 
 .shadow-xs {
@@ -114,8 +114,8 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 .suggestion-item:hover {
-    background-color: #fff4e5;
-    /* Color sutil naranja/crema */
+    background-color: #f8f9fa;
+    /* Color neutro */
 }
 
 .suggestion-item .fw-bold {

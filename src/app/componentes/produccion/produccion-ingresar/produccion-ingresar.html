@@ -1,20 +1,28 @@
-<div class="container-fluid p-4 bg-light min-vh-100">
+<div class="container-fluid p-4 bg-light min-vh-100" [style.--color-sistema]="colorSistema">
     <!-- Header row -->
     <div class="row align-items-center mb-0">
         <div class="col-auto">
-            <button class="btn btn-naranja shadow-sm px-4 text-white fw-bold" (click)="cancelar()"
-                style="background-color: #ff9500; border-radius: 12px;">
-                <i class="bi bi-chevron-left me-1"></i> Regresar
+            <button class="btn btn-naranja shadow-sm px-4 text-white fw-bold d-inline-flex align-items-center"
+                (click)="vistaActiva() === 'productos' ? cancelar() : cambiarVista('productos')"
+                style="background-color: var(--color-sistema); border-radius: 12px; height: 45px;">
+                <i class="bi bi-chevron-left me-2"></i> Regresar
             </button>
         </div>
         <div class="col text-center">
-            <h2 class="titulo-pagina m-0 fw-bold">LISTADO A PRODUCIR</h2>
+            <h2 class="titulo-pagina m-0 fw-bold"
+                style="color: var(--color-sistema); font-size: 2rem; text-transform: uppercase;">
+                {{ vistaActiva() === 'productos' ? 'LISTADO A PRODUCIR' : 'INSUMOS UTILIZADOS' }}
+            </h2>
         </div>
         <div class="col-auto">
+            <!-- Este botón guarda los cambios realizados, si en caso se quiera salir pero que aun no se haya finalizado el pedido producido -->
             <button class="btn btn-naranja shadow-sm px-4 text-white fw-bold d-inline-flex align-items-center"
-                (click)="guardar()" [style.background-color]="colorSistema" [disabled]="guardando() || cargando()"
-                style="border-radius: 12px;">
-                <i class="bi bi-download mb-0 me-2" style="font-size: 1.3rem;"></i>
+                (click)="guardar()"
+                [style.background-color]="(vistaActiva() === 'insumos' && insumosGuardados()) ? '#ccc' : colorSistema"
+                [disabled]="guardando() || cargando() || (vistaActiva() === 'insumos' && insumosGuardados())"
+                title="Este botón guarda los cambios realizados, si en caso se quiera salir pero que aún no se haya finalizado el pedido producido."
+                style="border-radius: 12px; height: 45px;">
+                <i class="bi bi-box-arrow-in-down mb-0 me-2" style="font-size: 1.3rem;"></i>
                 @if (guardando()) {
                 PROCESANDO...
                 } @else {
@@ -25,149 +33,200 @@
     </div>
 
     <div class="header-line mb-4 mt-2"
-        style="height: 2px; background: linear-gradient(to right, transparent, #ff9500, transparent);"></div>
+        style="height: 2px; background: linear-gradient(to right, transparent, var(--color-sistema), transparent);">
+    </div>
 
     <!-- Info Row -->
-    <div class="row mb-4 bg-white p-3 rounded shadow-xs mx-0">
+    @if (!esMasivo()) {
+    <div class="row mb-4 bg-transparent mx-0 align-items-end">
         <div class="col-auto">
-            <div class="text-dark small fw-bold">Pedido</div>
-            <div class="fw-bold fs-5">{{ datosPedido().NumeroVenta || codigoPedido() }}</div>
+            <div class="text-dark fw-bold mb-1" style="font-size: 1.1rem;">Pedido</div>
+            <div class="text-muted fw-bold">{{ datosPedido().NumeroVenta || codigoPedido() }}</div>
         </div>
         <div class="col-auto px-5">
-            <div class="text-dark small fw-bold">Nombre</div>
-            <div class="fw-bold fs-5">{{ datosPedido().Nombre }}</div>
+            <div class="text-dark fw-bold mb-1" style="font-size: 1.1rem;">Nombre</div>
+            <div class="text-muted fw-bold">{{ datosPedido().Nombre }}</div>
         </div>
         <div class="col-auto">
-            <div class="text-dark small fw-bold">Fecha Entrega</div>
-            <div class="fw-bold fs-5">{{ datosPedido().FechaEntrega | date:'dd/MM/yyyy' }}</div>
+            <div class="text-dark fw-bold mb-1" style="font-size: 1.1rem;">Fecha Entrega</div>
+            <div class="text-muted fw-bold">{{ datosPedido().FechaEntrega | date:'dd/MM/yyyy':'UTC' }}</div>
         </div>
-        <div class="col ms-auto d-flex align-items-end justify-content-end">
-            <div class="search-box position-relative" style="width: 300px;">
-                <input type="text" class="form-control pe-5 border-light-subtle rounded-pill shadow-sm"
+        <div class="col ms-auto d-flex justify-content-end">
+            <div class="search-box position-relative" style="width: 350px;">
+                <input type="text" class="form-control pe-5 border-light-subtle rounded shadow-sm" style="height: 45px;"
                     placeholder="Buscar" [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event)">
-                <i class="bi bi-search position-absolute top-50 end-0 translate-middle-y me-3 text-muted"></i>
+                <i class="bi bi-search position-absolute top-50 end-0 translate-middle-y me-3 text-muted fs-5"></i>
             </div>
         </div>
     </div>
+    } @else {
+    <div class="row mb-4 bg-transparent mx-0 align-items-end justify-content-end">
+        <div class="col-auto">
+            <div class="search-box position-relative" style="width: 350px;">
+                <input type="text" class="form-control pe-5 border-light-subtle rounded shadow-sm" style="height: 45px;"
+                    placeholder="Buscar" [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event)">
+                <i class="bi bi-search position-absolute top-50 end-0 translate-middle-y me-3 text-muted fs-5"></i>
+            </div>
+        </div>
+    </div>
+    }
 
     <!-- Main Table Area -->
-    <div class="bg-white rounded shadow-sm overflow-auto mb-4" style="min-height: 500px;">
+    <div class="custom-table-container overflow-auto mb-4 border">
         <table class="table table-hover align-middle custom-table mb-0">
-            <thead>
-                <tr>
-                    <th style="width: 80px;">No. <i class="bi bi-arrow-down-up small opacity-50 ms-1"></i></th>
-                    <th>Categoría <i class="bi bi-arrow-down-up small opacity-50 ms-1"></i></th>
-                    <th>Producto <i class="bi bi-arrow-down-up small opacity-50 ms-1"></i></th>
-                    <th>Unidad <i class="bi bi-arrow-down-up small opacity-50 ms-1"></i></th>
-                    <th class="text-center" style="width: 120px;">Producir <i
-                            class="bi bi-arrow-down-up small opacity-50 ms-1"></i></th>
-                    <th class="text-center" style="width: 140px;">Producido <i
-                            class="bi bi-arrow-down-up small opacity-50 ms-1"></i></th>
-                    <th class="text-center" style="width: 80px;"></th>
+            <thead class="bg-light">
+                <tr class="border-bottom-0">
+                    <th class="ps-4">NO. <i class="bi bi-arrow-down-up small opacity-50 ms-1"></i></th>
+                    <th>CATEGORÍA <i class="bi bi-arrow-down-up small opacity-50 ms-1"></i></th>
+                    <th>PRODUCTO <i class="bi bi-arrow-down-up small opacity-50 ms-1"></i></th>
+                    <th>UNIDAD <i class="bi bi-arrow-down-up small opacity-50 ms-1"></i></th>
+                    <th class="text-center">
+                        {{ vistaActiva() === 'productos' ? 'PRODUCIR' : 'ESTIMADO' }}
+                        <i class="bi bi-arrow-down-up small opacity-50 ms-1"></i>
+                    </th>
+                    <th class="text-center">
+                        {{ vistaActiva() === 'productos' ? 'PRODUCIDO' : 'UTILIZADO' }}
+                        <i class="bi bi-arrow-down-up small opacity-50 ms-1"></i>
+                    </th>
+                    <th class="pe-4"></th>
                 </tr>
             </thead>
             <tbody>
                 @if (cargando()) {
                 <tr>
                     <td colspan="7" class="text-center py-5">
-                        <div class="spinner-border text-orange" role="status"></div>
+                        <div class="spinner-border" [style.color]="colorSistema" role="status"></div>
                     </td>
                 </tr>
-                } @else if (vistaActiva() === 'productos') {
-                @for (d of detallesFiltrados(); track d.CodigoProducto; let i = $index) {
+                } @else {
+                @for (d of registrosPaginados(); track d.CodigoProducto; let i = $index) {
                 <tr>
-                    <td class="text-muted fw-bold">{{ (i + 1).toString().padStart(2, '0') }}</td>
-                    <td>{{ d.NombreCategoriaProducto || d.Categoria }}</td>
-                    <td class="fw-bold text-dark">{{ d.Producto || d.NombreProducto }}</td>
-                    <td>{{ d.NombreUnidad || d.Unidad || 'Unidad' }}</td>
+                    <td class="ps-4 text-muted fw-bold">{{ ( (paginaActual() - 1) * itemsPorPagina + i +
+                        1).toString().padStart(2, '0') }}</td>
+                    <td class="text-muted">{{ d.NombreCategoriaProducto || d.Categoria || 'General' }}</td>
+                    <td class="text-dark-bold">{{ d.Producto || d.NombreProducto }}</td>
+                    <td class="text-muted">{{ d.NombreUnidad || d.Unidad || d.UnidadMedida || 'UND' }}</td>
                     <td class="text-center">
-                        <span class="fw-bold fs-5">{{ d.CantidadSolicitada || d.Producir }}</span>
+                        <span class="fw-bold fs-6 text-muted">{{ d.CantidadSolicitada || d.Producir || d.Estimado || 0
+                            }}</span>
                     </td>
                     <td class="text-center">
+                        @if (vistaActiva() === 'productos') {
                         <input type="number" class="form-control form-control-sm text-center mx-auto input-producido"
-                            [(ngModel)]="d.CantidadProducida" min="0" style="width: 90px;">
+                            [(ngModel)]="d.CantidadProducida" min="0" style="width: 80px; height: 35px;">
+                        } @else {
+                        <input type="number" class="form-control form-control-sm text-center mx-auto input-producido"
+                            [(ngModel)]="d.ConsumoReal" min="0" [readonly]="insumosGuardados()"
+                            [style.background-color]="insumosGuardados() ? '#f8f9fa' : 'white'"
+                            style="width: 80px; height: 35px;">
+                        }
                     </td>
-                    <td class="text-center position-relative">
+                    <td class="pe-4 text-center">
+                        @if (vistaActiva() === 'productos') {
                         <button class="btn btn-sm border-0 p-1 hover-scale" (click)="mostrarObservaciones(d, $event)">
                             <i class="bi bi-chat-square-text-fill fs-4"
                                 [class.text-dark]="d.ObservacionesDetalle || d.Observaciones"
                                 [class.text-muted]="!(d.ObservacionesDetalle || d.Observaciones)"></i>
                         </button>
-
-                        <!-- Popover Observations -->
-                        @if (itemConObservacion() === d) {
-                        <div class="popover-observations position-absolute bg-white shadow-lg border rounded p-3 text-start"
-                            style="z-index: 1050; width: 300px; right: 60px; top: -10px;">
-                            <div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2">
-                                <h6 class="m-0 fw-bold small">Observaciones</h6>
-                                <button type="button" class="btn-close small" style="font-size: 0.7rem;"
-                                    (click)="mostrarObservaciones(d, $event)"></button>
-                            </div>
-                            <div class="small fw-bold">
-                                {{ d.ObservacionesDetalle || d.Observaciones || 'Sin observaciones' }}
-                            </div>
-                        </div>
                         }
                     </td>
                 </tr>
                 }
-                } @else {
-                <!-- Insumos view -->
-                @for (i of insumosFiltrados(); track i.CodigoProducto; let idx = $index) {
+                @if (registrosFiltrados().length === 0) {
                 <tr>
-                    <td class="text-muted fw-bold">{{ (idx + 1).toString().padStart(2, '0') }}</td>
-                    <td>{{ i.NombreCategoriaProducto }}</td>
-                    <td class="fw-bold text-dark">{{ i.Producto || i.NombreProducto }}</td>
-                    <td>{{ i.UnidadMedida || i.Abreviatura || 'UND' }}</td>
-                    <td class="text-center">
-                        <span class="fw-bold fs-5">{{ i.CantidadSolicitada }}</span>
-                    </td>
-                    <td class="text-center">
-                        <input type="number" class="form-control form-control-sm text-center mx-auto input-producido"
-                            [(ngModel)]="i.ConsumoReal" min="0" style="width: 90px;">
-                    </td>
-                    <td></td>
+                    <td colspan="7" class="text-center py-5 text-muted">No se encontraron registros en este pedido</td>
                 </tr>
                 }
                 }
             </tbody>
         </table>
-    </div>
 
-    <!-- Footer buttons -->
-    <div class="row align-items-center g-3">
-        <div class="col">
-            <div class="text-muted small fw-bold">
-                Mostrando {{ vistaActiva() === 'productos' ? detallesFiltrados().length : insumosFiltrados().length }}
-                de {{ vistaActiva() === 'productos' ? detalles().length : insumos().length }} registros
+        <!-- Modal Observaciones Flotante (Dentro del contenedor relativo) -->
+        @if (itemConObservacion()) {
+        <div class="modal-overlay">
+            <div class="modal-content-custom">
+                <button class="btn-close-custom" (click)="itemConObservacion.set(null)">
+                    <i class="bi bi-x"></i>
+                </button>
+
+                <div class="modal-header-custom">
+                    <h3 class="fw-bold m-0">Observaciones</h3>
+                </div>
+
+                <div class="modal-body-custom">
+                    <table class="table table-modal mb-0">
+                        <thead>
+                            <tr>
+                                <th class="text-start">CANTIDAD</th>
+                                <th class="text-start">PRODUCTO</th>
+                                <th class="text-start">COMENTARIO</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (com of itemConObservacion()?.Comentarios; track $index) {
+                            <tr>
+                                <td class="fw-bold">{{ com.Cantidad }}</td>
+                                <td class="text-muted">{{ com.Producto }}</td>
+                                <td>{{ com.Comentario }}</td>
+                            </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
-        <div class="col-auto">
-            <button class="btn btn-naranja shadow-sm px-4 text-white fw-bold d-inline-flex align-items-center"
-                [style.background-color]="colorSistema" (click)="cambiarVista('insumos')" style="border-radius: 12px;">
-                <i class="bi bi-basket3 mb-0 me-2" style="font-size: 1.2rem;"></i> Insumo
-            </button>
+        }
+    </div>
+
+    <!-- Footer Controls -->
+    <div class="row align-items-center g-3 mt-2">
+        <div class="col">
+            <div class="text-muted fw-bold ps-2">
+                Mostrando {{ rangoInicio() }} al {{ rangoFin() }} de {{ totalRegistros() }} registros
+            </div>
         </div>
-        <div class="col-auto">
-            <button class="btn btn-naranja shadow-sm px-4 text-white fw-bold d-inline-flex align-items-center"
-                [style.background-color]="colorSistema" (click)="guardar()" [disabled]="guardando() || cargando()"
-                style="border-radius: 12px; background-color: #ff9500 !important;">
-                @if (guardando()) {
-                <span class="spinner-border spinner-border-sm me-2"></span> PROCESANDO...
-                } @else {
-                <i class="bi bi-box-arrow-in-down mb-0 me-2" style="font-size: 1.2rem;"></i> Abastecer
+        <div class="col-auto d-flex gap-3">
+            @if (vistaActiva() === 'productos') {
+            <button
+                class="btn btn-naranja shadow-sm px-5 text-white fw-bold d-inline-flex align-items-center justify-content-center"
+                (click)="cambiarVista('insumos')" [disabled]="insumosGuardados()"
+                [style.background-color]="insumosGuardados() ? '#28a745' : colorSistema"
+                style="border-radius: 12px; height: 50px; min-width: 180px;">
+                <i class="bi" [class.bi-cart3]="!insumosGuardados()" [class.bi-check-circle-fill]="insumosGuardados()"
+                    class="mb-0 me-2 fs-5"></i>
+                {{ insumosGuardados() ? 'Insumos Listos' : 'Insumo' }}
+            </button>
+            
+            <!-- Condicionar que el cocinero debe de ingresar en insumos y precionar guardar para que se almacenen datos en la columna "Utilizados"  y se pueda restar en inventario de insumos -->
+            <!-- Mostrar un modal de confirmacion de abastecimiento -->
+            <button
+                class="btn btn-naranja shadow-sm px-5 text-white fw-bold d-inline-flex align-items-center justify-content-center"
+                (click)="guardarProduccion(true)" [disabled]="guardando() || cargando()"
+                [title]="!insumosGuardados() ? 'Debe registrar los insumos primero' : 'Abastecer proceso e inventario'"
+                [style.background-color]="insumosGuardados() ? colorSistema : '#ccc'"
+                style="border-radius: 12px; height: 50px; min-width: 180px;">
+                <i class="bi bi-box-seam mb-0 me-2 fs-5"></i> Abastecer
+            </button>
+            }
+        </div>
+        <div class="col ms-auto d-flex justify-content-end pe-2">
+            <div class="pagination d-flex gap-1">
+                <button class="btn btn-light border btn-sm px-3" [class.disabled]="paginaActual() === 1"
+                    (click)="paginaAnterior()">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+                @for (p of paginasArray(); track p) {
+                <button class="btn btn-sm px-3 fw-bold" [class.btn-naranja]="paginaActual() === p"
+                    [class.btn-light]="paginaActual() !== p" [class.border]="paginaActual() !== p"
+                    [class.text-white]="paginaActual() === p" (click)="irAPagina(p)"
+                    [style.background-color]="paginaActual() === p ? colorSistema : ''">
+                    {{ p }}
+                </button>
                 }
-            </button>
-        </div>
-        <div class="col-auto">
-            <!-- Pagination Mockup -->
-            <div class="d-flex gap-1">
-                <button class="btn btn-outline-light border text-dark btn-sm px-3">
-                    < </button>
-                        <button class="btn btn-naranja btn-sm px-3 text-white fw-bold"
-                            [style.background-color]="colorSistema"> 1 </button>
-                        <button class="btn btn-outline-light border text-dark btn-sm px-3"> 2 </button>
-                        <button class="btn btn-outline-light border text-dark btn-sm px-3"> > </button>
+                <button class="btn btn-light border btn-sm px-3" [class.disabled]="paginaActual() === totalPaginas()"
+                    (click)="paginaSiguiente()">
+                    <i class="bi bi-chevron-right"></i>
+                </button>
             </div>
         </div>
     </div>

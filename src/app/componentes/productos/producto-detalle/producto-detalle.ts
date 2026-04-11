@@ -98,7 +98,7 @@ export class ProductoDetalle implements OnInit {
             NombreProducto: ['', [Validators.required]],
             CodigoCategoriaProducto: [null, [Validators.required]],
             CodigoUnidadMedida: [null, [Validators.required]],
-            TipoProducto: ['Ventanilla', [Validators.required]],
+            TipoProducto: ['VENTANILLA', [Validators.required]],
             CodigoBarra: [''],
             Iva: [0], // Porcentaje
             PrecioVenta: [0, [Validators.required, Validators.min(0.01)]],
@@ -150,7 +150,7 @@ export class ProductoDetalle implements OnInit {
                     ...p,
                     NombreProducto: p.Producto || p.NombreProducto,
                     NombreCategoria: p.NombreCategoriaProducto || p.NombreCategoria,
-                    Stock: p.StockActual !== undefined ? p.StockActual : p.Stock,
+                    PrecioCompra: p.PrecioCompra !== undefined ? p.PrecioCompra : (p.Inventario?.PrecioCompra || 0),
                     TipoProducto: 'INSUMO'
                 }));
 
@@ -177,7 +177,7 @@ export class ProductoDetalle implements OnInit {
                     ...pData,
                     NombreProducto: pData.NombreProducto || '',
                     CodigoCategoriaProducto: pData.CodigoCategoriaProducto,
-                    // Campos que vienen dentro del objeto Inventario
+                    TipoProducto: pData.TipoProducto?.toUpperCase() || 'VENTANILLA',
                     Stock: inv.StockActual || 0,
                     StockMinimo: inv.StockMinimo || 0,
                     StockSugerido: inv.StockSugerido || 0,
@@ -203,10 +203,10 @@ export class ProductoDetalle implements OnInit {
                         const prodIng = det.ProductoIngrediente || {};
                         const unidad = det.UnidadMedida || {};
 
-                        let precioCompra = prodIng.PrecioCompra;
-                        if (precioCompra === undefined) {
+                        let precioCompra = det.PrecioCompra;
+                        if (precioCompra === undefined || precioCompra === 0) {
                             const catalogado = this.todosLosProductos().find(p => p.CodigoProducto === det.CodigoProducto);
-                            precioCompra = catalogado?.PrecioCompra || 0;
+                            precioCompra = catalogado?.PrecioCompra || prodIng.PrecioCompra || 0;
                         }
 
                         this.agregarIngredienteExistente({
@@ -419,19 +419,23 @@ export class ProductoDetalle implements OnInit {
     }
 
     private async subirImagen(codigo: number) {
-        const formData = new FormData();
-        const categoriaId = this.productoForm.get('CodigoCategoriaProducto')?.value;
+        try {
+            const formData = new FormData();
+            const categoriaId = this.productoForm.get('CodigoCategoriaProducto')?.value;
 
-        formData.append('Imagen', this.archivoImagen!);
-        formData.append('CarpetaPrincipal', Entorno.NombreEmpresa);
-        formData.append('SubCarpeta', 'Producto');
-        formData.append('CodigoVinculado', categoriaId?.toString() || '0');
-        formData.append('CodigoPropio', codigo.toString());
-        formData.append('CampoVinculado', 'CodigoCategoriaProducto');
-        formData.append('CampoPropio', 'CodigoProducto');
-        formData.append('NombreCampoImagen', 'ImagenUrl');
+            formData.append('Imagen', this.archivoImagen!);
+            formData.append('CarpetaPrincipal', Entorno.NombreEmpresa);
+            formData.append('SubCarpeta', 'Producto');
+            formData.append('CodigoVinculado', categoriaId?.toString() || '0');
+            formData.append('CodigoPropio', codigo.toString());
+            formData.append('CampoVinculado', 'CodigoCategoriaProducto');
+            formData.append('CampoPropio', 'CodigoProducto');
+            formData.append('NombreCampoImagen', 'ImagenUrl');
 
-        await this.servicioProducto.SubirImagen(formData);
+            await this.servicioProducto.SubirImagen(formData);
+        } catch (error) {
+            console.error('Error subiendo imagen:', error);
+        }
     }
 
     cancelar() {

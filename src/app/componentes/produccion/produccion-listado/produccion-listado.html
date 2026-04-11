@@ -1,24 +1,26 @@
 @if (vista() === 'listado') {
-<div class="produccion-container bg-white h-100 d-flex flex-column overflow-hidden p-4">
+<div class="produccion-container bg-white h-100 d-flex flex-column overflow-hidden p-4"
+    [style.--color-sistema]="colorSistema">
     <!-- Action Header -->
     <div class="row align-items-center mb-0">
         <div class="col">
-            <button class="btn btn-export shadow-sm" (click)="exportarExcel()" [style.background-color]="colorSistema">
+            <button class="btn btn-export shadow-sm" (click)="exportarExcel()"
+                style="background-color: var(--color-sistema); border: none;">
                 <i class="bi bi-file-earmark-excel-fill me-2"></i> Exportar a exel
             </button>
         </div>
         <div class="col-6 text-center">
-            <h2 class="titulo-pagina m-0 fw-bold">LISTADO PEDIDOS</h2>
+            <h2 class="titulo-pagina m-0 fw-bold" style="color: var(--color-sistema);">LISTADO PEDIDOS</h2>
         </div>
         <div class="col text-end">
             <button class="btn btn-create shadow-sm px-4" (click)="abrirCrearPedido()"
-                [style.background-color]="colorSistema">
+                style="background-color: var(--color-sistema); border: none;">
                 <i class="bi bi-clipboard-check-fill me-2"></i> Crear pedido
             </button>
         </div>
     </div>
 
-    <div class="header-line mb-4"></div>
+    <div class="header-line mb-4" [style.background-color]="colorSistema"></div>
 
     <div class="row align-items-center mb-4 g-3 bg-white p-3 rounded mx-0 border-bottom border-top py-4">
         <div class="col-auto">
@@ -33,7 +35,7 @@
         </div>
         <div class="col-auto">
             <button class="btn btn-buscar shadow-sm px-4 ms-2" (click)="cargarPedidos()"
-                [style.background-color]="colorSistema">Buscar</button>
+                style="background-color: var(--color-sistema); border: none;">Buscar</button>
         </div>
         <div class="col">
             <div class="search-box position-relative float-end" style="width: 400px;">
@@ -71,12 +73,14 @@
                     </td>
                     <td>{{ pedido.FechaEntrega | date:'dd/MM/yyyy':'UTC' }}</td>
                     <td class="text-center">
-                        @if (pedido.Estado === 'PENDIENTE' || pedido.Estatus === 1) {
-                        <button class="btn-accion btn-iniciar"
-                            (click)="iniciarPedido(pedido.CodigoPedidoProduccion)">Iniciar</button>
-                        } @else if (pedido.Estado === 'EN_PROCESO' || pedido.Estatus === 2) {
-                        <button class="btn-accion btn-ingresar"
-                            (click)="ingresarProduccion(pedido.CodigoPedidoProduccion)">Ingresar</button>
+                        @if (!hayProduccionActiva()) {
+                            @if (pedido.Estado === 'PENDIENTE' || pedido.Estatus === 1) {
+                            <button class="btn-accion btn-iniciar"
+                                (click)="iniciarPedido(pedido.CodigoPedidoProduccion)">Iniciar</button>
+                            } @else if (pedido.Estado === 'EN_PROCESO' || pedido.Estatus === 2) {
+                            <button class="btn-accion btn-ingresar" [style.background-color]="colorSistema"
+                                (click)="ingresarProduccion(pedido.CodigoPedidoProduccion)">Ingresar</button>
+                            }
                         }
                     </td>
                 </tr>
@@ -99,9 +103,16 @@
         </div>
 
         <div class="flex-grow-1 text-center">
+            @if (hayProduccionActiva()) {
+            <button class="btn btn-naranja shadow px-5 py-2 fw-bold text-white fs-5" (click)="ingresarProduccionMasiva()"
+                [style.background-color]="colorSistema" style="border-radius: 12px; min-width: 250px; border: none;">
+                Ingresar
+            </button>
+            } @else {
             <button class="btn btn-trabajar-todo shadow-sm" (click)="trabajarTodo()">
                 <i class="bi bi-check-lg me-2"></i> Trabajar todo
             </button>
+            }
         </div>
 
         <nav>
@@ -113,7 +124,7 @@
                 @for (p of paginasArray(); track p) {
                 <li class="page-item" [class.active]="paginaActual() === p">
                     <a class="page-link border-0 mx-1 rounded" (click)="irAPagina(p)"
-                        [style.background-color]="paginaActual() === p ? colorSistema : ''">{{ p }}</a>
+                        [style.background-color]="paginaActual() === p ? 'var(--color-sistema)' : ''">{{ p }}</a>
                 </li>
                 }
                 <li class="page-item" [class.disabled]="paginaActual() === totalPaginas()">

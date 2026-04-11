@@ -145,6 +145,14 @@ export class ProduccionListado implements OnInit {
         }
     }
 
+    hayProduccionActiva = computed(() => {
+        return this.pedidos().some(p => p.Estado === 'EN_PROCESO' || p.Estatus === 2);
+    });
+
+    ingresarProduccionMasiva() {
+        this.router.navigate(['/produccion/ingresar', 'masivo']);
+    }
+
     async trabajarTodo() {
         try {
             const res = await this.servicioProduccion.iniciarProduccionMasiva();

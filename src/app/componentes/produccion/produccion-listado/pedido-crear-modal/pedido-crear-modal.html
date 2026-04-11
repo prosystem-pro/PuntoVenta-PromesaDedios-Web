@@ -1,4 +1,5 @@
-<div class="crear-pedido-container bg-white h-100 d-flex flex-column overflow-hidden p-4" [style.--color-sistema]="colorSistema">
+<div class="crear-pedido-container bg-white h-100 d-flex flex-column overflow-hidden p-4"
+    [style.--color-sistema]="colorSistema">
     <!-- Action Header -->
     <div class="row align-items-center mb-0">
         <div class="col">
@@ -11,7 +12,8 @@
         </div>
         <div class="col text-end">
             <button class="btn btn-naranja shadow-sm px-4 text-white fw-bold d-inline-flex align-items-center"
-                (click)="guardar()" style="background-color: var(--color-sistema); border: none;" [disabled]="guardando()">
+                (click)="abrirConfirmacion()" style="background-color: var(--color-sistema); border: none;"
+                [disabled]="guardando()">
                 <i class="bi bi-clipboard-check mb-0 me-2" style="font-size: 1.3rem;"></i>
                 @if (guardando()) {
                 PROCESANDO...
@@ -56,7 +58,8 @@
         </div>
         <div class="col-auto ms-auto d-flex flex-column bg-white border rounded shadow-xs p-1 px-3 position-relative"
             style="min-width: 220px;">
-            <label class="small fw-bold text-muted mb-1" style="font-size: 0.75rem;">Fecha de entrega del producto</label>
+            <label class="small fw-bold text-muted mb-1" style="font-size: 0.75rem;">Fecha de entrega del
+                producto</label>
             <div class="d-flex align-items-center">
                 <input type="date" class="form-control border-0 p-0 fs-5 fw-bold position-relative"
                     style="width: 100%; outline: none; box-shadow: none; background: transparent; z-index: 2;"
@@ -100,7 +103,8 @@
                 } @else {
                 @for (p of productosPaginados(); track p.CodigoProducto; let i = $index) {
                 <tr>
-                    <td class="text-muted fw-bold">{{ ( (paginaActual() - 1) * itemsPorPagina + i + 1).toString().padStart(2, '0') }}</td>
+                    <td class="text-muted fw-bold">{{ ( (paginaActual() - 1) * itemsPorPagina + i +
+                        1).toString().padStart(2, '0') }}</td>
                     <td>{{ p.NombreCategoriaProducto }}</td>
                     <td class="fw-bold text-dark">{{ p.Producto }}</td>
                     <td>{{ p.NombreUnidad }}</td>
@@ -137,20 +141,61 @@
         <nav>
             <ul class="pagination pagination-sm m-0 shadow-sm border-0">
                 <li class="page-item" [class.disabled]="paginaActual() === 1">
-                    <a class="page-link border-0 bg-light me-1 rounded" (click)="paginaAnterior()"><i
+                    <a class="page-link border-0 bg-light me-1 rounded" (click)="paginaAnterior()" style="cursor: pointer;"><i
                             class="bi bi-chevron-left"></i></a>
                 </li>
-                @for (p of paginasArray(); track p) {
-                <li class="page-item" [class.active]="paginaActual() === p">
-                    <a class="page-link border-0 mx-1 rounded" (click)="irAPagina(p)"
-                        [style.background-color]="paginaActual() === p ? 'var(--color-sistema)' : ''">{{ p }}</a>
+                @for (p of paginasVisibles(); track $index) {
+                <li class="page-item" [class.active]="paginaActual() === p" [class.disabled]="p === '...'">
+                    <a class="page-link border-0 mx-1 rounded" (click)="p !== '...' && irAPagina($any(p))"
+                        [style.background-color]="paginaActual() === p ? 'var(--color-sistema)' : ''"
+                        [style.cursor]="p === '...' ? 'default' : 'pointer'">{{ p }}</a>
                 </li>
                 }
-                <li class="page-item" [class.disabled]="paginaActual() === totalPaginas()">
-                    <a class="page-link border-0 bg-light ms-1 rounded" (click)="paginaSiguiente()"><i
+                <li class="page-item" [class.disabled]="paginaActual() === totalPaginas() || totalPaginas() === 0">
+                    <a class="page-link border-0 bg-light ms-1 rounded" (click)="paginaSiguiente()" style="cursor: pointer;"><i
                             class="bi bi-chevron-right"></i></a>
                 </li>
             </ul>
         </nav>
     </div>
+
+    <!-- Modal Confirmación -->
+    @if (mostrarConfirmacion()) {
+    <div class="modal-overlay d-flex justify-content-center align-items-center position-absolute top-0 start-0 w-100 h-100"
+        style="background: rgba(0,0,0,0.5); z-index: 1050;">
+        <div class="bg-white rounded-4 shadow p-4 position-relative" style="width: 600px; max-width: 90%;">
+            <!-- Botón Cerrar -->
+            <button
+                class="btn btn-sm position-absolute top-0 end-0 mt-3 me-3 rounded-circle text-white d-flex align-items-center justify-content-center hover-scale"
+                style="background-color: var(--color-sistema); width: 32px; height: 32px; border: none; font-size: 1.2rem;"
+                (click)="mostrarConfirmacion.set(false)" title="Cerrar modal">
+                <i class="bi bi-x"></i>
+            </button>
+
+            <h4 class="text-center fw-bold mb-4" style="font-size: 1.8rem;">Confirmar pedido</h4>
+
+            <!-- COmentario del input de comentario: El comentario es opcional -->
+            <div class="mb-4 mt-2">
+                <textarea class="form-control shadow-sm border-light-subtle" rows="4"
+                    placeholder="Ingrese comentario ..." [ngModel]="observaciones()"
+                    (ngModelChange)="observaciones.set($event)" title="El comentario es opcional"
+                    style="resize: none; border-radius: 12px; font-size: 1.1rem; padding: 15px;"></textarea>
+            </div>
+
+            <div class="text-center mt-3 mb-2">
+                <button
+                    class="btn px-4 py-2 text-white fw-bold d-inline-flex align-items-center justify-content-center shadow-sm mx-auto shadow"
+                    (click)="guardar()" [disabled]="guardando()" title="Confirma el pedido"
+                    style="background-color: var(--color-sistema); border-radius: 12px; font-size: 1.2rem; min-width: 180px;">
+                    <i class="bi bi-box-arrow-down me-2" style="font-size: 1.4rem;"></i>
+                    @if (guardando()) {
+                    PROCESANDO...
+                    } @else {
+                    Confirmar
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+    }
 </div>

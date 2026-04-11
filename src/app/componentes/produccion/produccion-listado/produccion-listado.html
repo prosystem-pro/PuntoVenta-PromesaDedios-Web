@@ -73,7 +73,7 @@
                     </td>
                     <td>{{ pedido.FechaEntrega | date:'dd/MM/yyyy':'UTC' }}</td>
                     <td class="text-center">
-                        @if (!hayProduccionActiva()) {
+                        @if (!esModoMasivo()) {
                             @if (pedido.Estado === 'PENDIENTE' || pedido.Estatus === 1) {
                             <button class="btn-accion btn-iniciar"
                                 (click)="iniciarPedido(pedido.CodigoPedidoProduccion)">Iniciar</button>
@@ -103,12 +103,13 @@
         </div>
 
         <div class="flex-grow-1 text-center">
-            @if (hayProduccionActiva()) {
-            <button class="btn btn-naranja shadow px-5 py-2 fw-bold text-white fs-5" (click)="ingresarProduccionMasiva()"
-                [style.background-color]="colorSistema" style="border-radius: 12px; min-width: 250px; border: none;">
+            @if (esModoMasivo()) {
+            <button class="btn btn-naranja shadow px-5 py-2 fw-bold text-white fs-5"
+                (click)="ingresarProduccionMasiva()" [style.background-color]="colorSistema"
+                style="border-radius: 12px; min-width: 250px; border: none;">
                 Ingresar
             </button>
-            } @else {
+            } @else if (hayPendientes()) {
             <button class="btn btn-trabajar-todo shadow-sm" (click)="trabajarTodo()">
                 <i class="bi bi-check-lg me-2"></i> Trabajar todo
             </button>
@@ -118,18 +119,19 @@
         <nav>
             <ul class="pagination pagination-sm m-0 shadow-sm border-0">
                 <li class="page-item" [class.disabled]="paginaActual() === 1">
-                    <a class="page-link border-0 bg-light me-1 rounded" (click)="paginaAnterior()"><i
-                            class="bi bi-chevron-left"></i></a>
+                    <a class="page-link border-0 bg-light me-1 rounded" (click)="paginaAnterior()"
+                        style="cursor: pointer;"><i class="bi bi-chevron-left"></i></a>
                 </li>
-                @for (p of paginasArray(); track p) {
-                <li class="page-item" [class.active]="paginaActual() === p">
-                    <a class="page-link border-0 mx-1 rounded" (click)="irAPagina(p)"
-                        [style.background-color]="paginaActual() === p ? 'var(--color-sistema)' : ''">{{ p }}</a>
+                @for (p of paginasVisibles(); track $index) {
+                <li class="page-item" [class.active]="paginaActual() === p" [class.disabled]="p === '...'">
+                    <a class="page-link border-0 mx-1 rounded" (click)="p !== '...' && irAPagina($any(p))"
+                        [style.background-color]="paginaActual() === p ? 'var(--color-sistema)' : ''"
+                        [style.cursor]="p === '...' ? 'default' : 'pointer'">{{ p }}</a>
                 </li>
                 }
-                <li class="page-item" [class.disabled]="paginaActual() === totalPaginas()">
-                    <a class="page-link border-0 bg-light ms-1 rounded" (click)="paginaSiguiente()"><i
-                            class="bi bi-chevron-right"></i></a>
+                <li class="page-item" [class.disabled]="paginaActual() === totalPaginas() || totalPaginas() === 0">
+                    <a class="page-link border-0 bg-light ms-1 rounded" (click)="paginaSiguiente()"
+                        style="cursor: pointer;"><i class="bi bi-chevron-right"></i></a>
                 </li>
             </ul>
         </nav>

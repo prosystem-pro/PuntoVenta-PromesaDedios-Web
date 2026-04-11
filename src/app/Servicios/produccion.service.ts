@@ -46,4 +46,36 @@ export class ProduccionServicio {
         const res = await axiosInstance.get('/produccion/listado/producto');
         return res.data;
     }
+
+    async obtenerInsumosPedido(id: number): Promise<RespuestaAPI<any[]>> {
+        const res = await axiosInstance.get(`/produccion/listadoinsumos/${id}`);
+        return res.data;
+    }
+
+    async registrarConsumoInsumos(datos: { CodigoProduccion: number, Insumos: any[] }): Promise<RespuestaAPI<any>> {
+        const res = await axiosInstance.post('/produccion/registrarconsumoinsumos', datos);
+        return res.data;
+    }
+
+    // --- Endpoints Masivos ---
+
+    async obtenerListadoPedidosTodos(): Promise<RespuestaAPI<any>> {
+        const res = await axiosInstance.get('/produccion/listado/pedidostodos');
+        return res.data;
+    }
+
+    async obtenerListadoInsumosTodos(): Promise<RespuestaAPI<any>> {
+        const res = await axiosInstance.get('/produccion/listadoinsumostodasproducciones');
+        return res.data;
+    }
+
+    async abastecerPedidoMasivo(datos: { Detalle: any[], Estatus: boolean }): Promise<RespuestaAPI<any>> {
+        const res = await axiosInstance.post('/produccion/abastecerpedidomasivo', datos);
+        return res.data;
+    }
+
+    async abastecerInsumosMasivo(datos: { Detalle: any[] }): Promise<RespuestaAPI<any>> {
+        const res = await axiosInstance.post('/produccion/abastecerinsumosmasivo', datos);
+        return res.data;
+    }
 }

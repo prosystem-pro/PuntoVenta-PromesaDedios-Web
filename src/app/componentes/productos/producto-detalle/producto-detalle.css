@@ -166,13 +166,16 @@
 
 /* Footer & Cost */
 .cost-summary {
-    padding: 1rem;
+    background-color: #98e6b3; /* Green from prototype */
+    color: #1a5c32;
+    padding: 0.8rem 1.5rem;
     border-radius: 12px;
     text-align: center;
-    font-weight: 800;
-    color: #1a5c32;
-    font-size: 1.1rem;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    font-weight: 700;
+    font-size: 1.05rem;
+    margin: 0 auto;
+    width: fit-content;
+    border: 1px solid #7ecc9b;
 }
 
 .btn-guardar-main {

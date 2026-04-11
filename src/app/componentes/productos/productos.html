@@ -1,57 +1,63 @@
 <div class="productos-container" [style.--color-sistema]="colorSistema">
     <!-- Header -->
     <div class="productos-header d-flex justify-content-between align-items-center mb-4">
-        <!-- Boton Regresar (Solo en edicion) -->
-        <button *ngIf="modoEdicion() !== 'lectura'" class="btn btn-regresar" (click)="cancelarEdicion()">
-            <i class="bi bi-chevron-left"></i> Regresar
-        </button>
-
         <!-- Boton Exportar (Solo en lectura) -->
-        <button *ngIf="modoEdicion() === 'lectura'" class="btn btn-export" [style.background-color]="colorSistema"
-            (click)="exportarExcel()">
-            <i class="bi bi-file-earmark-spreadsheet"></i> Exportar a Excel
-        </button>
+        <div class="header-side">
+            <button *ngIf="modoEdicion() === 'lectura'" class="btn btn-export shadow-sm"
+                [style.background-color]="colorSistema" (click)="exportarExcel()">
+                <i class="bi bi-file-earmark-spreadsheet me-2"></i> Exportar a exel
+            </button>
+            <button *ngIf="modoEdicion() !== 'lectura'" class="btn btn-regresar shadow-sm" (click)="cancelarEdicion()">
+                <i class="bi bi-chevron-left me-2"></i> Regresar
+            </button>
+        </div>
 
-        <h2 class="productos-titulo m-0" [style.color]="colorSistema">
-            {{ modoEdicion() === 'ajustar' ? 'AJUSTAR INVENTARIO' : (modoEdicion() === 'abastecer' ? 'ABASTECER
-            INVENTARIO' : 'LISTADO PRODUCTOS') }}
-        </h2>
+        <div class="title-container text-center flex-grow-1">
+            <h2 class="productos-titulo m-0" [style.color]="colorSistema">
+                {{ modoEdicion() === 'ajustar' ? 'AJUSTAR INVENTARIO' : (modoEdicion() === 'abastecer' ? 'ABASTECER
+                INVENTARIO' : 'LISTADO PRODUCTOS') }}
+            </h2>
+            <div class="title-underline" [style.background-color]="colorSistema"></div>
+        </div>
 
-        <!-- Boton Guardar (Solo en edicion) -->
-        <button *ngIf="modoEdicion() !== 'lectura'" class="btn btn-guardar" (click)="guardarCambiosStock()">
-            <i class="bi bi-download"></i> Guardar
-        </button>
+        <div class="header-side text-end">
+            <!-- Boton Guardar (Solo en edicion) -->
+            <button *ngIf="modoEdicion() !== 'lectura'" class="btn btn-guardar shadow-sm"
+                (click)="guardarCambiosStock()">
+                <i class="bi bi-cloud-arrow-up me-2"></i> Guardar
+            </button>
 
-        <!-- Boton Crear (Solo en lectura) -->
-        <button *ngIf="modoEdicion() === 'lectura'" class="btn btn-crear" [style.background-color]="colorSistema"
-            (click)="crearProducto()">
-            <i class="bi bi-plus-circle"></i> Crear producto
-        </button>
+            <!-- Boton Crear (Solo en lectura) -->
+            <button *ngIf="modoEdicion() === 'lectura'" class="btn btn-crear shadow-sm"
+                [style.background-color]="colorSistema" (click)="crearProducto()">
+                <i class="bi bi-box-seam me-2"></i> Crear producto
+            </button>
+        </div>
     </div>
 
     <!-- Controles de Busqueda -->
-    <div class="search-section row g-3 mb-4 align-items-end">
-        <div class="col-md-5">
-            <label class="form-label fw-bold">Código de producto</label>
-            <div class="barcode-search-box shadow-sm">
-                <i class="bi bi-upc-scan barcode-icon"></i>
+    <div class="search-section d-flex justify-content-between align-items-center mb-4 gap-3">
+        <div class="d-flex align-items-center gap-3 flex-grow-1">
+            <label class="form-label fw-bold m-0 text-nowrap" style="font-size: 1.1rem;">Código de producto</label>
+            <div class="barcode-search-box shadow-sm px-3 flex-grow-1" style="max-width: 350px;">
+                <i class="bi bi-upc-scan barcode-icon me-2"></i>
                 <input type="text" class="form-control barcode-input" [value]="codigoBarrasBusqueda()"
                     (input)="alCambiarBarras($event)">
             </div>
         </div>
 
-        <div class="col-md-4 offset-md-3">
-            <div class="text-search-box shadow-sm">
+        <div class="search-right-side" style="min-width: 300px;">
+            <div class="text-search-box shadow-sm px-3">
                 <input type="text" class="form-control text-search-input" placeholder="Buscar" [value]="textoBusqueda()"
                     (input)="alCambiarBusqueda($event)">
-                <i class="bi bi-search search-icon"></i>
+                <i class="bi bi-search search-icon ms-2"></i>
             </div>
         </div>
     </div>
 
     <!-- Tabla -->
-    <div class="products-card card border-0 shadow-sm rounded-4 overflow-hidden">
-        <div class="table-container p-0 overflow-auto" style="max-height: 480px;">
+    <div class="products-card card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+        <div class="table-container p-0 overflow-auto" style="max-height: 520px;">
             <div *ngIf="cargando()" class="text-center py-5">
                 <div class="spinner-border" [style.color]="colorSistema" role="status"></div>
                 <p class="mt-2 text-muted text-latin">Cargando productos...</p>
@@ -63,8 +69,6 @@
                         <th class="text-latin">No. <i class="bi bi-arrow-down-up small ms-1"></i></th>
                         <th class="text-latin">Categoría <i class="bi bi-arrow-down-up small ms-1"></i></th>
                         <th class="text-latin">Producto <i class="bi bi-arrow-down-up small ms-1"></i></th>
-                        <th class="text-latin" *ngIf="modoEdicion() === 'lectura'">Tipo <i
-                                class="bi bi-arrow-down-up small ms-1"></i></th>
                         <th class="text-latin">Unidad <i class="bi bi-arrow-down-up small ms-1"></i></th>
                         <th class="text-latin">Stock <i class="bi bi-arrow-down-up small ms-1"></i></th>
                         <th class="text-latin" *ngIf="modoEdicion() === 'abastecer'">Abastecer <i
@@ -75,20 +79,10 @@
                 </thead>
                 <tbody>
                     <tr *ngFor="let producto of productosPaginados(); let i = index"
-                        [class.inactive-row]="producto.Estatus === 0">
+                        [class.inactive-row]="producto.Estatus === 0 || (producto.Stock || 0) <= 0">
                         <td class="text-latin">{{ (paginaActual() - 1) * itemsPorPagina + i + 1 | number:'2.0-0' }}</td>
                         <td class="text-latin">{{ producto.NombreCategoria || 'Sin categoria' }}</td>
                         <td class="text-latin">{{ producto.NombreProducto }}</td>
-                        <td class="text-latin" *ngIf="modoEdicion() === 'lectura'">
-                            <span class="badge" [ngClass]="{
-                                'bg-info text-dark': producto.TipoProducto === 'VENTANILLA',
-                                'bg-secondary': producto.TipoProducto === 'INSUMO',
-                                'bg-warning text-dark': producto.TipoProducto === 'COCINA',
-                                'bg-primary': producto.TipoProducto === 'AMBOS'
-                            }">
-                                {{ producto.TipoProducto || 'N/A' }}
-                            </span>
-                        </td>
                         <td class="td-unidad text-latin">{{ producto.NombreUnidad || 'Unidad' }}</td>
                         <td class="text-latin">
                             <ng-container *ngIf="modoEdicion() !== 'ajustar'">
@@ -125,8 +119,9 @@
                         </td>
                     </tr>
                     <tr *ngIf="productosPaginados().length === 0">
-                        <td [attr.colspan]="modoEdicion() === 'abastecer' ? 8 : (modoEdicion() === 'lectura' ? 8 : 7)"
-                            class="text-center py-4 text-muted">No se encontraron productos</td>
+                        <td [attr.colspan]="modoEdicion() === 'abastecer' ? 8 : 7" class="text-center py-4 text-muted">
+                            No
+                            se encontraron productos</td>
                     </tr>
                 </tbody>
             </table>
@@ -134,40 +129,49 @@
     </div>
 
     <!-- Footer con Paginacion y Acciones de Stock -->
-    <div class="productos-footer d-flex align-items-center justify-content-between mt-4">
-        <div class="pagination-info text-muted small text-latin">
-            Mostrando <strong>{{ rangoInicio() }}</strong> al <strong>{{ rangoFin() }}</strong> de <strong>{{
-                totalRegistros() }}</strong> registros
+    <div class="row align-items-center mt-2">
+        <div class="col-md-4">
+            <div class="pagination-info text-muted small text-latin">
+                Mostrando <strong>{{ rangoInicio() }}</strong> al <strong>{{ rangoFin() }}</strong> de <strong>{{
+                    totalRegistros() }}</strong> registros
+            </div>
         </div>
 
-        <!-- Botoneras de Stock -->
-        <div class="stock-actions d-flex gap-4">
-            <button class="btn btn-stock" [style.background-color]="colorSistema" (click)="ajustarStock()">
-                <i class="bi bi-gear-fill"></i> Ajustar
-            </button>
-            <button class="btn btn-stock" [style.background-color]="colorSistema" (click)="abastecerStock()">
-                <i class="bi bi-box-seam-fill"></i> Abastecer
-            </button>
+        <div class="col-md-4 text-center">
+            <!-- Botoneras de Stock Centradas -->
+            <div class="stock-actions d-inline-flex gap-4" *ngIf="modoEdicion() === 'lectura'">
+                <button class="btn btn-stock px-4 py-2" [style.background-color]="colorSistema"
+                    (click)="ajustarStock()">
+                    <i class="bi bi-gear-fill me-2"></i> Ajustar
+                </button>
+                <button class="btn btn-stock px-4 py-2" [style.background-color]="colorSistema"
+                    (click)="abastecerStock()">
+                    <i class="bi bi-box-seam-fill me-2"></i> Abastecer
+                </button>
+            </div>
         </div>
 
-        <!-- Paginacion -->
-        <nav aria-label="Navegacion" class="pagination-nav">
-            <ul class="pagination pagination-sm m-0">
-                <li class="page-item" [class.disabled]="paginaActual() === 1">
-                    <button class="page-link" (click)="paginaAnterior()"><i class="bi bi-chevron-left"></i></button>
-                </li>
-                <li class="page-item" *ngFor="let p of [].constructor(totalPaginas()); let i = index"
-                    [class.active]="paginaActual() === i + 1">
-                    <button class="page-link" (click)="irAPagina(i + 1)"
-                        [style.background-color]="paginaActual() === i + 1 ? colorSistema : ''"
-                        [style.border-color]="paginaActual() === i + 1 ? colorSistema : ''">
-                        {{ i + 1 }}
-                    </button>
-                </li>
-                <li class="page-item" [class.disabled]="paginaActual() === totalPaginas() || totalPaginas() === 0">
-                    <button class="page-link" (click)="paginaSiguiente()"><i class="bi bi-chevron-right"></i></button>
-                </li>
-            </ul>
-        </nav>
+        <div class="col-md-4">
+            <!-- Paginacion -->
+            <nav aria-label="Navegacion" class="pagination-nav">
+                <ul class="pagination pagination-sm m-0">
+                    <li class="page-item" [class.disabled]="paginaActual() === 1">
+                        <button class="page-link shadow-none" (click)="paginaAnterior()"><i
+                                class="bi bi-chevron-left"></i></button>
+                    </li>
+                    <li class="page-item" *ngFor="let p of [].constructor(totalPaginas()); let i = index"
+                        [class.active]="paginaActual() === i + 1">
+                        <button class="page-link shadow-none" (click)="irAPagina(i + 1)"
+                            [style.background-color]="paginaActual() === i + 1 ? colorSistema : ''"
+                            [style.border-color]="paginaActual() === i + 1 ? colorSistema : ''">
+                            {{ i + 1 }}
+                        </button>
+                    </li>
+                    <li class="page-item" [class.disabled]="paginaActual() === totalPaginas() || totalPaginas() === 0">
+                        <button class="page-link shadow-none" (click)="paginaSiguiente()"><i
+                                class="bi bi-chevron-right"></i></button>
+                    </li>
+                </ul>
+            </nav>
+        </div>
     </div>
-</div>

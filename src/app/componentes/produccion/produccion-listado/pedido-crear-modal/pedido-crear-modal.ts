@@ -22,7 +22,7 @@ export class PedidoCrearModal implements OnInit {
     colorSistema = Entorno.ColorSistema;
 
     fechaEntrega = signal<string>(new Date().toISOString().split('T')[0]);
-    observaciones = signal<string>('');
+    observaciones = signal<string>('Reposición por bajo inventario');
 
     busqueda = signal<string>('');
     busquedaProducto = signal<string>('');
@@ -42,12 +42,14 @@ export class PedidoCrearModal implements OnInit {
         try {
             const res = await this.servicioProduccion.listarProductosProduccion();
             if (res.success) {
-                // El comentario del diseñador dice que inicialmente aparecen los que tienen menos del stock mínimo
-                // pero por ahora cargaremos todos y el usuario podrá buscar/agregar
-                const listado = (res.data || []).map((p: any) => ({
-                    ...p,
-                    CantidadSolicitada: p.StockActual < p.StockSugerido ? (p.StockSugerido - p.StockActual) : 0
-                }));
+                const listado = (res.data || []).map((p: any) => {
+                    const diferencia = p.StockSugerido - p.StockActual;
+                    return {
+                        ...p,
+                        CantidadSolicitada: diferencia > 0 ? diferencia : 0,
+                        Visible: true // Todos los productos del API son visibles por defecto
+                    };
+                });
                 this.productos.set(listado);
             }
         } finally {
@@ -57,10 +59,12 @@ export class PedidoCrearModal implements OnInit {
 
     productosFiltrados = computed(() => {
         const query = this.busqueda().toLowerCase().trim();
-        // Mostramos todos los productos del listado de producción, filtrados solo por el buscador derecho
+        // Mostramos si es visible y coincide con la búsqueda
         return this.productos().filter(p =>
-            p.Producto?.toLowerCase().includes(query) ||
-            p.NombreCategoriaProducto?.toLowerCase().includes(query)
+            p.Visible && (
+                p.Producto?.toLowerCase().includes(query) ||
+                p.NombreCategoriaProducto?.toLowerCase().includes(query)
+            )
         );
     });
 
@@ -107,8 +111,9 @@ export class PedidoCrearModal implements OnInit {
         if (index !== -1) {
             this.productos.update(list => {
                 const newList = [...list];
+                newList[index].Visible = true; // Lo hacemos visible
                 if (newList[index].CantidadSolicitada === 0) {
-                    newList[index].CantidadSolicitada = 1; // Valor por defecto al agregar
+                    newList[index].CantidadSolicitada = 1;
                 }
                 return newList;
             });
@@ -121,7 +126,7 @@ export class PedidoCrearModal implements OnInit {
 
     eliminarFila(prod: any) {
         this.productos.update(list => list.map(p =>
-            p.CodigoProducto === prod.CodigoProducto ? { ...p, CantidadSolicitada: 0 } : p
+            p.CodigoProducto === prod.CodigoProducto ? { ...p, Visible: false, CantidadSolicitada: 0 } : p
         ));
     }
 

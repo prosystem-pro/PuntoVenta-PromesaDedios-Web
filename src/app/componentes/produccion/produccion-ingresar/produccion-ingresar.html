@@ -215,15 +215,23 @@
                     (click)="paginaAnterior()">
                     <i class="bi bi-chevron-left"></i>
                 </button>
-                @for (p of paginasArray(); track p) {
-                <button class="btn btn-sm px-3 fw-bold" [class.btn-naranja]="paginaActual() === p"
-                    [class.btn-light]="paginaActual() !== p" [class.border]="paginaActual() !== p"
-                    [class.text-white]="paginaActual() === p" (click)="irAPagina(p)"
-                    [style.background-color]="paginaActual() === p ? colorSistema : ''">
+                @for (p of paginasVisibles(); track $index) {
+                <button class="btn btn-sm px-3 fw-bold" 
+                    [class.btn-naranja]="paginaActual() === p"
+                    [class.btn-light]="paginaActual() !== p && p !== '...'" 
+                    [class.border]="paginaActual() !== p && p !== '...'"
+                    [class.border-0]="p === '...'"
+                    [class.bg-transparent]="p === '...'"
+                    [class.text-white]="paginaActual() === p"
+                    [class.text-dark]="p === '...'"
+                    [disabled]="p === '...'"
+                    (click)="p !== '...' && irAPagina($any(p))"
+                    [style.background-color]="paginaActual() === p ? colorSistema : ''"
+                    [style.cursor]="p === '...' ? 'default' : 'pointer'">
                     {{ p }}
                 </button>
                 }
-                <button class="btn btn-light border btn-sm px-3" [class.disabled]="paginaActual() === totalPaginas()"
+                <button class="btn btn-light border btn-sm px-3" [class.disabled]="paginaActual() === totalPaginas() || totalPaginas() === 0"
                     (click)="paginaSiguiente()">
                     <i class="bi bi-chevron-right"></i>
                 </button>

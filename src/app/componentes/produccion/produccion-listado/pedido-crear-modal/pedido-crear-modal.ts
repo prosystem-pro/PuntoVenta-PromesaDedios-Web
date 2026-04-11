@@ -22,7 +22,8 @@ export class PedidoCrearModal implements OnInit {
     colorSistema = Entorno.ColorSistema;
 
     fechaEntrega = signal<string>(new Date().toISOString().split('T')[0]);
-    observaciones = signal<string>('Reposición por bajo inventario');
+    observaciones = signal<string>('');
+    mostrarConfirmacion = signal(false);
 
     busqueda = signal<string>('');
     busquedaProducto = signal<string>('');
@@ -88,7 +89,18 @@ export class PedidoCrearModal implements OnInit {
 
     rangoInicio = computed(() => this.totalRegistros() === 0 ? 0 : (this.paginaActual() - 1) * this.itemsPorPagina + 1);
     rangoFin = computed(() => Math.min(this.paginaActual() * this.itemsPorPagina, this.totalRegistros()));
-    paginasArray = computed(() => Array.from({ length: this.totalPaginas() }, (_, i) => i + 1));
+
+    paginasVisibles = computed(() => {
+        const actual = this.paginaActual();
+        const total = this.totalPaginas();
+
+        if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1);
+
+        if (actual <= 3) return [1, 2, 3, 4, '...', total];
+        if (actual >= total - 2) return [1, '...', total - 3, total - 2, total - 1, total];
+
+        return [1, '...', actual - 1, actual, actual + 1, '...', total];
+    });
 
     actualizarCantidad(prod: any, valor: string) {
         const num = parseFloat(valor) || 0;
@@ -130,13 +142,19 @@ export class PedidoCrearModal implements OnInit {
         ));
     }
 
-    async guardar() {
+    abrirConfirmacion() {
         const seleccionados = this.productos().filter(p => p.CantidadSolicitada > 0);
 
         if (seleccionados.length === 0) {
             this.servicioAlerta.MostrarError('Debe ingresar cantidad a producir para al menos un producto');
             return;
         }
+
+        this.mostrarConfirmacion.set(true);
+    }
+
+    async guardar() {
+        const seleccionados = this.productos().filter(p => p.CantidadSolicitada > 0);
 
         this.guardando.set(true);
         try {
@@ -152,6 +170,7 @@ export class PedidoCrearModal implements OnInit {
             const res = await this.servicioProduccion.crearPedido(datos);
             if (res.success) {
                 this.servicioAlerta.MostrarExito('Pedido creado correctamente');
+                this.mostrarConfirmacion.set(false);
                 this.cerrado.emit(true);
             } else {
                 this.servicioAlerta.MostrarError(res.message);

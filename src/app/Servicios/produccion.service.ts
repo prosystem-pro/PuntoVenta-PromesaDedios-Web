@@ -43,6 +43,11 @@ export class ProduccionServicio {
     }
 
     async listarProductosProduccion(): Promise<RespuestaAPI<any[]>> {
+        const res = await axiosInstance.get('/produccion/listado/productostockminimo');
+        return res.data;
+    }
+
+    async listarProductosProduccionGlobal(): Promise<RespuestaAPI<any[]>> {
         const res = await axiosInstance.get('/produccion/listado/producto');
         return res.data;
     }

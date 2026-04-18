@@ -81,15 +81,16 @@ export class MateriaPrimaDetalle implements OnInit {
             const res = await this.servicioProducto.ObtenerCompleto(id);
             if (res.success) {
                 const p = res.data;
+                const inv = p.Inventario || {};
                 this.form.patchValue({
                     CodigoProducto: p.CodigoProducto,
                     CodigoCategoriaProducto: p.CodigoCategoriaProducto || p.Categoria?.CodigoCategoriaProducto,
                     NombreProducto: p.NombreProducto,
                     CodigoUnidadMedida: p.CodigoUnidadMedida || p.UnidadMedida?.CodigoUnidadMedida,
-                    Stock: p.Inventario?.StockActual || 0,
-                    StockMinimo: p.Inventario?.StockMinimo || 0,
-                    StockSugerido: p.Inventario?.StockSugerido || 0,
-                    PrecioCompra: p.Inventario?.PrecioCompra || 0,
+                    Stock: inv.StockActual !== undefined ? inv.StockActual : (p.Stock || 0),
+                    StockMinimo: inv.StockMinimo !== undefined ? inv.StockMinimo : (p.StockMinimo || 0),
+                    StockSugerido: inv.StockSugerido !== undefined ? inv.StockSugerido : (p.StockSugerido || 0),
+                    PrecioCompra: inv.PrecioCompra !== undefined ? inv.PrecioCompra : (p.PrecioCompra || 0),
                     CodigoBarra: p.CodigoBarra || '',
                     Iva: Number(p.Iva || 0),
                     Estatus: p.Estatus

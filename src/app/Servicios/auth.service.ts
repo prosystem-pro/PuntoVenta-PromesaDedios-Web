@@ -12,8 +12,21 @@ export class ServicioAutenticacion {
     // Getter publico para el usuario
     usuarioActual = computed(() => this._usuarioActual());
 
-    // Getter para saber si esta autenticado
-    estaAutenticado = computed(() => !!this._usuarioActual() && !!localStorage.getItem('token'));
+    // Getter para saber si esta autenticado de manera real
+    estaAutenticado = computed(() => {
+        const token = localStorage.getItem('token');
+        if (!this._usuarioActual() || !token) return false;
+
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            if (payload.exp && payload.exp * 1000 < Date.now()) {
+                return false; // Token expirado
+            }
+            return true;
+        } catch {
+            return false;
+        }
+    });
 
     constructor() { }
 

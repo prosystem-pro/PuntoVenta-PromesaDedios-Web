@@ -165,7 +165,7 @@ export class ProductoDetalle implements OnInit {
         this.cargando.set(true);
         try {
             const res = await this.servicioProducto.ObtenerCompleto(id);
-            console.log(res.data)
+
             if (res.success && res.data) {
                 const pData = res.data;
                 // El API devuelve "Recetum" para la lista de ingredientes (o Receta/Ingredientes)
@@ -199,9 +199,25 @@ export class ProductoDetalle implements OnInit {
                 const detalles = receta.RecetaDetalles || (Array.isArray(ingredientesData) ? ingredientesData : []);
 
                 if (Array.isArray(detalles)) {
-                    detalles.forEach((det: any) => {
+                    const promesasCostos = detalles.map(async (det: any) => {
                         const prodIng = det.ProductoIngrediente || {};
                         const unidad = det.UnidadMedida || {};
+                        const unidadObj = this.unidades().find(u => u.CodigoUnidadMedida === det.CodigoUnidadMedida) || unidad;
+
+                        let precioProporcional = det.PrecioProporcional || 0;
+
+                        try {
+                            const resCosto = await this.servicioProducto.CalcularCostoIngrediente({
+                                CodigoProducto: Number(det.CodigoProducto),
+                                NombreUnidadDestino: unidadObj.NombreUnidad,
+                                Cantidad: Number(det.Cantidad)
+                            });
+                            if (resCosto.success) {
+                                precioProporcional = resCosto.data.PrecioProporcional;
+                            }
+                        } catch (e) {
+                            console.error('Error calculando costo para ingrediente cargado:', e);
+                        }
 
                         let precioCompra = det.PrecioCompra;
                         if (precioCompra === undefined || precioCompra === 0) {
@@ -209,15 +225,19 @@ export class ProductoDetalle implements OnInit {
                             precioCompra = catalogado?.PrecioCompra || prodIng.PrecioCompra || 0;
                         }
 
-                        this.agregarIngredienteExistente({
+                        return {
                             CodigoProducto: det.CodigoProducto,
                             NombreProducto: prodIng.NombreProducto || det.NombreProducto || 'Sin nombre',
                             CodigoUnidadMedida: det.CodigoUnidadMedida,
-                            NombreUnidad: unidad.NombreUnidad || 'No def.',
+                            NombreUnidad: unidadObj.NombreUnidad || 'No def.',
                             Cantidad: det.Cantidad,
-                            PrecioUnitario: precioCompra
-                        });
+                            PrecioUnitario: precioCompra,
+                            PrecioProporcional: precioProporcional
+                        };
                     });
+
+                    const ingredientesConCostos = await Promise.all(promesasCostos);
+                    ingredientesConCostos.forEach(ing => this.agregarIngredienteExistente(ing));
                 }
                 this.triggerRecargaIngredientes.update(v => v + 1);
             } else {
@@ -249,7 +269,7 @@ export class ProductoDetalle implements OnInit {
         this.unidadIngrediente.set(val ? +val : null);
     }
 
-    agregarIngrediente() {
+    async agregarIngrediente() {
         let prod = this.ingredienteSeleccionado();
 
         if (!prod) {
@@ -277,41 +297,80 @@ export class ProductoDetalle implements OnInit {
         const unidadId = this.unidadIngrediente() || prod!.CodigoUnidadMedida;
         const unidadObj = this.unidades().find(u => u.CodigoUnidadMedida === unidadId);
 
-        const nuevoIngrediente = this.fb.group({
-            CodigoProducto: [prod!.CodigoProducto, Validators.required],
-            NombreProducto: [prod!.NombreProducto],
-            CodigoUnidadMedida: [unidadId, Validators.required],
-            NombreUnidad: [unidadObj?.NombreUnidad || ''],
-            Cantidad: [this.cantidadIngrediente(), [Validators.required, Validators.min(0.0001)]],
-            PrecioUnitario: [prod!.PrecioCompra || 0]
-        });
-
-        const yaExiste = this.ingredientes.value.find((ing: any) => ing.CodigoProducto === prod!.CodigoProducto);
-        if (yaExiste) {
-            this.servicioAlerta.MostrarAlerta('El ingrediente ya esta en la lista');
+        if (!unidadObj) {
+            this.servicioAlerta.MostrarAlerta('Unidad de medida no válida');
             return;
         }
-        this.ingredientes.push(nuevoIngrediente);
-        this.triggerRecargaIngredientes.update(v => v + 1);
 
-        // Limpiar
-        this.ingredienteSeleccionado.set(null);
-        this.textoFiltroIngrediente.set('');
-        this.cantidadIngrediente.set(1);
-        this.unidadIngrediente.set(null);
+        try {
+            this.cargando.set(true);
+            const resCosto = await this.servicioProducto.CalcularCostoIngrediente({
+                CodigoProducto: Number(prod!.CodigoProducto),
+                NombreUnidadDestino: unidadObj.NombreUnidad,
+                Cantidad: Number(this.cantidadIngrediente())
+            });
+
+            const precioProporcional = resCosto.success ? resCosto.data.PrecioProporcional : 0;
+
+            const nuevoIngrediente = this.fb.group({
+                CodigoProducto: [prod!.CodigoProducto, Validators.required],
+                NombreProducto: [prod!.NombreProducto],
+                CodigoUnidadMedida: [unidadId, Validators.required],
+                NombreUnidad: [unidadObj.NombreUnidad],
+                Cantidad: [this.cantidadIngrediente(), [Validators.required, Validators.min(0.0001)]],
+                PrecioUnitario: [prod!.PrecioCompra || 0],
+                PrecioProporcional: [precioProporcional]
+            });
+
+            const yaExiste = this.ingredientes.value.find((ing: any) => ing.CodigoProducto === prod!.CodigoProducto);
+            if (yaExiste) {
+                this.servicioAlerta.MostrarAlerta('El ingrediente ya esta en la lista');
+                return;
+            }
+            this.ingredientes.push(nuevoIngrediente);
+            this.triggerRecargaIngredientes.update(v => v + 1);
+
+            // Limpiar
+            this.ingredienteSeleccionado.set(null);
+            this.textoFiltroIngrediente.set('');
+            this.cantidadIngrediente.set(1);
+            this.unidadIngrediente.set(null);
+        } catch (error) {
+            console.error('Error calculando costo:', error);
+            this.servicioAlerta.MostrarError({ message: 'Error al calcular el costo del ingrediente' });
+        } finally {
+            this.cargando.set(false);
+        }
     }
 
     editarIngrediente(index: number) {
         this.indiceEdicionIngrediente.set(index);
     }
 
-    confirmarEdicion(index: number) {
+    async confirmarEdicion(index: number) {
         const grupo = this.ingredientes.at(index) as FormGroup;
         const unidadId = grupo.get('CodigoUnidadMedida')?.value;
         const unidadObj = this.unidades().find(u => u.CodigoUnidadMedida == unidadId);
 
         if (unidadObj) {
-            grupo.patchValue({ NombreUnidad: unidadObj.NombreUnidad });
+            try {
+                this.cargando.set(true);
+                const resCosto = await this.servicioProducto.CalcularCostoIngrediente({
+                    CodigoProducto: Number(grupo.get('CodigoProducto')?.value),
+                    NombreUnidadDestino: unidadObj.NombreUnidad,
+                    Cantidad: Number(grupo.get('Cantidad')?.value)
+                });
+
+                const precioProporcional = resCosto.success ? resCosto.data.PrecioProporcional : 0;
+                grupo.patchValue({
+                    NombreUnidad: unidadObj.NombreUnidad,
+                    PrecioProporcional: precioProporcional
+                });
+            } catch (error) {
+                console.error('Error re-calculando costo:', error);
+            } finally {
+                this.cargando.set(false);
+            }
         }
 
         this.indiceEdicionIngrediente.set(null);
@@ -321,14 +380,15 @@ export class ProductoDetalle implements OnInit {
         this.indiceEdicionIngrediente.set(null);
     }
 
-    private agregarIngredienteExistente(ing: Ingrediente & { PrecioUnitario?: number }) {
+    private agregarIngredienteExistente(ing: Ingrediente & { PrecioUnitario?: number, PrecioProporcional?: number }) {
         this.ingredientes.push(this.fb.group({
             CodigoProducto: [ing.CodigoProducto, Validators.required],
             NombreProducto: [ing.NombreProducto],
             CodigoUnidadMedida: [ing.CodigoUnidadMedida, Validators.required],
             NombreUnidad: [ing.NombreUnidad],
             Cantidad: [ing.Cantidad, [Validators.required, Validators.min(0.0001)]],
-            PrecioUnitario: [ing.PrecioUnitario || 0]
+            PrecioUnitario: [ing.PrecioUnitario || 0],
+            PrecioProporcional: [ing.PrecioProporcional || 0]
         }));
     }
 
@@ -338,7 +398,7 @@ export class ProductoDetalle implements OnInit {
     }
 
     calcularCostoTotal(): number {
-        return this.ingredientes.value.reduce((acc: number, ing: any) => acc + (ing.Cantidad * (ing.PrecioUnitario || 0)), 0);
+        return this.ingredientes.value.reduce((acc: number, ing: any) => acc + (Number(ing.PrecioProporcional) || 0), 0);
     }
 
     // Imagen

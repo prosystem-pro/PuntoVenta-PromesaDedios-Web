@@ -19,6 +19,7 @@ export class PedidoCrearModal implements OnInit {
     @Output() cerrado = new EventEmitter<boolean>();
 
     productos = signal<any[]>([]);
+    catalogoProductos = signal<any[]>([]);
     colorSistema = Entorno.ColorSistema;
 
     fechaEntrega = signal<string>(new Date().toISOString().split('T')[0]);
@@ -41,9 +42,23 @@ export class PedidoCrearModal implements OnInit {
     async cargarProductos() {
         this.cargando.set(true);
         try {
-            const res = await this.servicioProduccion.listarProductosProduccion();
-            if (res.success) {
-                const listado = (res.data || []).map((p: any) => {
+            const [resProduccion, resGlobal] = await Promise.all([
+                this.servicioProduccion.listarProductosProduccion(),
+                this.servicioProduccion.listarProductosProduccionGlobal()
+            ]);
+
+            if (resGlobal.success && resGlobal.data) {
+                const globalMapped = resGlobal.data.map((p: any) => ({
+                    ...p,
+                    Producto: p.Producto || p.NombreProducto, // Salvaguarda hibrida por si acaso
+                    Visible: true,
+                    CantidadSolicitada: 1
+                }));
+                this.catalogoProductos.set(globalMapped);
+            }
+
+            if (resProduccion.success) {
+                const listado = (resProduccion.data || []).map((p: any) => {
                     const diferencia = p.StockSugerido - p.StockActual;
                     return {
                         ...p,
@@ -73,9 +88,10 @@ export class PedidoCrearModal implements OnInit {
         const query = this.busquedaProducto().toLowerCase().trim();
         if (query.length < 2) return [];
 
-        return this.productos().filter(p =>
+        return this.catalogoProductos().filter(p =>
             p.Producto?.toLowerCase().includes(query) ||
-            p.NombreCategoriaProducto?.toLowerCase().includes(query)
+            p.NombreCategoriaProducto?.toLowerCase().includes(query) ||
+            p.CodigoProducto?.toString() === query
         ).slice(0, 10); // Limitamos a 10 sugerencias
     });
 
@@ -119,21 +135,45 @@ export class PedidoCrearModal implements OnInit {
         const query = this.busquedaProducto().toLowerCase().trim();
         if (!query) return;
 
-        const index = this.productos().findIndex(p => p.Producto?.toLowerCase().includes(query));
+        // 1. Obtener el producto del catalogo general
+        const productoCatalogo = this.catalogoProductos().find(p => 
+            p.Producto?.toLowerCase() === query || 
+            p.CodigoProducto?.toString() === query
+        );
+
+        if (!productoCatalogo) {
+            this.servicioAlerta.MostrarError('No se encontró el producto en el catálogo general');
+            return;
+        }
+
+        // VALIDACIÓN: Evitar duplicados si ya está visible en la lista
+        const yaEnPedido = this.productos().find(p => p.CodigoProducto === productoCatalogo.CodigoProducto && p.Visible);
+        if (yaEnPedido) {
+            this.servicioAlerta.MostrarAlerta('El producto ya está en la lista del pedido');
+            return;
+        }
+
+        // 2. Revisar si ya existe en la lista recomendada de producción (pero oculto)
+        const index = this.productos().findIndex(p => p.CodigoProducto === productoCatalogo.CodigoProducto);
+        
         if (index !== -1) {
+            // Si ya existe, lo marcamos visible y seteamos cantidad si es 0
             this.productos.update(list => {
                 const newList = [...list];
-                newList[index].Visible = true; // Lo hacemos visible
+                newList[index].Visible = true;
                 if (newList[index].CantidadSolicitada === 0) {
                     newList[index].CantidadSolicitada = 1;
                 }
                 return newList;
             });
-            this.busquedaProducto.set('');
             this.servicioAlerta.MostrarExito('Producto agregado al pedido');
         } else {
-            this.servicioAlerta.MostrarError('No se encontró el producto');
+            // Si NO existe, insertarlo nuevo al inicio
+            this.productos.update(list => [{ ...productoCatalogo }, ...list]);
+            this.servicioAlerta.MostrarExito('Nuevo producto del catálogo agregado al pedido');
         }
+        
+        this.busquedaProducto.set('');
     }
 
     eliminarFila(prod: any) {

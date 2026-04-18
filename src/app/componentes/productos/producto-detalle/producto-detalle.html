@@ -55,7 +55,7 @@
                             <select formControlName="TipoProducto" class="form-select">
                                 <option value="VENTANILLA">Ventanilla</option>
                                 <option value="COCINA">Cocina</option>
-                                <option value="INSUMO">Insumo</option>
+                                <!-- <option value="INSUMO">Insumo</option> -->
                             </select>
                         </div>
 
@@ -199,6 +199,7 @@
                                         <th>Ingrediente <i class="bi bi-arrow-down-up"></i></th>
                                         <th>Present. <i class="bi bi-arrow-down-up"></i></th>
                                         <th>Cant. <i class="bi bi-arrow-down-up"></i></th>
+                                        <th class="text-end">Costo</th>
                                         <th class="text-center">Acciones</th>
                                     </tr>
                                 </thead>
@@ -228,6 +229,9 @@
                                             {{ ing.get('Cantidad')?.value }}
                                             }
                                         </td>
+                                        <td class="text-end fw-bold text-success">
+                                            Q {{ ing.get('PrecioProporcional')?.value | number:'1.2-2' }}
+                                        </td>
                                         <td class="text-center">
                                             @if(indiceEdicionIngrediente() === getIndiceAbsoluto($index)) {
                                             <button type="button" class="btn-accion btn-editar" title="Confirmar"
@@ -253,7 +257,7 @@
                                     }
                                     @if(ingredientes.length === 0) {
                                     <tr>
-                                        <td colspan="4" class="text-center py-5 text-muted">
+                                        <td colspan="5" class="text-center py-5 text-muted">
                                             Cargue ingredientes activando la opción "Recetas"
                                         </td>
                                     </tr>
@@ -265,7 +269,8 @@
 
                     <div class="card-footer bg-white border-0 p-4 pt-0">
                         <div class="cost-summary mb-4 shadow-sm animate__animated animate__pulse animate__infinite">
-                            Costo total ingredientes: <span class="fw-bold">Q {{ calcularCostoTotal() | number:'1.2-2' }}</span>
+                            Costo total ingredientes: <span class="fw-bold">Q {{ calcularCostoTotal() | number:'1.2-2'
+                                }}</span>
                         </div>
 
                         <div class="d-flex justify-content-end align-items-center">

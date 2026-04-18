@@ -130,4 +130,9 @@ export class ProductoServicio {
         const res = await axiosInstance.put('/producto/abastecerinventarioproducto', payload);
         return res.data;
     }
+
+    async CalcularCostoIngrediente(payload: { CodigoProducto: number, NombreUnidadDestino: string, Cantidad: number }): Promise<RespuestaAPI<any>> {
+        const res = await axiosInstance.post('/producto/calcular-costo-ingrediente', payload);
+        return res.data;
+    }
 }

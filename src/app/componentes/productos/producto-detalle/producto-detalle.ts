@@ -178,10 +178,10 @@ export class ProductoDetalle implements OnInit {
                     NombreProducto: pData.NombreProducto || '',
                     CodigoCategoriaProducto: pData.CodigoCategoriaProducto,
                     TipoProducto: pData.TipoProducto?.toUpperCase() || 'VENTANILLA',
-                    Stock: inv.StockActual || 0,
-                    StockMinimo: inv.StockMinimo || 0,
-                    StockSugerido: inv.StockSugerido || 0,
-                    PrecioCompra: inv.PrecioCompra || 0
+                    Stock: inv.StockActual !== undefined ? inv.StockActual : (pData.Stock || 0),
+                    StockMinimo: inv.StockMinimo !== undefined ? inv.StockMinimo : (pData.StockMinimo || 0),
+                    StockSugerido: inv.StockSugerido !== undefined ? inv.StockSugerido : (pData.StockSugerido || 0),
+                    PrecioCompra: inv.PrecioCompra !== undefined ? inv.PrecioCompra : (pData.PrecioCompra || 0)
                 };
 
                 this.productoForm.patchValue({

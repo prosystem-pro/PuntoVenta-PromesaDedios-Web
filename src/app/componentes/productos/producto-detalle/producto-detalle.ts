@@ -7,6 +7,7 @@ import { Producto, CategoriaProducto, UnidadMedida, Ingrediente } from '../../..
 import { ProductoServicio } from '../../../Servicios/producto.service';
 import { AlertaServicio } from '../../../Servicios/alerta.service';
 import { Entorno } from '../../../Entorno/Entorno';
+import { ServicioAutenticacion } from '../../../Servicios/auth.service';
 import { CategoriaModal } from '../modales/categoria-modal/categoria-modal';
 import { PresentacionModal } from '../modales/presentacion-modal/presentacion-modal';
 
@@ -23,6 +24,7 @@ export class ProductoDetalle implements OnInit {
     private router = inject(Router);
     private servicioProducto = inject(ProductoServicio);
     private servicioAlerta = inject(AlertaServicio);
+    private servicioAuth = inject(ServicioAutenticacion);
     private destroyRef = inject(DestroyRef);
 
     colorSistema = Entorno.ColorSistema;
@@ -43,6 +45,9 @@ export class ProductoDetalle implements OnInit {
     imagenPreview = signal<string | null>(null);
     archivoImagen: File | null = null;
     triggerRecargaIngredientes = signal(0); // Para forzar actualizacion de computed
+
+    // Seguridad
+    esSuperAdmin = computed(() => this.servicioAuth.usuarioActual()?.SuperAdmin === 1);
 
     // Filtro de ingredientes (Buscador)
     textoFiltroIngrediente = signal('');

@@ -22,8 +22,10 @@
                 <div class="col-md-3">
                     <label class="form-label">Estado<span class="text-danger">*</span></label>
                     <select class="form-select" [(ngModel)]="nuevaUnidad.Estatus">
-                        <option [ngValue]="1">Activo</option>
-                        <option [ngValue]="0">Inactivo</option>
+                        <option [value]="1">Activo</option>
+                        @if (modoEdicion()) {
+                        <option [value]="0">Inactivo</option>
+                        }
                     </select>
                 </div>
                 <div class="col-md-3 d-flex align-items-end">
@@ -45,8 +47,13 @@
                     </thead>
                     <tbody>
                         @for (uni of unidadesPaginadas(); track uni.CodigoUnidadMedida) {
-                        <tr [class.text-danger]="uni.Estatus === 0">
-                            <td>{{ uni.NombreUnidad }} ({{ uni.Abreviatura }})</td>
+                        <tr>
+                            <td class="fw-medium" [class.text-danger]="uni.Estatus == 0">
+                                {{ uni.NombreUnidad }} ({{ uni.Abreviatura }})
+                                @if (uni.Estatus == 0) {
+                                <small class="ms-2 fw-bold text-uppercase">(Inactivo)</small>
+                                }
+                            </td>
                             <td>{{ uni.Estatus === 1 ? 'Activo' : 'Inactivo' }}</td>
                             <td class="text-center">
                                 <button class="btn-action" (click)="editar(uni)" title="Editar">

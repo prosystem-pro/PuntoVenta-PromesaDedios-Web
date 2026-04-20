@@ -43,10 +43,13 @@
                                     <option [ngValue]="uni.CodigoUnidadMedida">{{ uni.NombreUnidad }}</option>
                                     }
                                 </select>
-                                <button type="button" class="btn btn-add-mini" [style.background-color]="colorSistema"
+                                @if (esSuperAdmin()) {
+                                <button type="button" class="btn btn-add-mini d-none"
+                                    [style.background-color]="colorSistema"
                                     (click)="mostrarPresentacionModal.set(true)">
                                     <i class="bi bi-plus-lg"></i>
                                 </button>
+                                }
                             </div>
                         </div>
 

@@ -6,6 +6,7 @@ import { Producto, CategoriaProducto, UnidadMedida } from '../../../Modelos/prod
 import { ProductoServicio } from '../../../Servicios/producto.service';
 import { AlertaServicio } from '../../../Servicios/alerta.service';
 import { Entorno } from '../../../Entorno/Entorno';
+import { ServicioAutenticacion } from '../../../Servicios/auth.service';
 import { CategoriaModal } from '../../productos/modales/categoria-modal/categoria-modal';
 import { PresentacionModal } from '../../productos/modales/presentacion-modal/presentacion-modal';
 
@@ -21,6 +22,7 @@ export class MateriaPrimaDetalle implements OnInit {
     private router = inject(Router);
     private servicioProducto = inject(ProductoServicio);
     private servicioAlerta = inject(AlertaServicio);
+    private servicioAuth = inject(ServicioAutenticacion);
     private route = inject(ActivatedRoute);
 
     colorSistema = Entorno.ColorSistema;
@@ -49,6 +51,9 @@ export class MateriaPrimaDetalle implements OnInit {
     // Imagen
     imagenPreview = signal<string | null>(null);
     archivoImagen: File | null = null;
+
+    // Seguridad
+    esSuperAdmin = computed(() => this.servicioAuth.usuarioActual()?.SuperAdmin === 1);
 
     constructor() {
         this.form = this.fb.group({

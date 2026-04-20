@@ -19,8 +19,10 @@
                 <div class="col-md-4">
                     <label class="form-label">Estado<span class="text-danger">*</span></label>
                     <select class="form-select" [(ngModel)]="nuevaCategoria.Estatus">
-                        <option [ngValue]="1">Activo</option>
-                        <option [ngValue]="0">Inactivo</option>
+                        <option [value]="1">Activo</option>
+                        @if (modoEdicion()) {
+                        <option [value]="0">Inactivo</option>
+                        }
                     </select>
                 </div>
                 <div class="col-md-3">
@@ -42,7 +44,12 @@
                     <tbody class="border-0">
                         @for(cat of categoriasPaginadas(); track cat.CodigoCategoriaProducto) {
                         <tr>
-                            <td class="fw-medium">{{ cat.NombreCategoriaProducto }}</td>
+                            <td class="fw-medium" [class.text-danger]="cat.Estatus == 0">
+                                {{ cat.NombreCategoriaProducto }}
+                                @if (cat.Estatus == 0) {
+                                <small class="ms-2 fw-bold text-uppercase">(Inactivo)</small>
+                                }
+                            </td>
                             <td class="text-end">
                                 <button class="btn-action" (click)="editar(cat)" title="Editar">
                                     <i class="bi bi-pencil-square"></i>

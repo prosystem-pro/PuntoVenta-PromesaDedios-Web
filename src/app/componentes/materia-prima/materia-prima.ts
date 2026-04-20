@@ -6,6 +6,7 @@ import { Producto, CategoriaProducto, UnidadMedida } from '../../Modelos/product
 import { Entorno } from '../../Entorno/Entorno';
 import { ProductoServicio } from '../../Servicios/producto.service';
 import { AlertaServicio } from '../../Servicios/alerta.service';
+import { manejarErrorApi } from '../../Utils/error-parser';
 import * as XLSX from 'xlsx';
 
 type ViewMode = 'normal' | 'ajustar' | 'abastecer';
@@ -194,10 +195,10 @@ export class MateriaPrima implements OnInit {
                 await this.cargarInsumos();
                 this.regresarNormal();
             } else {
-                this.servicioAlerta.MostrarError(res);
+                this.servicioAlerta.MostrarError(manejarErrorApi(res));
             }
         } catch (error) {
-            this.servicioAlerta.MostrarError({ error: { message: 'Error al actualizar stock' } });
+            this.servicioAlerta.MostrarError(manejarErrorApi(error));
         } finally {
             this.cargando.set(false);
         }
@@ -226,10 +227,10 @@ export class MateriaPrima implements OnInit {
                 await this.cargarInsumos();
                 this.regresarNormal();
             } else {
-                this.servicioAlerta.MostrarError(res);
+                this.servicioAlerta.MostrarError(manejarErrorApi(res));
             }
         } catch (error) {
-            this.servicioAlerta.MostrarError({ error: { message: 'Error al abastecer inventario' } });
+            this.servicioAlerta.MostrarError(manejarErrorApi(error));
         } finally {
             this.cargando.set(false);
         }
@@ -257,10 +258,10 @@ export class MateriaPrima implements OnInit {
                     this.servicioAlerta.MostrarExito(res.message);
                     this.cargarInsumos();
                 } else {
-                    this.servicioAlerta.MostrarError(res);
+                    this.servicioAlerta.MostrarError(manejarErrorApi(res));
                 }
             } catch (error) {
-                this.servicioAlerta.MostrarError({ error: { message: 'Error al eliminar' } });
+                this.servicioAlerta.MostrarError(manejarErrorApi(error));
             }
         }
     }

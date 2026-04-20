@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { CategoriaProducto } from '../../../../Modelos/producto.modelo';
 import { ProductoServicio } from '../../../../Servicios/producto.service';
 import { AlertaServicio } from '../../../../Servicios/alerta.service';
+import { manejarErrorApi } from '../../../../Utils/error-parser';
 
 @Component({
     selector: 'app-categoria-modal',
@@ -54,11 +55,15 @@ export class CategoriaModal implements OnInit {
     }
 
     async cargarCategorias() {
-        const res = await this.servicioProducto.ListarCategorias();
-        if (res.success) {
-            const listado = Array.isArray(res.data) ? res.data : (res.data?.Listado || []);
-            this.categorias.set(listado);
-            this.paginaActual.set(1);
+        try {
+            const res = await this.servicioProducto.ListarCategorias();
+            if (res.success) {
+                const listado = Array.isArray(res.data) ? res.data : (res.data?.Listado || []);
+                this.categorias.set(listado);
+                this.paginaActual.set(1);
+            }
+        } catch (error) {
+            this.servicioAlerta.MostrarError(this.manejarErrorApi(error));
         }
     }
 
@@ -72,6 +77,10 @@ export class CategoriaModal implements OnInit {
                     CodigoCategoriaProducto: this.modoEdicion()!
                 });
             } else {
+                if (this.nuevaCategoria.Estatus !== 1) {
+                    this.servicioAlerta.MostrarAlerta('Las categorías nuevas solo pueden crearse en estado Activo.', 'Atención');
+                    return;
+                }
                 res = await this.servicioProducto.CrearCategoria(this.nuevaCategoria);
             }
 
@@ -81,10 +90,10 @@ export class CategoriaModal implements OnInit {
                 this.cargarCategorias();
                 this.alGuardar.emit();
             } else {
-                this.servicioAlerta.MostrarError(res);
+                this.servicioAlerta.MostrarError(this.manejarErrorApi(res));
             }
         } catch (error) {
-            this.servicioAlerta.MostrarError({ message: 'Error al procesar categoría' });
+            this.servicioAlerta.MostrarError(this.manejarErrorApi(error));
         }
     }
 
@@ -111,11 +120,15 @@ export class CategoriaModal implements OnInit {
                 this.cargarCategorias();
                 this.alGuardar.emit();
             } else {
-                this.servicioAlerta.MostrarError(res);
+                this.servicioAlerta.MostrarError(this.manejarErrorApi(res));
             }
         } catch (error) {
-            this.servicioAlerta.MostrarError({ message: 'Error al eliminar categoría' });
+            this.servicioAlerta.MostrarError(this.manejarErrorApi(error));
         }
+    }
+
+    private manejarErrorApi(error: any): string {
+        return manejarErrorApi(error);
     }
 
     limpiarFormulario() {

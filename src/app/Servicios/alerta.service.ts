@@ -41,13 +41,8 @@ export class AlertaServicio {
     MostrarError(error: any, titulo: string = 'Error'): void {
         let mensaje = 'Ocurrio un error inesperado.';
 
-        // Si es el objeto de respuesta del API, buscamos el error de Sequelize
         if (error && typeof error === 'object') {
-            if (error.error?.type === 'SequelizeUniqueConstraintError') {
-                mensaje = 'Ya existe un registro con estos datos (nombre, NIT o correo duplicado).';
-            } else {
-                mensaje = error.message || error.error?.message || mensaje;
-            }
+            mensaje = error.message || error.error?.message || mensaje;
         } else if (typeof error === 'string') {
             mensaje = error;
         }

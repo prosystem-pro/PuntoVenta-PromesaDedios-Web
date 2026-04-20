@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { UnidadMedida } from '../../../../Modelos/producto.modelo';
 import { ProductoServicio } from '../../../../Servicios/producto.service';
 import { AlertaServicio } from '../../../../Servicios/alerta.service';
+import { manejarErrorApi } from '../../../../Utils/error-parser';
 
 @Component({
     selector: 'app-presentacion-modal',
@@ -56,11 +57,15 @@ export class PresentacionModal implements OnInit, OnChanges {
     }
 
     async cargarUnidades() {
-        const res = await this.servicioProducto.ListarUnidades();
-        if (res.success) {
-            const listado = Array.isArray(res.data) ? res.data : (res.data?.Listado || []);
-            this.unidades.set(listado);
-            this.paginaActual.set(1);
+        try {
+            const res = await this.servicioProducto.ListarUnidades();
+            if (res.success) {
+                const listado = Array.isArray(res.data) ? res.data : (res.data?.Listado || []);
+                this.unidades.set(listado);
+                this.paginaActual.set(1);
+            }
+        } catch (error) {
+            this.servicioAlerta.MostrarError(manejarErrorApi(error));
         }
     }
 
@@ -74,6 +79,10 @@ export class PresentacionModal implements OnInit, OnChanges {
                     CodigoUnidadMedida: this.modoEdicion()!
                 });
             } else {
+                if (this.nuevaUnidad.Estatus !== 1) {
+                    this.servicioAlerta.MostrarAlerta('Las nuevas unidades solo pueden crearse en estado Activo.', 'Atención');
+                    return;
+                }
                 res = await this.servicioProducto.CrearUnidad(this.nuevaUnidad);
             }
 
@@ -83,10 +92,10 @@ export class PresentacionModal implements OnInit, OnChanges {
                 this.cargarUnidades();
                 this.alGuardar.emit();
             } else {
-                this.servicioAlerta.MostrarError(res);
+                this.servicioAlerta.MostrarError(manejarErrorApi(res));
             }
         } catch (error) {
-            this.servicioAlerta.MostrarError({ message: 'Error al procesar presentación' });
+            this.servicioAlerta.MostrarError(manejarErrorApi(error));
         }
     }
 
@@ -116,10 +125,10 @@ export class PresentacionModal implements OnInit, OnChanges {
                 this.cargarUnidades();
                 this.alGuardar.emit();
             } else {
-                this.servicioAlerta.MostrarError(res);
+                this.servicioAlerta.MostrarError(manejarErrorApi(res));
             }
         } catch (error) {
-            this.servicioAlerta.MostrarError({ message: 'Error al eliminar presentación' });
+            this.servicioAlerta.MostrarError(manejarErrorApi(error));
         }
     }
 

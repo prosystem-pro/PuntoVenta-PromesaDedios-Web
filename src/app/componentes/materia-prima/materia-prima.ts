@@ -128,7 +128,8 @@ export class MateriaPrima implements OnInit {
                 StockSugerido: p.StockSugerido !== undefined ? p.StockSugerido : (p.Inventario?.StockSugerido),
                 PrecioCompra: p.PrecioCompra !== undefined ? p.PrecioCompra : (p.Inventario?.PrecioCompra),
                 TipoProducto: 'INSUMO',
-                Estatus: p.Estatus
+                Estatus: p.Estatus,
+                CantidadConsumida: p.CantidadConsumida || p.Utilizada || p.Utilizado || 0
             }));
 
             this.insumos.set(insumosMapeados);
@@ -182,13 +183,13 @@ export class MateriaPrima implements OnInit {
         this.cargando.set(true);
         try {
             const payload = {
-                Productos: Array.from(this.cambiosAjuste.entries()).map(([CodigoProducto, StockActual]) => ({
+                Insumos: Array.from(this.cambiosAjuste.entries()).map(([CodigoProducto, StockActual]) => ({
                     CodigoProducto,
-                    StockActual
+                    StockActual: Number(StockActual)
                 }))
             };
 
-            // Usar endpoint de actualizar stock
+            // Usar endpoint de actualizar stock (Ajuste manual)
             const res = await this.servicioProducto.ActualizarStockInsumo(payload);
             if (res.success) {
                 this.servicioAlerta.MostrarExito('Stock ajustado correctamente');
@@ -205,23 +206,31 @@ export class MateriaPrima implements OnInit {
     }
 
     private async guardarAbastecer() {
-        if (this.cambiosAbastecer.size === 0) {
-            this.regresarNormal();
-            return;
-        }
-
         this.cargando.set(true);
         try {
-            const payload = {
-                Productos: Array.from(this.cambiosAbastecer.entries()).map(([CodigoProducto, CantidadProducida]) => ({
-                    CodigoProducto,
-                    CantidadProducida
-                }))
-            };
+            // Recolectar todos los insumos que tengan un consumo > 0 (considerando cambios actuales y valores previos)
+            const insumosAEnviar = this.insumos()
+                .filter(i => {
+                    const valorEditado = this.cambiosAbastecer.get(i.CodigoProducto!);
+                    const valor = valorEditado !== undefined ? Number(valorEditado) : (i.CantidadConsumida || 0);
+                    return valor > 0 && i.CodigoProducto !== undefined;
+                })
+                .map(i => {
+                    return {
+                        CodigoProducto: i.CodigoProducto as number
+                    };
+                });
 
-            // Usar endpoint de abastecer
-            // @ts-ignore
-            const res = await this.servicioProducto.AbastecerInventario(payload);
+            if (insumosAEnviar.length === 0) {
+                this.servicioAlerta.MostrarAlerta('No hay productos con consumo mayor a cero para procesar.');
+                this.cargando.set(false);
+                return;
+            }
+
+            const payload = { Insumos: insumosAEnviar };
+
+            // Usar endpoint de abastecer (Consumir insumos producción según backend)
+            const res = await this.servicioProducto.ConsumirInsumosProduccion(payload);
             if (res.success) {
                 this.servicioAlerta.MostrarExito('Materia prima abastecida correctamente');
                 await this.cargarInsumos();

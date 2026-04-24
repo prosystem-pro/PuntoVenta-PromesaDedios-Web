@@ -60,7 +60,6 @@
                         <th class="py-3 text-muted small">Unidad <i class="bi bi-arrow-down-up ms-1"></i></th>
 
                         <th class="py-3 text-muted small">Stock <i class="bi bi-arrow-down-up ms-1"></i></th>
-
                         @if (modo() === 'abastecer') {
                         <th class="py-3 text-muted small text-center bg-light">Abastecer</th>
                         }
@@ -94,11 +93,10 @@
                             <span class="fw-bold" [class.text-danger]="p.Stock === 0">{{ p.Stock || '-' }}</span>
                             }
                         </td>
-
                         @if (modo() === 'abastecer') {
                         <td class="bg-light">
                             <input type="number" class="form-control form-control-sm text-center fw-bold border-primary"
-                                style="width: 80px; margin: 0 auto;" placeholder="+"
+                                style="width: 80px; margin: 0 auto;" [value]="p.CantidadConsumida"
                                 (input)="onCambioAbastecer(p.CodigoProducto!, $any($event.target).value)">
                         </td>
                         }

@@ -45,6 +45,7 @@ export interface Producto {
     // Campos adicionales para visualización en tablas
     NombreCategoria?: string;
     NombreUnidad?: string;
+    CantidadConsumida?: number;
 }
 
 export interface Inventario {

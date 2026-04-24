@@ -16,8 +16,8 @@ export function manejarErrorApi(error: any): string {
         } else if (apiError.type === 'SequelizeUniqueConstraintError') {
             mensaje = 'Ya existe un registro con estos datos únicos (nombre duplicado, NIT, etc.).';
         } else {
-            // Intentar usar el mensaje devuelto por el API
-            mensaje = responseData.message || apiError.message || mensaje;
+            // Priorizar el mensaje detallado del error interno sobre el mensaje general del API
+            mensaje = apiError.message || responseData.message || mensaje;
         }
     } else if (typeof error === 'string') {
         mensaje = error;

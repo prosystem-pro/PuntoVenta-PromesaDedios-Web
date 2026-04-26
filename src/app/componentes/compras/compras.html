@@ -16,17 +16,29 @@
 
     <!-- Barra de busqueda y filtros -->
     <div class="row mb-4 align-items-center">
-        <div class="col-md-6 d-flex gap-3">
+        <div class="col-md-6 d-flex gap-3 align-items-center">
             <div class="d-flex align-items-center gap-2">
                 <label class="small fw-bold text-muted">Inicio</label>
-                <input type="date" class="form-control form-control-sm" [ngModel]="fechaInicio()">
+                <input type="date" class="form-control form-control-sm" [ngModel]="fechaInicioInput()"
+                    (ngModelChange)="fechaInicioInput.set($event)">
             </div>
             <div class="d-flex align-items-center gap-2">
                 <label class="small fw-bold text-muted">Final</label>
-                <input type="date" class="form-control form-control-sm" [ngModel]="fechaFinal()">
+                <input type="date" class="form-control form-control-sm" [ngModel]="fechaFinalInput()"
+                    (ngModelChange)="fechaFinalInput.set($event)">
             </div>
-            <button class="btn btn-sm px-3" [style.background-color]="colorSistema"
-                (click)="cargarCompras()">Buscar</button>
+            <div class="d-flex gap-1">
+                @if (estaFiltrado() && !haCambiadoFiltro()) {
+                <button class="btn btn-sm px-3 btn-secondary shadow-sm" (click)="limpiarFiltros()">
+                    Cancelar
+                </button>
+                } @else {
+                <button class="btn btn-sm px-3 text-white shadow-sm" [style.background-color]="colorSistema"
+                    (click)="aplicarFiltros()">
+                    Buscar
+                </button>
+                }
+            </div>
         </div>
         <div class="col-md-6 d-flex justify-content-end">
             <div class="search-box">
@@ -50,28 +62,45 @@
             <table class="compras-table">
                 <thead>
                     <tr>
-                        <th>No. <i class="bi bi-arrow-down-up ms-1 small text-muted"></i></th>
-                        <th>Proveedor <i class="bi bi-arrow-down-up ms-1 small text-muted"></i></th>
-                        <th class="text-center">Pagos</th>
-                        <th class="text-center">Pendiente</th>
-                        <th class="text-center">Vencimiento</th>
-                        <th class="text-center">Estatus</th>
+                        <th (click)="ordenarPor('No')" style="cursor: pointer;">
+                            No. 
+                            <i [class]="columnaActiva() === 'No' ? (ordenAscendente() ? 'bi bi-arrow-up' : 'bi bi-arrow-down') : 'bi bi-arrow-down-up'" class="ms-1 small text-muted"></i>
+                        </th>
+                        <th (click)="ordenarPor('Nombre')" style="cursor: pointer;">
+                            Proveedor 
+                            <i [class]="columnaActiva() === 'Nombre' ? (ordenAscendente() ? 'bi bi-arrow-up' : 'bi bi-arrow-down') : 'bi bi-arrow-down-up'" class="ms-1 small text-muted"></i>
+                        </th>
+                        <th class="text-center" (click)="ordenarPor('Pagos')" style="cursor: pointer;">
+                            Pagos 
+                            <i [class]="columnaActiva() === 'Pagos' ? (ordenAscendente() ? 'bi bi-arrow-up' : 'bi bi-arrow-down') : 'bi bi-arrow-down-up'" class="ms-1 small text-muted"></i>
+                        </th>
+                        <th class="text-center" (click)="ordenarPor('Pendiente')" style="cursor: pointer;">
+                            Pendiente 
+                            <i [class]="columnaActiva() === 'Pendiente' ? (ordenAscendente() ? 'bi bi-arrow-up' : 'bi bi-arrow-down') : 'bi bi-arrow-down-up'" class="ms-1 small text-muted"></i>
+                        </th>
+                        <th class="text-center" (click)="ordenarPor('Vencimiento')" style="cursor: pointer;">
+                            Vencimiento 
+                            <i [class]="columnaActiva() === 'Vencimiento' ? (ordenAscendente() ? 'bi bi-arrow-up' : 'bi bi-arrow-down') : 'bi bi-arrow-down-up'" class="ms-1 small text-muted"></i>
+                        </th>
+                        <th class="text-center" (click)="ordenarPor('Estatus')" style="cursor: pointer;">
+                            Estatus 
+                            <i [class]="columnaActiva() === 'Estatus' ? (ordenAscendente() ? 'bi bi-arrow-up' : 'bi bi-arrow-down') : 'bi bi-arrow-down-up'" class="ms-1 small text-muted"></i>
+                        </th>
                         <th class="text-center">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @for (c of comprasPaginadas(); track c.CodigoCompra; let i = $index) {
+                    @for (c of comprasPaginadas(); track c.No; let i = $index) {
                     <tr>
-                        <td class="fw-bold text-muted small">{{ c.CodigoCompra < 10 ? '0' +c.CodigoCompra :
-                                c.CodigoCompra }}</td>
-                        <td>{{ c.NombreProveedor }}</td>
+                        <td class="fw-bold text-muted small">{{ c.No < 10 ? '0' +c.No : c.No }}</td>
+                        <td>{{ c.Nombre }}</td>
                         <td class="text-center">{{ c.Pagos }}</td>
                         <td class="text-center fw-bold">Q {{ c.Pendiente | number:'1.2-2' }}</td>
                         <td class="text-center" [class.text-danger]="c.Pendiente > 0">
-                            {{ c.Vencimiento }}
+                            {{ c.Vencimiento || '' }}
                         </td>
-                        <td class="text-center fw-bold" [class.text-success]="c.Estatus === 'Pagado'"
-                            [class.text-danger]="c.Estatus === 'Pendiente'">
+                        <td class="text-center fw-bold" [class.text-success]="c.Estatus === 'PAGADO'"
+                            [class.text-danger]="c.Estatus === 'PENDIENTE'">
                             {{ c.Estatus }}
                         </td>
                         <td class="acciones-cell">
@@ -79,10 +108,13 @@
                                 (click)="abrirPagos(c.CodigoCompra)">
                                 <i class="bi bi-cash-stack"></i>
                             </button>
-                            <button class="btn-accion text-danger" title="Eliminar"
-                                (click)="eliminarCompra(c.CodigoCompra)">
-                                <i class="bi bi-trash-fill"></i>
-                            </button>
+                        </td>
+                    </tr>
+                    } @empty {
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            <i class="bi bi-search d-block fs-3 mb-2 opacity-50"></i>
+                            No se encontraron registros de compras.
                         </td>
                     </tr>
                     }

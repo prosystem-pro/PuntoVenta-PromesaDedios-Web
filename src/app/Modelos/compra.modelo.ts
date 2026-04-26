@@ -1,33 +1,29 @@
+import { RespuestaAPI } from './producto.modelo';
+
 export interface Compra {
+    No: number;
     CodigoCompra: number;
-    NombreProveedor: string;
-    FechaCompra: string;
+    Nombre: string;
     Pagos: number;
     Pendiente: number;
     Vencimiento: string;
-    Estatus: string; // 'Pagado' | 'Pendiente'
-}
-
-export interface DetalleCompra {
-    No: string;
-    Categoria: string;
-    Producto: string;
-    Presentacion: string;
-    Precio: number;
-    Cantidad: number;
+    Estatus: string;
 }
 
 export interface PagoRealizado {
     FechaPago: string;
-    MedioPago: string;
-    ValorPagado: number;
+    MetodoPago: string;
+    Monto: number;
 }
 
 export interface CompraDetalleCompleto {
-    Fecha: string;
-    NoDocumento: string;
-    Proveedor: string;
-    Telefono: string;
+    CodigoCompra: number;
+    NumeroCompra: number;
+    FechaVencimiento: string;
     SaldoPendiente: number;
+    Proveedor: {
+        NombreProveedor: string;
+        Telefono: string;
+    };
     Pagos: PagoRealizado[];
 }

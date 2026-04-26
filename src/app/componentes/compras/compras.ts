@@ -27,15 +27,29 @@ export class Compras implements OnInit {
     paginaActual = signal(1);
     itemsPorPagina = signal(7);
 
-    // Filtros
-    fechaInicio = signal('2025-11-25');
-    fechaFinal = signal('2025-11-25');
+    // Filtros inputs
+    fechaInicioInput = signal('');
+    fechaFinalInput = signal('');
     busqueda = signal('');
+
+    // Filtros aplicados (cuando el usuario da click en Buscar)
+    filtrosAplicados = signal({ inicio: '', fin: '' });
+
+    // Estado del botón dinámico
+    estaFiltrado = computed(() => this.filtrosAplicados().inicio !== '' || this.filtrosAplicados().fin !== '');
+    haCambiadoFiltro = computed(() => {
+        const { inicio, fin } = this.filtrosAplicados();
+        return this.fechaInicioInput() !== inicio || this.fechaFinalInput() !== fin;
+    });
 
     // Modales
     mostrarModalCompra = signal(false);
     mostrarModalPago = signal(false);
     compraSeleccionadaId = signal<number | null>(null);
+
+    // Ordenamiento
+    columnaActiva = signal<string | null>(null);
+    ordenAscendente = signal(true);
 
     constructor() { }
 
@@ -55,13 +69,80 @@ export class Compras implements OnInit {
         }
     }
 
-    // Listado filtrado globalmente
+    aplicarFiltros() {
+        this.filtrosAplicados.set({
+            inicio: this.fechaInicioInput(),
+            fin: this.fechaFinalInput()
+        });
+        this.paginaActual.set(1);
+    }
+
+    limpiarFiltros() {
+        this.fechaInicioInput.set('');
+        this.fechaFinalInput.set('');
+        this.filtrosAplicados.set({ inicio: '', fin: '' });
+        this.paginaActual.set(1);
+    }
+
+    ordenarPor(columna: string) {
+        if (this.columnaActiva() === columna) {
+            this.ordenAscendente.update(v => !v);
+        } else {
+            this.columnaActiva.set(columna);
+            this.ordenAscendente.set(true);
+        }
+    }
+
+    // Listado filtrado y ordenado localmente
     listadoFiltrado = computed(() => {
         const text = this.busqueda().toLowerCase();
-        return this.compras().filter(c =>
-            c.NombreProveedor.toLowerCase().includes(text) ||
-            c.CodigoCompra.toString().includes(text)
-        );
+        const { inicio, fin } = this.filtrosAplicados();
+        const col = this.columnaActiva();
+        const asc = this.ordenAscendente();
+
+        let filtrados = this.compras().filter(c => {
+            // 1. Filtro por texto extendido (Nombre, No, Pagos, Pendiente, Estatus)
+            const coincideTexto =
+                (c.Nombre?.toLowerCase() || '').includes(text) ||
+                c.No.toString().includes(text) ||
+                c.Pagos.toString().includes(text) ||
+                c.Pendiente.toString().includes(text) ||
+                (c.Estatus?.toLowerCase() || '').includes(text);
+
+            if (!coincideTexto) return false;
+
+            // 2. Filtro por rango de fechas aplicado
+            if (inicio || fin) {
+                const fechaV = c.Vencimiento;
+                if (!fechaV) return false;
+
+                if (inicio && fechaV < inicio) return false;
+                if (fin && fechaV > fin) return false;
+            }
+
+            return true;
+        });
+
+        // 3. Ordenamiento
+        if (col) {
+            filtrados.sort((a: any, b: any) => {
+                let valA = a[col];
+                let valB = b[col];
+
+                // Manejo de nulos (null/undefined siempre al final)
+                if (valA === null || valA === undefined) return 1;
+                if (valB === null || valB === undefined) return -1;
+
+                if (typeof valA === 'string') valA = valA.toLowerCase();
+                if (typeof valB === 'string') valB = valB.toLowerCase();
+
+                if (valA < valB) return asc ? -1 : 1;
+                if (valA > valB) return asc ? 1 : -1;
+                return 0;
+            });
+        }
+
+        return filtrados;
     });
 
     // Listado paginado
@@ -116,15 +197,10 @@ export class Compras implements OnInit {
         await this.cargarCompras();
     }
 
-    eliminarCompra(id: number) {
-        console.log('Eliminar compra:', id);
-    }
-
     exportarExcel() {
         const dataParaExportar = this.listadoFiltrado().map(c => ({
-            'No. Compra': c.CodigoCompra,
-            'Proveedor': c.NombreProveedor,
-            'Fecha': c.FechaCompra,
+            'No. Compra': c.No,
+            'Proveedor': c.Nombre,
             'Pagos Realizados': c.Pagos,
             'Saldo Pendiente': c.Pendiente,
             'Vencimiento': c.Vencimiento,

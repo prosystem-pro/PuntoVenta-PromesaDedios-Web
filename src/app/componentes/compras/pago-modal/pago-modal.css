@@ -10,9 +10,22 @@
 }
 
 .modal-content {
+    display: flex;
+    flex-direction: column;
     width: 100%;
-    max-height: 95vh;
+    max-height: 90vh;
+    background: white;
+}
+
+.modal-body {
     overflow-y: auto;
+    flex: 1;
+}
+
+.modal-footer {
+    border-top: 1px solid #f0f0f0;
+    padding: 15px 24px;
+    background: white;
 }
 
 .btn-close-custom {
@@ -74,4 +87,23 @@
 .modal-content::-webkit-scrollbar-thumb {
     background: #dee2e6;
     border-radius: 10px;
+}
+
+.btn-delete {
+    background: transparent;
+    border: none;
+    color: #dc3545;
+    padding: 2px 8px;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.btn-delete:hover {
+    background: rgba(220, 53, 69, 0.1);
+    transform: scale(1.1);
+}
+
+.btn-delete:disabled {
+    color: #ced4da;
+    cursor: not-allowed;
 }

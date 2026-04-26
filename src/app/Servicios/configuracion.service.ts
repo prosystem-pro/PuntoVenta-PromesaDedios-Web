@@ -106,6 +106,16 @@ export class ServicioConfiguracion {
         }
     }
 
+    // --- CAJA ---
+    async obtenerCajaActual(): Promise<RespuestaAPI<any>> {
+        try {
+            const respuesta = await api.get<RespuestaAPI<any>>('caja/actual');
+            return respuesta.data;
+        } catch (error: any) {
+            return this.manejarError(error);
+        }
+    }
+
     private manejarError(error: any): any {
         if (error.response && error.response.data) {
             return error.response.data;

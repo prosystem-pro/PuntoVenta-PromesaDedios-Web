@@ -8,7 +8,10 @@ import { Proveedor } from '../../../Modelos/proveedor.modelo';
     standalone: true,
     imports: [CommonModule, FormsModule, ReactiveFormsModule],
     templateUrl: './modal-proveedor.html',
-    styleUrl: './modal-proveedor.css'
+    styleUrl: './modal-proveedor.css',
+    host: {
+        'style': 'display: block; position: relative; z-index: 5000;'
+    }
 })
 export class ModalProveedor implements OnChanges {
     @Input() visible = false;

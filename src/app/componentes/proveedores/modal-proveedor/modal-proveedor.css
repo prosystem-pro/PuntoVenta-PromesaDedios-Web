@@ -8,7 +8,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1000;
+    z-index: 5000 !important;
     backdrop-filter: blur(2px);
 }
 
@@ -20,6 +20,7 @@
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
     overflow: hidden;
     animation: modal-appear 0.3s ease-out;
+    z-index: 5001 !important;
 }
 
 @keyframes modal-appear {

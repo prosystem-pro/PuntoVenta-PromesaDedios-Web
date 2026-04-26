@@ -6,6 +6,7 @@ import { CompraServicio } from '../../../Servicios/compra.service';
 import { ProductoServicio } from '../../../Servicios/producto.service';
 import { AlertaServicio } from '../../../Servicios/alerta.service';
 import { ServicioProveedor } from '../../../Servicios/proveedor.service';
+import { ServicioConfiguracion } from '../../../Servicios/configuracion.service';
 import { ModalProveedor } from '../../proveedores/modal-proveedor/modal-proveedor';
 
 @Component({
@@ -21,6 +22,7 @@ export class CompraModal implements OnInit {
     private servicioProducto = inject(ProductoServicio);
     private servicioAlerta = inject(AlertaServicio);
     private servicioProveedor = inject(ServicioProveedor);
+    private servicioConfig = inject(ServicioConfiguracion);
 
     @Input() visible = false;
     @Output() cerrar = new EventEmitter<void>();
@@ -30,6 +32,7 @@ export class CompraModal implements OnInit {
     form: FormGroup;
     itemForm: FormGroup; // Formulario para la fila superior de "edición"
     cargando = signal(false);
+    nuevoCodigoAperturaCaja = 1;
 
     // Listados reales
     listadoProveedores = signal<any[]>([]);
@@ -62,19 +65,27 @@ export class CompraModal implements OnInit {
 
     // Filtros calculados para búsqueda rápida
     proveedoresFiltrados = computed(() => {
-        const busqueda = this.textoBusquedaProveedor().toLowerCase();
-        return this.listadoProveedores().filter(p =>
-            (p.NombreProveedor?.toLowerCase() || '').includes(busqueda) ||
-            (p.NIT?.toLowerCase() || '').includes(busqueda)
-        );
+        const busqueda = this.textoBusquedaProveedor().trim().toLowerCase();
+        if (!busqueda) return [];
+        return this.listadoProveedores().filter(p => {
+            const nombre = (p.NombreProveedor || p.Nombre || '').toLowerCase();
+            const nit = (p.NIT || '').toLowerCase();
+            return nombre.includes(busqueda) || nit.includes(busqueda);
+        });
     });
 
     productosFiltrados = computed(() => {
-        const busqueda = this.textoBusquedaProducto().toLowerCase();
-        return this.listadoProductos().filter(p =>
-            (p.NombreProducto?.toLowerCase() || p.Producto?.toLowerCase() || '').includes(busqueda) ||
-            (p.NombreCategoriaProducto?.toLowerCase() || '').includes(busqueda)
-        );
+        const busqueda = this.textoBusquedaProducto().trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        if (!busqueda) return [];
+
+        const listado = this.listadoProductos();
+        const filtrado = listado.filter(p => {
+            const nombre = (p.NombreProducto || p.Producto || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            const cat = (p.NombreCategoriaProducto || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            return nombre.includes(busqueda) || cat.includes(busqueda);
+        });
+
+        return filtrado;
     });
 
     constructor() {
@@ -83,7 +94,8 @@ export class CompraModal implements OnInit {
             Items: this.fb.array([], Validators.required),
             MedioPago: ['Efectivo'],
             MetodoPago: ['Contado'],
-            FechaVencimiento: [new Date().toISOString().split('T')[0]]
+            FechaVencimiento: [new Date().toISOString().split('T')[0]],
+            Referencia: ['']
         });
 
         // Formulario para capturar el item antes de añadirlo a la lista
@@ -91,10 +103,10 @@ export class CompraModal implements OnInit {
             CodigoProducto: ['', Validators.required],
             NombreProducto: [{ value: '', disabled: true }],
             NombreCategoria: [{ value: '', disabled: true }],
-            NombrePresentacion: [{ value: '', disabled: true }],
+            NombrePresentacion: [''], // Se guardará el nombre de la unidad elegida
             Precio: [0, [Validators.required, Validators.min(0.01)]],
             Cantidad: [1, [Validators.required, Validators.min(0.01)]],
-            CodigoUnidadMedida: [''],
+            CodigoUnidadMedida: ['', Validators.required],
             CodigoCategoriaProducto: ['']
         });
     }
@@ -104,23 +116,44 @@ export class CompraModal implements OnInit {
     }
 
     async cargarCatalogos() {
+        this.cargando.set(true);
         try {
-            const [resProv, resCat, resUni, resProd] = await Promise.all([
-                this.servicioProveedor.obtenerProveedores(),
-                this.servicioProducto.ListarCategorias(),
-                this.servicioProducto.ListarUnidades(),
-                this.servicioProducto.ListarInsumos()
-            ]);
+            // Cargar Proveedores
+            this.servicioCompra.listarProveedores().then(res => {
+                if (res.success) {
+                    const data = res.data;
+                    const listado = Array.isArray(data) ? data : (data?.Listado || (data ? [data] : []));
+                    this.listadoProveedores.set(listado);
+                }
+            }).catch(e => console.error('Error cargando proveedores:', e));
 
-            if (resProv.success) {
-                const data = resProv.data;
-                this.listadoProveedores.set(Array.isArray(data) ? data : (data ? [data] : []));
-            }
-            if (resCat.success) this.listadoCategorias.set(resCat.data || []);
-            if (resUni.success) this.listadoUnidades.set(resUni.data || []);
-            if (resProd.success) this.listadoProductos.set(resProd.data || []);
-        } catch (error) {
-            console.error('Error cargando catálogos de compra:', error);
+            // Cargar Productos para Compra
+            this.servicioCompra.listarProductosCompra().then(res => {
+                if (res.success) {
+                    const data = res.data;
+                    const listado = Array.isArray(data) ? data : (data?.Listado || (data ? [data] : []));
+                    this.listadoProductos.set(listado);
+                }
+            }).catch(e => console.error('Error cargando productos:', e));
+
+            // Cargar Categorías y Unidades
+            this.servicioProducto.ListarCategorias().then(res => {
+                if (res.success) this.listadoCategorias.set(res.data || []);
+            }).catch(e => console.error('Error cargando categorías:', e));
+
+            this.servicioProducto.ListarUnidades().then(res => {
+                if (res.success) this.listadoUnidades.set(res.data || []);
+            }).catch(e => console.error('Error cargando unidades:', e));
+
+            // Cargar Caja Actual
+            this.servicioConfig.obtenerCajaActual().then(res => {
+                if (res.success && res.data) {
+                    this.nuevoCodigoAperturaCaja = res.data.CodigoAperturaCaja || 1;
+                }
+            }).catch(e => console.error('Error cargando caja actual:', e));
+
+        } finally {
+            this.cargando.set(false);
         }
     }
 
@@ -130,15 +163,17 @@ export class CompraModal implements OnInit {
 
     // Al seleccionar un producto en la búsqueda superior
     seleccionarProducto(p: any) {
-        const nombreProd = p.NombreProducto || p.Producto || 'N/A';
+        const nombreProd = p.NombreProducto || 'N/A';
         this.itemForm.patchValue({
             CodigoProducto: p.CodigoProducto,
             NombreProducto: nombreProd,
             NombreCategoria: p.NombreCategoriaProducto || 'N/A',
-            NombrePresentacion: p.NombreUnidad || 'Unidad',
-            Precio: p.PrecioVenta || 0,
-            CodigoUnidadMedida: p.CodigoUnidadMedida,
-            CodigoCategoriaProducto: p.CodigoCategoriaProducto
+            CodigoCategoriaProducto: p.CodigoCategoriaProducto,
+            // Precio y cantidad se ingresan manualmente
+            Precio: 0,
+            Cantidad: 1,
+            CodigoUnidadMedida: '',
+            NombrePresentacion: ''
         });
         this.textoBusquedaProducto.set(nombreProd);
     }
@@ -148,13 +183,31 @@ export class CompraModal implements OnInit {
         this.textoBusquedaProveedor.set(p.NombreProveedor);
     }
 
+    onInputProveedor(evento: Event) {
+        const val = (evento.target as HTMLInputElement).value;
+        this.textoBusquedaProveedor.set(val);
+        // Al escribir de nuevo, "desbloqueamos" la selección para que aparezca el dropdown
+        this.form.get('CodigoProveedor')?.setValue(null);
+    }
+
+    onInputProducto(evento: Event) {
+        const val = (evento.target as HTMLInputElement).value;
+        this.textoBusquedaProducto.set(val);
+        // Al escribir de nuevo, "desbloqueamos" la selección para que aparezca el dropdown
+        this.itemForm.get('CodigoProducto')?.setValue(null);
+    }
+
     agregarItemALista() {
         if (this.itemForm.invalid) {
-            this.servicioAlerta.MostrarAlerta('Por favor complete los datos del producto');
+            this.servicioAlerta.MostrarAlerta('Por favor complete los datos del producto y seleccione una unidad');
             return;
         }
 
         const values = this.itemForm.getRawValue();
+
+        // Buscar el nombre de la unidad para mostrarlo en la tabla
+        const unidad = this.listadoUnidades().find(u => u.CodigoUnidadMedida == values.CodigoUnidadMedida);
+        const nombreUnidad = unidad ? (unidad.NombreUnidad || unidad.Nombre) : 'N/A';
 
         this.items.push(this.fb.group({
             CodigoCategoriaProducto: [values.CodigoCategoriaProducto],
@@ -165,7 +218,7 @@ export class CompraModal implements OnInit {
             // Campos solo para visualización en la tabla
             NombreProducto: [values.NombreProducto],
             NombreCategoria: [values.NombreCategoria],
-            NombrePresentacion: [values.NombrePresentacion]
+            NombrePresentacion: [nombreUnidad]
         }));
 
         this.resetItemForm();
@@ -230,7 +283,6 @@ export class CompraModal implements OnInit {
         try {
             const val = this.form.value;
 
-            // Map MedioPago string to Numeric ID as expected by API
             const medioPagoMap: any = {
                 'Efectivo': 1,
                 'Tarjeta de Crédito': 2,
@@ -240,22 +292,28 @@ export class CompraModal implements OnInit {
 
             const payload: any = {
                 CodigoProveedor: Number(val.CodigoProveedor),
-                TipoCompra: val.MetodoPago === 'Crédito' ? 'Credito' : val.MetodoPago, // API expects 'Contado' | 'Credito' (Unaccented for backend logic usually)
-                MetodoPago: medioPagoMap[val.MedioPago] || 1, // API expects numeric ID
-                CodigoAperturaCaja: 1, // Hardcoded for now
+                TipoCompra: val.MetodoPago === 'Crédito' ? 'CREDITO' : 'CONTADO',
                 Productos: this.items.getRawValue().map(i => ({
-                    CodigoProducto: i.CodigoProducto,
-                    CodigoCategoriaProducto: i.CodigoCategoriaProducto,
-                    CodigoUnidadMedida: i.CodigoUnidadMedida,
-                    Cantidad: i.Cantidad,
-                    Precio: i.Precio
+                    CodigoProducto: Number(i.CodigoProducto),
+                    CodigoCategoriaProducto: Number(i.CodigoCategoriaProducto),
+                    CodigoUnidadMedida: Number(i.CodigoUnidadMedida),
+                    Cantidad: Number(i.Cantidad),
+                    Precio: Number(i.Precio)
                 }))
             };
 
-            // Only send FechaVencimiento if it's a Credit purchase
-            if (val.MetodoPago === 'Credito') {
+            // Lógica unificada según el ejemplo exitoso de Postman
+            payload.MetodoPago = medioPagoMap[val.MedioPago] || 1;
+            payload.CodigoAperturaCaja = Number(this.nuevoCodigoAperturaCaja);
+            payload.Referencia = val.Referencia || 'S/N';
+
+            if (payload.TipoCompra === 'CREDITO') {
                 payload.FechaVencimiento = val.FechaVencimiento;
+            } else {
+                // Al contado se elimina FechaVencimiento según indicación previa
+                delete payload.FechaVencimiento;
             }
+
 
             const res = await this.servicioCompra.guardar(payload);
             if (res.success) {
@@ -265,8 +323,10 @@ export class CompraModal implements OnInit {
             } else {
                 this.servicioAlerta.MostrarError(res);
             }
-        } catch (error) {
-            this.servicioAlerta.MostrarError({ error: { message: 'Error al guardar la compra' } });
+        } catch (error: any) {
+            console.error('Error al guardar compra:', error);
+            const errorApi = error.response?.data || { success: false, message: 'Error al procesar la solicitud' };
+            this.servicioAlerta.MostrarError(errorApi);
         } finally {
             this.cargando.set(false);
         }

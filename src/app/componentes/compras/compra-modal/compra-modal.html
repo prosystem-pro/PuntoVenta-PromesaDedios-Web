@@ -18,7 +18,7 @@
                     <div class="search-box">
                         <input type="text" class="form-control input-custom" placeholder="Ingrese nombre de proveedor"
                             [value]="textoBusquedaProveedor()"
-                            (input)="textoBusquedaProveedor.set($any($event.target).value)">
+                            (input)="onInputProveedor($event)">
                         <i class="bi bi-search search-icon"></i>
 
                         <!-- Dropdown Sugerencias Proveedor -->
@@ -26,7 +26,7 @@
                         <div class="search-suggestions shadow-sm">
                             @for (p of proveedoresFiltrados(); track p.CodigoProveedor) {
                             <div class="suggestion-item" (click)="seleccionarProveedor(p)">
-                                {{ p.NombreProveedor }} <small class="text-muted">({{ p.NIT }})</small>
+                                {{ p.NombreProveedor }} @if (p.NIT) { <small class="text-muted">({{ p.NIT }})</small> }
                             </div>
                             }
                             @if (proveedoresFiltrados().length === 0) {
@@ -51,7 +51,7 @@
                     <div class="search-box">
                         <input type="text" class="form-control input-custom" placeholder="Nombre de producto"
                             [value]="textoBusquedaProducto()"
-                            (input)="textoBusquedaProducto.set($any($event.target).value)">
+                            (input)="onInputProducto($event)">
                         <i class="bi bi-search search-icon"></i>
 
                         <!-- Dropdown Sugerencias Producto -->
@@ -59,8 +59,17 @@
                         <div class="search-suggestions shadow-sm">
                             @for (p of productosFiltrados(); track p.CodigoProducto) {
                             <div class="suggestion-item" (click)="seleccionarProducto(p)">
-                                {{ p.Producto }} <small class="text-muted">({{ p.NombreCategoriaProducto }})</small>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span>{{ p.NombreProducto }}</span>
+                                    <span class="badge bg-light text-dark small" style="font-size: 0.7rem; border: 1px solid #ddd;">{{ p.TipoProducto }}</span>
+                                </div>
+                                @if (p.NombreCategoriaProducto) {
+                                <small class="text-muted d-block" style="font-size: 0.75rem;">Categoría: {{ p.NombreCategoriaProducto }}</small>
+                                }
                             </div>
+                            }
+                            @if (productosFiltrados().length === 0 && textoBusquedaProducto().length > 1) {
+                            <div class="suggestion-item text-muted">No se encontraron productos</div>
                             }
                         </div>
                         }
@@ -80,7 +89,12 @@
                 </div>
                 <div class="col">
                     <label class="form-label fw-bold small text-muted mb-1">Presentación</label>
-                    <input type="text" class="form-control input-custom-flat" formControlName="NombrePresentacion">
+                    <select class="form-select input-custom-flat" formControlName="CodigoUnidadMedida">
+                        <option value="" disabled>Seleccione...</option>
+                        @for (u of listadoUnidades(); track u.CodigoUnidadMedida) {
+                            <option [value]="u.CodigoUnidadMedida">{{ u.NombreUnidad || u.Nombre }}</option>
+                        }
+                    </select>
                 </div>
                 <div class="col-md-2">
                     <label class="form-label fw-bold small text-muted mb-1">Precio</label>
@@ -146,6 +160,22 @@
                         }
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Seccion de Pago Condicional (Credito o Referencia Tarjeta) -->
+            <div class="row mb-4 g-3" [formGroup]="form">
+                @if (form.get('MetodoPago')?.value === 'Crédito') {
+                <div class="col-md-4">
+                    <label class="form-label fw-bold mb-1 small text-muted">Fecha Vencimiento <span class="text-danger">*</span></label>
+                    <input type="date" class="form-control input-custom" formControlName="FechaVencimiento">
+                </div>
+                }
+                @if (form.get('MetodoPago')?.value === 'Contado' && form.get('MedioPago')?.value === 'Tarjeta de Crédito') {
+                <div class="col-md-4">
+                    <label class="form-label fw-bold mb-1 small text-muted">No. Referencia / Voucher</label>
+                    <input type="text" class="form-control input-custom" formControlName="Referencia" placeholder="Ej. 1565asd">
+                </div>
+                }
             </div>
 
             <!-- Footer Actions -->

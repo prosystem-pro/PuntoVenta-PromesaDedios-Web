@@ -46,12 +46,16 @@ export class MateriaPrima implements OnInit {
     paginaActual = signal(1);
     itemsPorPagina = 7;
 
+    // Ordenamiento
+    columnaOrden = signal<string>('');
+    ordenAscendente = signal<boolean>(true);
+
     // Modales (Obsoleto, ahora navegamos)
     mostrarModal = signal(false);
     insumoSeleccionado = signal<Producto | null>(null);
 
     insumosFiltrados = computed(() => {
-        let filtrados = this.insumos();
+        let filtrados = [...this.insumos()];
 
         // Filtro por codigo de barras
         const barra = this.codigoBarrasBusqueda().trim();
@@ -67,6 +71,24 @@ export class MateriaPrima implements OnInit {
                 p.NombreCategoria?.toLowerCase().includes(busqueda) ||
                 p.NombreUnidad?.toLowerCase().includes(busqueda)
             );
+        }
+
+        // Ordenamiento
+        const columna = this.columnaOrden();
+        if (columna) {
+            filtrados.sort((a: any, b: any) => {
+                let valA = a[columna];
+                let valB = b[columna];
+
+                if (typeof valA === 'string') {
+                    valA = valA.toLowerCase();
+                    valB = (valB || '').toLowerCase();
+                }
+
+                if (valA < valB) return this.ordenAscendente() ? -1 : 1;
+                if (valA > valB) return this.ordenAscendente() ? 1 : -1;
+                return 0;
+            });
         }
 
         return filtrados;
@@ -276,6 +298,16 @@ export class MateriaPrima implements OnInit {
     }
 
     // Utils
+    ordenar(columna: string) {
+        if (this.columnaOrden() === columna) {
+            this.ordenAscendente.set(!this.ordenAscendente());
+        } else {
+            this.columnaOrden.set(columna);
+            this.ordenAscendente.set(true);
+        }
+        this.paginaActual.set(1);
+    }
+
     alCambiarBusqueda(evento: Event) {
         const input = evento.target as HTMLInputElement;
         this.textoBusqueda.set(input.value);

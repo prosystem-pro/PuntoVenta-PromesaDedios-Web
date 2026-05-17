@@ -5,6 +5,7 @@ import { UnidadMedida } from '../../../../Modelos/producto.modelo';
 import { ProductoServicio } from '../../../../Servicios/producto.service';
 import { AlertaServicio } from '../../../../Servicios/alerta.service';
 import { manejarErrorApi } from '../../../../Utils/error-parser';
+import { Entorno } from '../../../../Entorno/Entorno';
 
 @Component({
     selector: 'app-presentacion-modal',
@@ -18,7 +19,7 @@ export class PresentacionModal implements OnInit, OnChanges {
     private servicioAlerta = inject(AlertaServicio);
 
     @Input() visible = false;
-    @Input() colorSistema = '#ff9500';
+    @Input() colorSistema = Entorno.ColorSistema;
     @Output() alCerrar = new EventEmitter<void>();
     @Output() alGuardar = new EventEmitter<void>();
 

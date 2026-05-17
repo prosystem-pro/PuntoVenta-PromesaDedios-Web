@@ -121,7 +121,7 @@ export class ProductoServicio {
         return res.data;
     }
 
-    async ActualizarStockInsumo(payload: { Insumos: { CodigoProducto: number, StockActual: number }[] }): Promise<RespuestaAPI<any>> {
+    async ActualizarStockInsumo(payload: { Productos: { CodigoProducto: number, StockActual: number }[] }): Promise<RespuestaAPI<any>> {
         const res = await axiosInstance.put('/producto/actualizarstockinsumo', payload);
         return res.data;
     }

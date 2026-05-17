@@ -56,24 +56,29 @@
                     <tr>
                         <th class="py-3 text-muted small">No.</th>
                         <th class="py-3 text-muted small" style="cursor: pointer;" (click)="ordenar('NombreCategoria')">
-                            Categoría <i class="bi ms-1" [ngClass]="columnaOrden() === 'NombreCategoria' ? (ordenAscendente() ? 'bi-sort-alpha-down' : 'bi-sort-alpha-up') : 'bi-arrow-down-up opacity-25'"></i>
+                            Categoría <i class="bi ms-1"
+                                [ngClass]="columnaOrden() === 'NombreCategoria' ? (ordenAscendente() ? 'bi-sort-alpha-down' : 'bi-sort-alpha-up') : 'bi-arrow-down-up opacity-25'"></i>
                         </th>
                         <th class="py-3 text-muted small" style="cursor: pointer;" (click)="ordenar('NombreProducto')">
-                            Producto <i class="bi ms-1" [ngClass]="columnaOrden() === 'NombreProducto' ? (ordenAscendente() ? 'bi-sort-alpha-down' : 'bi-sort-alpha-up') : 'bi-arrow-down-up opacity-25'"></i>
+                            Producto <i class="bi ms-1"
+                                [ngClass]="columnaOrden() === 'NombreProducto' ? (ordenAscendente() ? 'bi-sort-alpha-down' : 'bi-sort-alpha-up') : 'bi-arrow-down-up opacity-25'"></i>
                         </th>
                         <th class="py-3 text-muted small" style="cursor: pointer;" (click)="ordenar('NombreUnidad')">
-                            Unidad <i class="bi ms-1" [ngClass]="columnaOrden() === 'NombreUnidad' ? (ordenAscendente() ? 'bi-sort-alpha-down' : 'bi-sort-alpha-up') : 'bi-arrow-down-up opacity-25'"></i>
+                            Unidad <i class="bi ms-1"
+                                [ngClass]="columnaOrden() === 'NombreUnidad' ? (ordenAscendente() ? 'bi-sort-alpha-down' : 'bi-sort-alpha-up') : 'bi-arrow-down-up opacity-25'"></i>
                         </th>
 
                         <th class="py-3 text-muted small" style="cursor: pointer;" (click)="ordenar('Stock')">
-                            Stock <i class="bi ms-1" [ngClass]="columnaOrden() === 'Stock' ? (ordenAscendente() ? 'bi-sort-numeric-down' : 'bi-sort-numeric-up') : 'bi-arrow-down-up opacity-25'"></i>
+                            Stock <i class="bi ms-1"
+                                [ngClass]="columnaOrden() === 'Stock' ? (ordenAscendente() ? 'bi-sort-numeric-down' : 'bi-sort-numeric-up') : 'bi-arrow-down-up opacity-25'"></i>
                         </th>
                         @if (modo() === 'abastecer') {
                         <th class="py-3 text-muted small text-center bg-light">Abastecer</th>
                         }
 
                         <th class="py-3 text-muted small" style="cursor: pointer;" (click)="ordenar('Estatus')">
-                            Estatus <i class="bi ms-1" [ngClass]="columnaOrden() === 'Estatus' ? (ordenAscendente() ? 'bi-sort-alpha-down' : 'bi-sort-alpha-up') : 'bi-arrow-down-up opacity-25'"></i>
+                            Estatus <i class="bi ms-1"
+                                [ngClass]="columnaOrden() === 'Estatus' ? (ordenAscendente() ? 'bi-sort-alpha-down' : 'bi-sort-alpha-up') : 'bi-arrow-down-up opacity-25'"></i>
                         </th>
                         <th class="py-3 text-muted small text-center">Acciones</th>
                     </tr>
@@ -96,9 +101,11 @@
 
                         <td class="small">
                             @if (modo() === 'ajustar') {
-                            <input type="number" class="form-control form-control-sm text-center fw-bold border-success"
+                            <input type="number" min="0" class="form-control form-control-sm text-center fw-bold border-success"
                                 style="width: 80px; margin: 0 auto;" [value]="p.Stock"
-                                (input)="onCambioAjuste(p.CodigoProducto!, $any($event.target).value)">
+                                (keypress)="preventNegative($event)"
+                                (paste)="preventNegativePaste($event)"
+                                (input)="onCambioAjuste(p.CodigoProducto!, $any($event.target))">
                             } @else {
                             <span class="fw-bold" [class.text-danger]="p.Stock === 0">{{ p.Stock || '-' }}</span>
                             }
@@ -107,7 +114,8 @@
                         <td class="bg-light">
                             <input type="number" class="form-control form-control-sm text-center fw-bold border-primary"
                                 style="width: 80px; margin: 0 auto;" [value]="p.CantidadConsumida"
-                                (input)="onCambioAbastecer(p.CodigoProducto!, $any($event.target).value)">
+                                (input)="onCambioAbastecer(p.CodigoProducto!, $any($event.target).value)"
+                                [disabled]="true">
                         </td>
                         }
 

@@ -173,15 +173,48 @@ export class MateriaPrima implements OnInit {
         this.cambiosAbastecer.clear();
     }
 
-    regresarNormal() {
+    async regresarNormal() {
+        if (
+            (this.modo() === 'ajustar' && this.cambiosAjuste.size > 0) ||
+            (this.modo() === 'abastecer' && this.cambiosAbastecer.size > 0)
+        ) {
+            const confirmado = await this.servicioAlerta.Confirmacion(
+                'Los cambios no guardados se perderán.',
+                '¿Desea salir de todos modos?',
+                'Salir',
+                'Cancelar'
+            );
+            if (!confirmado) return;
+        }
+
         this.modo.set('normal');
         this.cambiosAjuste.clear();
         this.cambiosAbastecer.clear();
     }
 
     // Handlers de cambios inline
-    onCambioAjuste(codigo: number, valor: string) {
-        this.cambiosAjuste.set(codigo, Number(valor));
+    preventNegative(event: KeyboardEvent) {
+        if (event.key === '-' || event.key === 'e') {
+            event.preventDefault();
+        }
+    }
+
+    preventNegativePaste(event: ClipboardEvent) {
+        const clipboardData = event.clipboardData;
+        const pastedText = clipboardData?.getData('text');
+        if (pastedText && (pastedText.includes('-') || pastedText.includes('e'))) {
+            event.preventDefault();
+        }
+    }
+
+    onCambioAjuste(codigo: number, target: any) {
+        const inputElement = target as HTMLInputElement;
+        let num = Number(inputElement.value);
+        if (num < 0 || isNaN(num)) {
+            num = 0;
+            inputElement.value = '0';
+        }
+        this.cambiosAjuste.set(codigo, num);
     }
 
     onCambioAbastecer(codigo: number, valor: string) {
@@ -205,7 +238,7 @@ export class MateriaPrima implements OnInit {
         this.cargando.set(true);
         try {
             const payload = {
-                Insumos: Array.from(this.cambiosAjuste.entries()).map(([CodigoProducto, StockActual]) => ({
+                Productos: Array.from(this.cambiosAjuste.entries()).map(([CodigoProducto, StockActual]) => ({
                     CodigoProducto,
                     StockActual: Number(StockActual)
                 }))

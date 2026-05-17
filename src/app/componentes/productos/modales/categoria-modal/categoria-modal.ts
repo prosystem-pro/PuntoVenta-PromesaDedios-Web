@@ -5,6 +5,7 @@ import { CategoriaProducto } from '../../../../Modelos/producto.modelo';
 import { ProductoServicio } from '../../../../Servicios/producto.service';
 import { AlertaServicio } from '../../../../Servicios/alerta.service';
 import { manejarErrorApi } from '../../../../Utils/error-parser';
+import { Entorno } from '../../../../Entorno/Entorno';
 
 @Component({
     selector: 'app-categoria-modal',
@@ -18,7 +19,7 @@ export class CategoriaModal implements OnInit {
     private servicioAlerta = inject(AlertaServicio);
 
     @Input() visible = false;
-    @Input() colorSistema = '#ff9500';
+    @Input() colorSistema = Entorno.ColorSistema;
     @Output() alCerrar = new EventEmitter<void>();
     @Output() alGuardar = new EventEmitter<void>();
 
@@ -69,6 +70,15 @@ export class CategoriaModal implements OnInit {
 
     async guardar() {
         if (!this.nuevaCategoria.NombreCategoriaProducto) return;
+
+        // Validar duplicado antes de crear o editar
+        if (this.existeCategoriaDuplicada(this.nuevaCategoria.NombreCategoriaProducto, this.modoEdicion())) {
+            this.servicioAlerta.MostrarAlerta(
+                `La categoría "${this.nuevaCategoria.NombreCategoriaProducto}" ya existe o está duplicada (coincidencia lógica detectada).`
+            );
+            return;
+        }
+
         try {
             let res;
             if (this.modoEdicion()) {
@@ -129,6 +139,30 @@ export class CategoriaModal implements OnInit {
 
     private manejarErrorApi(error: any): string {
         return manejarErrorApi(error);
+    }
+
+    normalizarTexto(texto: string): string {
+        if (!texto) return '';
+        return texto
+            .trim()
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '') // Remover tildes
+            .replace(/[^a-z0-9\s]/g, '') // Remover caracteres especiales (dejar solo letras, números y espacios)
+            .replace(/\s+/g, ' ') // Colapsar espacios múltiples en uno solo
+            .trim();
+    }
+
+    existeCategoriaDuplicada(nombre: string, idAExcluir: number | null = null): boolean {
+        const nombreNormalizado = this.normalizarTexto(nombre);
+        if (!nombreNormalizado) return false;
+
+        return this.categorias().some(cat => {
+            if (idAExcluir !== null && cat.CodigoCategoriaProducto === idAExcluir) {
+                return false;
+            }
+            return this.normalizarTexto(cat.NombreCategoriaProducto) === nombreNormalizado;
+        });
     }
 
     limpiarFormulario() {

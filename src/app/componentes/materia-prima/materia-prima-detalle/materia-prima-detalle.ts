@@ -32,6 +32,7 @@ export class MateriaPrimaDetalle implements OnInit {
     // Catalogos
     categorias = signal<CategoriaProducto[]>([]);
     unidades = signal<UnidadMedida[]>([]);
+    insumosExistentes = signal<Producto[]>([]);
 
     // Lista temporal de carga
     listaCarga = signal<any[]>([]);
@@ -61,7 +62,7 @@ export class MateriaPrimaDetalle implements OnInit {
             CodigoCategoriaProducto: [null, [Validators.required]],
             NombreProducto: ['', [Validators.required]],
             CodigoUnidadMedida: [null, [Validators.required]],
-            Stock: [0, [Validators.required, Validators.min(0)]],
+            Stock: [0, [Validators.required]],
             StockMinimo: [0],
             StockSugerido: [0],
             PrecioCompra: [0, [Validators.required]],
@@ -73,6 +74,7 @@ export class MateriaPrimaDetalle implements OnInit {
 
     async ngOnInit() {
         await this.cargarCatalogos();
+        await this.cargarInsumosExistentes();
 
         // Si es modo edicion, cargar los datos
         if (this.modoEdicion() && this.insumoId()) {
@@ -128,14 +130,137 @@ export class MateriaPrimaDetalle implements OnInit {
         }
     }
 
+    async cargarInsumosExistentes() {
+        try {
+            const res = await this.servicioProducto.ListarInsumos();
+            const listadoRaw = Array.isArray(res.data) ? res.data : (res.data?.Listado || []);
+            const insumosMapeados = listadoRaw.map((p: any) => ({
+                ...p,
+                NombreProducto: p.Producto || p.NombreProducto
+            }));
+            this.insumosExistentes.set(insumosMapeados);
+        } catch (error) {
+            console.error('Error al cargar insumos existentes:', error);
+        }
+    }
+
+    normalizarTexto(texto: string): string {
+        if (!texto) return '';
+        return texto
+            .trim()
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '') // Remover tildes
+            .replace(/[^a-z0-9\s]/g, '') // Remover caracteres especiales (dejar solo letras, números y espacios)
+            .replace(/\s+/g, ' ') // Colapsar espacios múltiples en uno solo
+            .trim();
+    }
+
+    existeNombreDuplicado(nombre: string, idAExcluir: number | null = null): boolean {
+        const nombreNormalizado = this.normalizarTexto(nombre);
+        if (!nombreNormalizado) return false;
+
+        // 1. Verificar contra insumos existentes en base de datos
+        const duplicadoEnDb = this.insumosExistentes().some(i => {
+            if (idAExcluir !== null && i.CodigoProducto === idAExcluir) {
+                return false;
+            }
+            return this.normalizarTexto(i.NombreProducto) === nombreNormalizado;
+        });
+
+        if (duplicadoEnDb) return true;
+
+        // 2. Verificar contra lista de carga temporal (solo si no es modo edicion)
+        if (!this.modoEdicion()) {
+            const duplicadoEnLista = this.listaCarga().some(item => {
+                return this.normalizarTexto(item.NombreProducto) === nombreNormalizado;
+            });
+            if (duplicadoEnLista) return true;
+        }
+
+        return false;
+    }
+
+    tieneMasDeDosDecimales(valor: any): boolean {
+        if (valor === null || valor === undefined || valor === '') return false;
+        const stringVal = valor.toString();
+        if (stringVal.includes('.')) {
+            const decimales = stringVal.split('.')[1];
+            return decimales.length > 2;
+        }
+        return false;
+    }
+
+    validarCamposFormulario(val: any): string | null {
+        // Stock
+        if (val.Stock < 0) {
+            return 'El Stock no puede ser menor a cero.';
+        }
+        if (this.tieneMasDeDosDecimales(val.Stock)) {
+            return 'El Stock no puede tener más de dos decimales.';
+        }
+
+        // Stock Minimo
+        if (val.StockMinimo < 0) {
+            return 'El Stock Mínimo no puede ser menor a cero.';
+        }
+        if (this.tieneMasDeDosDecimales(val.StockMinimo)) {
+            return 'El Stock Mínimo no puede tener más de dos decimales.';
+        }
+
+        // Stock Sugerido
+        if (val.StockSugerido < 0) {
+            return 'El Stock Sugerido no puede ser menor a cero.';
+        }
+        if (this.tieneMasDeDosDecimales(val.StockSugerido)) {
+            return 'El Stock Sugerido no puede tener más de dos decimales.';
+        }
+
+        // Precio Compra
+        if (val.PrecioCompra < 0) {
+            return 'El Precio de Compra no puede ser menor a cero.';
+        }
+        if (this.tieneMasDeDosDecimales(val.PrecioCompra)) {
+            return 'El Precio de Compra no puede tener más de dos decimales.';
+        }
+
+        // IVA
+        if (val.Iva !== null && val.Iva !== undefined && val.Iva !== '') {
+            const ivaNum = Number(val.Iva);
+            if (ivaNum < 0 || ivaNum > 100) {
+                return 'El porcentaje de IVA debe estar entre 0% y 100%.';
+            }
+        }
+
+        return null;
+    }
+
     // Gestion de Lista Temporal
     agregarALista() {
-        if (this.form.invalid) {
-            this.form.markAllAsTouched();
+        const formVal = this.form.value;
+
+        // 1. Validaciones numéricas de rango y decimales primero
+        const errorCampos = this.validarCamposFormulario(formVal);
+        if (errorCampos) {
+            this.servicioAlerta.MostrarAlerta(errorCampos);
             return;
         }
 
-        const formVal = this.form.value;
+        // 2. Validaciones de campos obligatorios vacíos
+        if (this.form.invalid) {
+            this.form.markAllAsTouched();
+            this.servicioAlerta.MostrarAlerta('Por favor, complete todos los campos obligatorios (*) de forma correcta.');
+            return;
+        }
+
+        // Validar duplicado antes de agregar a la lista
+        if (this.existeNombreDuplicado(formVal.NombreProducto)) {
+            this.servicioAlerta.MostrarAlerta(
+                `El producto "${formVal.NombreProducto}" ya existe o está duplicado (coincidencia lógica detectada).`
+            );
+            return;
+        }
+
         const catObj = this.categorias().find(c => c.CodigoCategoriaProducto === formVal.CodigoCategoriaProducto);
         const uniObj = this.unidades().find(u => u.CodigoUnidadMedida === formVal.CodigoUnidadMedida);
 
@@ -181,6 +306,14 @@ export class MateriaPrimaDetalle implements OnInit {
     alSeleccionarImagen(event: any) {
         const file = event.target.files[0];
         if (file) {
+            // Validar límite de tamaño (1 MB = 1024 * 1024 bytes)
+            const limiteBytes = 1 * 1024 * 1024;
+            if (file.size > limiteBytes) {
+                this.servicioAlerta.MostrarAlerta('El tamaño máximo permitido para la imagen es de 1 MB.');
+                event.target.value = ''; // Limpiar el input para permitir re-selección
+                return;
+            }
+
             this.archivoImagen = file;
             const reader = new FileReader();
             reader.onload = () => this.imagenPreview.set(reader.result as string);
@@ -250,14 +383,32 @@ export class MateriaPrimaDetalle implements OnInit {
     }
 
     async actualizar() {
+        const val = this.form.value;
+
+        // 1. Validaciones numéricas de rango y decimales primero
+        const errorCampos = this.validarCamposFormulario(val);
+        if (errorCampos) {
+            this.servicioAlerta.MostrarAlerta(errorCampos);
+            return;
+        }
+
+        // 2. Validaciones de campos obligatorios vacíos
         if (this.form.invalid) {
             this.form.markAllAsTouched();
+            this.servicioAlerta.MostrarAlerta('Por favor, complete todos los campos obligatorios (*) de forma correcta.');
+            return;
+        }
+
+        // Validar duplicado antes de actualizar
+        if (this.existeNombreDuplicado(val.NombreProducto, this.insumoId())) {
+            this.servicioAlerta.MostrarAlerta(
+                `No se puede actualizar. El producto "${val.NombreProducto}" ya existe o coincide con otro registro.`
+            );
             return;
         }
 
         this.cargando.set(true);
         try {
-            const val = this.form.value;
             const payload: Partial<Producto> = {
                 ...val,
                 TipoProducto: 'Insumo',

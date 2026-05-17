@@ -100,3 +100,13 @@
 .overflow-auto::-webkit-scrollbar-thumb:hover {
     background: #ccc;
 }
+
+/* Fila inactiva para productos inactivos (negro opaco) */
+.fila-inactiva td,
+.fila-inactiva td span:not(.badge) {
+    color: rgba(0, 0, 0, 0.45) !important;
+}
+
+.fila-inactiva .badge {
+    opacity: 0.6;
+}

@@ -15,7 +15,7 @@
     </div>
 
     <!-- Barra de busqueda y filtros -->
-    <div class="row mb-4 align-items-center">
+    <div class="row align-items-center filters-row">
         <div class="col-md-6 d-flex gap-3 align-items-center">
             <div class="d-flex align-items-center gap-2">
                 <label class="small fw-bold text-muted">Inicio</label>
@@ -50,7 +50,7 @@
     </div>
 
     <!-- Tabla Section -->
-    <div class="users-card shadow-sm border-0">
+    <div class="users-card table-card shadow-sm border-0">
         <div class="table-container p-0">
             @if (cargando()) {
             <div class="text-center py-5">
@@ -125,7 +125,7 @@
     </div>
 
     <!-- Paginacion Section -->
-    <div class="pagination-footer mt-4 d-flex align-items-center justify-content-between">
+    <div class="pagination-footer footer-row d-flex align-items-center justify-content-between">
         <div class="pagination-info text-muted small">
             Mostrando <strong>{{ rangoInicio() }}</strong> al <strong>{{ rangoFin() }}</strong> de <strong>{{
                 totalRegistros() }}</strong> registros

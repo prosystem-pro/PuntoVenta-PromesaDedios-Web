@@ -25,7 +25,7 @@ export class Compras implements OnInit {
 
     // Paginación
     paginaActual = signal(1);
-    itemsPorPagina = signal(7);
+    itemsPorPagina = signal(6);
 
     // Filtros inputs
     fechaInicioInput = signal('');

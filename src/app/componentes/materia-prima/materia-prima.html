@@ -1,6 +1,6 @@
 <div class="materia-prima-container" [style.--color-sistema]="colorSistema">
     <!-- Header -->
-    <div class="header-section text-center mb-4">
+    <div class="header-section text-center">
         <h1 class="title fw-bold" [style.color]="colorSistema">
             {{ modo() === 'normal' ? 'LISTADO MATERIA PRIMA' : modo() === 'ajustar' ? 'AJUSTAR MATERIA PRIMA' :
             'ABASTECER MATERIA PRIMA' }}
@@ -28,7 +28,7 @@
     </div>
 
     <!-- Filtros y Buscador -->
-    <div class="row mb-3 align-items-center">
+    <div class="row align-items-center filters-row">
         <div class="col-md-5">
             <div class="d-flex align-items-center gap-2 barcode-container p-1 shadow-sm rounded-3">
                 <label class="fw-bold text-nowrap ms-2 h5 m-0">Código de producto</label>
@@ -49,7 +49,7 @@
     </div>
 
     <!-- Tabla -->
-    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden table-card">
         <div class="table-container p-0">
             <table class="table table-hover align-middle m-0">
                 <thead class="sticky-top bg-white shadow-sm">
@@ -142,7 +142,7 @@
     </div>
 
     <!-- Footer Paginacion -->
-    <div class="row mt-4 align-items-center">
+    <div class="row align-items-center footer-row">
         <div class="col-md-3">
             <span class="text-muted small">Mostrando {{ rangoInicio() }} al {{ rangoFin() }} de {{ totalRegistros() }}
                 registros</span>

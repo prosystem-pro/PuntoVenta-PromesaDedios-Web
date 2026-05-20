@@ -173,10 +173,11 @@ export class MateriaPrima implements OnInit {
         this.cambiosAbastecer.clear();
     }
 
-    async regresarNormal() {
+    async regresarNormal(forzar = false) {
         if (
-            (this.modo() === 'ajustar' && this.cambiosAjuste.size > 0) ||
-            (this.modo() === 'abastecer' && this.cambiosAbastecer.size > 0)
+            !forzar &&
+            ((this.modo() === 'ajustar' && this.cambiosAjuste.size > 0) ||
+            (this.modo() === 'abastecer' && this.cambiosAbastecer.size > 0))
         ) {
             const confirmado = await this.servicioAlerta.Confirmacion(
                 'Los cambios no guardados se perderán.',
@@ -249,7 +250,8 @@ export class MateriaPrima implements OnInit {
             if (res.success) {
                 this.servicioAlerta.MostrarExito('Stock ajustado correctamente');
                 await this.cargarInsumos();
-                this.regresarNormal();
+                this.cambiosAjuste.clear();
+                this.regresarNormal(true);
             } else {
                 this.servicioAlerta.MostrarError(manejarErrorApi(res));
             }
@@ -289,7 +291,8 @@ export class MateriaPrima implements OnInit {
             if (res.success) {
                 this.servicioAlerta.MostrarExito('Materia prima abastecida correctamente');
                 await this.cargarInsumos();
-                this.regresarNormal();
+                this.cambiosAbastecer.clear();
+                this.regresarNormal(true);
             } else {
                 this.servicioAlerta.MostrarError(manejarErrorApi(res));
             }

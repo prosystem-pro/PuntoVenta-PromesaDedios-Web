@@ -44,7 +44,7 @@ export class MateriaPrima implements OnInit {
 
     // Paginacion
     paginaActual = signal(1);
-    itemsPorPagina = 7;
+    itemsPorPagina = 6;
 
     // Ordenamiento
     columnaOrden = signal<string>('');

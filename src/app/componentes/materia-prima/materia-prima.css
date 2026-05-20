@@ -21,7 +21,7 @@
 
 .titulo-pagina {
     color: var(--color-sistema);
-    font-size: 2rem;
+    font-size: 1.5rem;
     letter-spacing: 2px;
     text-align: center;
 }
@@ -36,6 +36,7 @@
 
 .filters-row {
     flex: 0 0 auto;
+    margin-top: 0.75rem;
     margin-bottom: 0.75rem !important;
 }
 
@@ -78,6 +79,10 @@
 .compras-table th {
     background-color: #f8f9fa;
     border-bottom: 2px solid #eee;
+}
+
+.table-container thead.sticky-top {
+    z-index: 1;
 }
 
 .btn-crear,

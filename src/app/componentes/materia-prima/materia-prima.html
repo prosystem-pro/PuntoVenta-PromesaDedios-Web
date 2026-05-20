@@ -1,11 +1,11 @@
 <div class="materia-prima-container" [style.--color-sistema]="colorSistema">
     <!-- Header -->
     <div class="header-section text-center">
-        <h1 class="title fw-bold" [style.color]="colorSistema">
+        <h2 class="titulo-pagina m-0 fw-bold" [style.color]="colorSistema">
             {{ modo() === 'normal' ? 'LISTADO MATERIA PRIMA' : modo() === 'ajustar' ? 'AJUSTAR MATERIA PRIMA' :
             'ABASTECER MATERIA PRIMA' }}
-        </h1>
-        <div class="title-underline mx-auto" [style.background-color]="colorSistema"></div>
+        </h2>
+        <div class="header-line" [style.background-color]="colorSistema"></div>
 
         @if (modo() === 'normal') {
         <button class="btn btn-crear shadow-sm position-absolute end-0 top-0 me-4 mt-3"

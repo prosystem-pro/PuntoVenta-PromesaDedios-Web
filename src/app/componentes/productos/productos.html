@@ -105,7 +105,7 @@
                         <td class="td-unidad text-latin">{{ producto.NombreUnidad || 'Unidad' }}</td>
                         <td class="text-latin">
                             <ng-container *ngIf="modoEdicion() !== 'ajustar'">
-                                <span [ngClass]="{'text-danger fw-bold': (producto.Stock || 0) <= 0}">
+                                <span [ngClass]="{'text-danger': (producto.Stock || 0) <= 0}">
                                     {{ (producto.Stock || 0) === 0 ? '0' : producto.Stock }}
                                 </span>
                             </ng-container>

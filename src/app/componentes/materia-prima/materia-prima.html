@@ -93,10 +93,10 @@
                     } @else {
                     @for (p of insumosPaginados(); track p.CodigoProducto; let i = $index) {
                     <tr [class.fila-inactiva]="p.Estatus !== 1">
-                        <td class="small text-muted fw-bold">{{ (paginaActual() - 1) * itemsPorPagina + i + 1 |
+                        <td class="small text-muted">{{ (paginaActual() - 1) * itemsPorPagina + i + 1 |
                             number:'2.0' }}</td>
                         <td class="small">{{ p.NombreCategoria }}</td>
-                        <td class="small fw-bold">{{ p.NombreProducto }}</td>
+                        <td class="small">{{ p.NombreProducto }}</td>
                         <td class="small">{{ p.NombreUnidad }}</td>
 
                         <td class="small">
@@ -107,7 +107,7 @@
                                 (paste)="preventNegativePaste($event)"
                                 (input)="onCambioAjuste(p.CodigoProducto!, $any($event.target))">
                             } @else {
-                            <span class="fw-bold" [class.text-danger]="p.Stock === 0">{{ p.Stock || '-' }}</span>
+                            <span [class.text-danger]="p.Stock === 0">{{ p.Stock || '-' }}</span>
                             }
                         </td>
                         @if (modo() === 'abastecer') {

@@ -1,6 +1,6 @@
 <div class="productos-container" [style.--color-sistema]="colorSistema">
     <!-- Header -->
-    <div class="productos-header d-flex justify-content-between align-items-center mb-4">
+    <div class="productos-header d-flex justify-content-between align-items-center">
         <!-- Boton Exportar (Solo en lectura) -->
         <div class="header-side">
             <button *ngIf="modoEdicion() === 'lectura'" class="btn btn-export shadow-sm"
@@ -36,7 +36,7 @@
     </div>
 
     <!-- Controles de Busqueda -->
-    <div class="search-section d-flex justify-content-between align-items-center mb-4 gap-3">
+    <div class="search-section d-flex justify-content-between align-items-center gap-3">
         <div class="d-flex align-items-center gap-3 flex-grow-1">
             <label class="form-label fw-bold m-0 text-nowrap" style="font-size: 1.1rem;">Código de producto</label>
             <div class="barcode-search-box shadow-sm px-3 flex-grow-1" style="max-width: 350px;">
@@ -56,25 +56,44 @@
     </div>
 
     <!-- Tabla -->
-    <div class="products-card card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
-        <div class="table-container p-0 overflow-auto" style="max-height: 520px;">
+    <div class="products-card table-card card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="table-container p-0 overflow-auto">
             <div *ngIf="cargando()" class="text-center py-5">
                 <div class="spinner-border" [style.color]="colorSistema" role="status"></div>
                 <p class="mt-2 text-muted text-latin">Cargando productos...</p>
             </div>
 
             <table *ngIf="!cargando()" class="productos-table table table-hover align-middle m-0">
-                <thead>
+                <thead class="sticky-top bg-white shadow-sm">
                     <tr>
-                        <th class="text-latin">No. <i class="bi bi-arrow-down-up small ms-1"></i></th>
-                        <th class="text-latin">Categoría <i class="bi bi-arrow-down-up small ms-1"></i></th>
-                        <th class="text-latin">Producto <i class="bi bi-arrow-down-up small ms-1"></i></th>
-                        <th class="text-latin">Unidad <i class="bi bi-arrow-down-up small ms-1"></i></th>
-                        <th class="text-latin">Stock <i class="bi bi-arrow-down-up small ms-1"></i></th>
-                        <th class="text-latin" *ngIf="modoEdicion() === 'abastecer'">Abastecer <i
-                                class="bi bi-arrow-down-up small ms-1"></i></th>
-                        <th class="text-latin">Estatus <i class="bi bi-arrow-down-up small ms-1"></i></th>
-                        <th class="text-center text-latin">Acciones</th>
+                        <th class="py-3 text-muted small text-latin">No.</th>
+                        <th class="py-3 text-muted small text-latin" style="cursor: pointer;"
+                            (click)="ordenar('NombreCategoria')">
+                            Categoría <i class="bi ms-1"
+                                [ngClass]="columnaOrden() === 'NombreCategoria' ? (ordenAscendente() ? 'bi-sort-alpha-down' : 'bi-sort-alpha-up') : 'bi-arrow-down-up opacity-25'"></i>
+                        </th>
+                        <th class="py-3 text-muted small text-latin" style="cursor: pointer;"
+                            (click)="ordenar('NombreProducto')">
+                            Producto <i class="bi ms-1"
+                                [ngClass]="columnaOrden() === 'NombreProducto' ? (ordenAscendente() ? 'bi-sort-alpha-down' : 'bi-sort-alpha-up') : 'bi-arrow-down-up opacity-25'"></i>
+                        </th>
+                        <th class="py-3 text-muted small text-latin" style="cursor: pointer;"
+                            (click)="ordenar('NombreUnidad')">
+                            Unidad <i class="bi ms-1"
+                                [ngClass]="columnaOrden() === 'NombreUnidad' ? (ordenAscendente() ? 'bi-sort-alpha-down' : 'bi-sort-alpha-up') : 'bi-arrow-down-up opacity-25'"></i>
+                        </th>
+                        <th class="py-3 text-muted small text-latin" style="cursor: pointer;"
+                            (click)="ordenar('Stock')">
+                            Stock <i class="bi ms-1"
+                                [ngClass]="columnaOrden() === 'Stock' ? (ordenAscendente() ? 'bi-sort-numeric-down' : 'bi-sort-numeric-up') : 'bi-arrow-down-up opacity-25'"></i>
+                        </th>
+                        <th class="py-3 text-muted small text-latin" *ngIf="modoEdicion() === 'abastecer'">Abastecer</th>
+                        <th class="py-3 text-muted small text-latin" style="cursor: pointer;"
+                            (click)="ordenar('Estatus')">
+                            Estatus <i class="bi ms-1"
+                                [ngClass]="columnaOrden() === 'Estatus' ? (ordenAscendente() ? 'bi-sort-alpha-down' : 'bi-sort-alpha-up') : 'bi-arrow-down-up opacity-25'"></i>
+                        </th>
+                        <th class="py-3 text-muted small text-center text-latin">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -129,7 +148,7 @@
     </div>
 
     <!-- Footer con Paginacion y Acciones de Stock -->
-    <div class="row align-items-center mt-2">
+    <div class="row align-items-center footer-row">
         <div class="col-md-4">
             <div class="pagination-info text-muted small text-latin">
                 Mostrando <strong>{{ rangoInicio() }}</strong> al <strong>{{ rangoFin() }}</strong> de <strong>{{

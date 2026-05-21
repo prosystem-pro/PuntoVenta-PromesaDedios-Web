@@ -77,10 +77,10 @@
             <tbody>
                 @for (pedido of pedidosPaginados(); track pedido.CodigoPedidoProduccion) {
                 <tr>
-                    <td class="fw-medium">{{ pedido.CodigoPedidoProduccion }}</td>
+                    <td>{{ pedido.CodigoPedidoProduccion }}</td>
                     <td>{{ pedido.Nombre || 'Consumidor Final' }}</td>
                     <!-- Hardcoded for prototype similarity as API doesn't return name yet -->
-                    <td class="fw-bold">{{ pedido.Origen || 'Tienda' }}</td>
+                    <td>{{ pedido.Origen || 'Tienda' }}</td>
                     <td>
                         <span [class]="'badge-estado ' + obtenerClaseEstado(pedido)">
                             {{ obtenerTextoEstado(pedido) }}

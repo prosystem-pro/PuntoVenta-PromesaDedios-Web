@@ -81,6 +81,18 @@
     border-bottom: 2px solid #eee;
 }
 
+.table-container .table thead th {
+    font-size: 0.8rem;
+}
+
+.table-container .table tbody td {
+    font-size: 0.875rem;
+}
+
+.table-container .table tbody td.small {
+    font-size: 0.875rem !important;
+}
+
 .table-container thead.sticky-top {
     z-index: 1;
 }

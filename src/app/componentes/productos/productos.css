@@ -148,6 +148,7 @@
 .productos-table thead th {
     background-color: #fff;
     border-bottom: 2px solid #eee;
+    font-size: 0.8rem;
 }
 
 .table-container thead.sticky-top {
@@ -157,9 +158,8 @@
 .productos-table tbody td {
     padding: 14px 15px;
     color: #444;
-    font-weight: 500;
     border-bottom: 1px solid #f4f4f4;
-    font-size: 0.95rem;
+    font-size: 0.875rem;
 }
 
 /* Filas inactivas o stock 0 */
@@ -228,7 +228,7 @@
 
 /* Labels en latin styling */
 .text-latin {
-    font-family: 'Inter', sans-serif;
+    font-family: inherit;
 }
 
 /* Responsive */

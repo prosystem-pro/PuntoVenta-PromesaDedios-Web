@@ -35,22 +35,58 @@ export class Proveedores implements OnInit {
 
     // Paginacion fija
     paginaActual = signal(1);
-    itemsPorPagina = 7;
+    itemsPorPagina = 6;
+
+    // Ordenamiento
+    columnaOrden = signal<string>('');
+    ordenAscendente = signal<boolean>(true);
 
     // Proveedores filtrados basados en busqueda
     proveedoresFiltrados = computed(() => {
         const busqueda = this.textoBusqueda().toLowerCase().trim();
-        if (!busqueda) {
-            return this.proveedores();
+        let filtrados = this.proveedores();
+
+        if (busqueda) {
+            filtrados = filtrados.filter(p =>
+                p.NombreProveedor.toLowerCase().includes(busqueda) ||
+                p.NIT.toLowerCase().includes(busqueda) ||
+                p.Telefono.includes(busqueda) ||
+                p.Direccion.toLowerCase().includes(busqueda) ||
+                p.Correo.toLowerCase().includes(busqueda)
+            );
         }
-        return this.proveedores().filter(p =>
-            p.NombreProveedor.toLowerCase().includes(busqueda) ||
-            p.NIT.toLowerCase().includes(busqueda) ||
-            p.Telefono.includes(busqueda) ||
-            p.Direccion.toLowerCase().includes(busqueda) ||
-            p.Correo.toLowerCase().includes(busqueda)
-        );
+
+        const columna = this.columnaOrden();
+        if (columna) {
+            filtrados = [...filtrados].sort((a: any, b: any) => {
+                let valA = a[columna];
+                let valB = b[columna];
+
+                if (typeof valA === 'string') {
+                    valA = valA.toLowerCase();
+                    valB = (valB || '').toLowerCase();
+                }
+
+                if (valA == null) return this.ordenAscendente() ? -1 : 1;
+                if (valB == null) return this.ordenAscendente() ? 1 : -1;
+                if (valA < valB) return this.ordenAscendente() ? -1 : 1;
+                if (valA > valB) return this.ordenAscendente() ? 1 : -1;
+                return 0;
+            });
+        }
+
+        return filtrados;
     });
+
+    ordenar(columna: string) {
+        if (this.columnaOrden() === columna) {
+            this.ordenAscendente.set(!this.ordenAscendente());
+        } else {
+            this.columnaOrden.set(columna);
+            this.ordenAscendente.set(true);
+        }
+        this.paginaActual.set(1);
+    }
 
     // Total de registros y paginas
     totalRegistros = computed(() => this.proveedoresFiltrados().length);

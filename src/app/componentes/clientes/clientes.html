@@ -15,7 +15,7 @@
     </div>
 
     <!-- Barra de busqueda -->
-    <div class="search-container mb-4">
+    <div class="search-container">
         <div class="search-box">
             <input type="text" class="search-input" placeholder="Buscar por nombre, NIT, telefono..."
                 [value]="textoBusqueda()" (input)="alCambiarBusqueda($event)">
@@ -24,8 +24,8 @@
     </div>
 
     <!-- Tabla de clientes -->
-    <div class="users-card shadow-sm border-0">
-        <div class="table-container p-0">
+    <div class="users-card table-card shadow-sm border-0">
+        <div class="table-container p-0 overflow-auto">
             <div *ngIf="cargando()" class="text-center py-5">
                 <div class="spinner-border" [style.color]="colorSistema" role="status">
                     <span class="visually-hidden">Cargando...</span>
@@ -34,13 +34,25 @@
             </div>
 
             <table *ngIf="!cargando()" class="clientes-table">
-                <thead>
+                <thead class="sticky-top bg-white shadow-sm">
                     <tr>
-                        <th>No. <i class="bi bi-arrow-down-up ms-1 small text-muted"></i></th>
-                        <th>Nombre <i class="bi bi-arrow-down-up ms-1 small text-muted"></i></th>
-                        <th>NIT <i class="bi bi-arrow-down-up ms-1 small text-muted"></i></th>
-                        <th>Telefono <i class="bi bi-arrow-down-up ms-1 small text-muted"></i></th>
-                        <th>Direccion <i class="bi bi-arrow-down-up ms-1 small text-muted"></i></th>
+                        <th>No.</th>
+                        <th style="cursor: pointer;" (click)="ordenar('NombreCliente')">
+                            Nombre <i class="bi ms-1"
+                                [ngClass]="columnaOrden() === 'NombreCliente' ? (ordenAscendente() ? 'bi-sort-alpha-down' : 'bi-sort-alpha-up') : 'bi-arrow-down-up opacity-25'"></i>
+                        </th>
+                        <th style="cursor: pointer;" (click)="ordenar('NIT')">
+                            NIT <i class="bi ms-1"
+                                [ngClass]="columnaOrden() === 'NIT' ? (ordenAscendente() ? 'bi-sort-alpha-down' : 'bi-sort-alpha-up') : 'bi-arrow-down-up opacity-25'"></i>
+                        </th>
+                        <th style="cursor: pointer;" (click)="ordenar('Telefono')">
+                            Telefono <i class="bi ms-1"
+                                [ngClass]="columnaOrden() === 'Telefono' ? (ordenAscendente() ? 'bi-sort-numeric-down' : 'bi-sort-numeric-up') : 'bi-arrow-down-up opacity-25'"></i>
+                        </th>
+                        <th style="cursor: pointer;" (click)="ordenar('Direccion')">
+                            Direccion <i class="bi ms-1"
+                                [ngClass]="columnaOrden() === 'Direccion' ? (ordenAscendente() ? 'bi-sort-alpha-down' : 'bi-sort-alpha-up') : 'bi-arrow-down-up opacity-25'"></i>
+                        </th>
                         <th class="text-center">Acciones</th>
                     </tr>
                 </thead>
@@ -70,7 +82,7 @@
     </div>
 
     <!-- Paginacion -->
-    <div class="pagination-footer mt-4 d-flex align-items-center justify-content-between">
+    <div class="pagination-footer footer-row d-flex align-items-center justify-content-between">
         <div class="pagination-info text-muted small">
             Mostrando <strong>{{ rangoInicio() }}</strong> al <strong>{{ rangoFin() }}</strong> de <strong>{{
                 totalRegistros() }}</strong> registros

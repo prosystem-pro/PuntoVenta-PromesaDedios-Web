@@ -1,6 +1,21 @@
+:host {
+    display: block;
+    height: calc(100vh - 70px - 1rem); /* 70px de navbar + 1rem (16px) de padding de main */
+    overflow: hidden;
+}
+
 .productos-container {
-    padding: 8px;
+    padding: 0.5rem 0.75rem;
     background-color: #fcfcfc;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+
+.productos-header {
+    flex: 0 0 auto;
+    margin-bottom: 0.75rem !important;
 }
 
 /* Header Side Layout */
@@ -17,7 +32,7 @@
 
 .productos-titulo {
     color: var(--color-sistema);
-    font-size: 2rem;
+    font-size: 1.5rem;
     letter-spacing: 2px;
 }
 
@@ -27,6 +42,29 @@
     margin: 0.5rem auto 0;
     opacity: 0.7;
     border-radius: 2px;
+}
+
+.search-section {
+    flex: 0 0 auto;
+    margin-bottom: 0.75rem !important;
+}
+
+.table-card {
+    flex: 1 1 0%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.table-card .table-container {
+    flex: 1 1 0%;
+    overflow-y: auto;
+    max-height: none !important;
+}
+
+.footer-row {
+    flex: 0 0 auto;
+    margin-top: 0.75rem !important;
 }
 
 /* Botones Naranja / Sistema */
@@ -108,13 +146,12 @@
 }
 
 .productos-table thead th {
-    background-color: #fdfdfd !important;
-    padding: 18px 15px !important;
-    font-weight: 800;
-    color: #333;
-    border-bottom: 2px solid #333 !important; /* Linea negra gruesa como el prototipo */
-    font-size: 0.95rem;
-    text-transform: capitalize;
+    background-color: #fff;
+    border-bottom: 2px solid #eee;
+}
+
+.table-container thead.sticky-top {
+    z-index: 1;
 }
 
 .productos-table tbody td {

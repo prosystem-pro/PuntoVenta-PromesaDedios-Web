@@ -36,7 +36,21 @@ export class ProduccionListado implements OnInit {
 
     // Paginación
     paginaActual = signal(1);
-    itemsPorPagina = signal(7);
+    itemsPorPagina = signal(6);
+
+    // Ordenamiento
+    columnaOrden = signal<string>('');
+    ordenAscendente = signal<boolean>(true);
+
+    ordenar(columna: string) {
+        if (this.columnaOrden() === columna) {
+            this.ordenAscendente.set(!this.ordenAscendente());
+        } else {
+            this.columnaOrden.set(columna);
+            this.ordenAscendente.set(true);
+        }
+        this.paginaActual.set(1);
+    }
 
     constructor() { }
 
@@ -75,7 +89,7 @@ export class ProduccionListado implements OnInit {
         const inicio = this.fechaInicioFiltro();
         const fin = this.fechaFinalFiltro();
 
-        return this.pedidos().filter(p => {
+        let filtrados = this.pedidos().filter(p => {
             // Filtrado por texto
             const coincideTexto =
                 p.CodigoPedidoProduccion?.toString().includes(text) ||
@@ -95,6 +109,33 @@ export class ProduccionListado implements OnInit {
 
             return true;
         });
+
+        // Ordenamiento
+        const columna = this.columnaOrden();
+        if (columna) {
+            filtrados = [...filtrados].sort((a: any, b: any) => {
+                let valA: any;
+                let valB: any;
+                if (columna === 'Estado') {
+                    valA = this.obtenerTextoEstado(a).toLowerCase();
+                    valB = this.obtenerTextoEstado(b).toLowerCase();
+                } else {
+                    valA = a[columna];
+                    valB = b[columna];
+                    if (typeof valA === 'string') {
+                        valA = valA.toLowerCase();
+                        valB = (valB || '').toLowerCase();
+                    }
+                }
+                if (valA == null) return this.ordenAscendente() ? -1 : 1;
+                if (valB == null) return this.ordenAscendente() ? 1 : -1;
+                if (valA < valB) return this.ordenAscendente() ? -1 : 1;
+                if (valA > valB) return this.ordenAscendente() ? 1 : -1;
+                return 0;
+            });
+        }
+
+        return filtrados;
     });
 
     // Paginación computada

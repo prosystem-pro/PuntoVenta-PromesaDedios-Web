@@ -100,13 +100,13 @@
                     <label class="form-label fw-bold small text-muted mb-1">Precio</label>
                     <div class="input-group-custom">
                         <span class="prefix">Q</span>
-                        <input type="number" class="form-control input-custom-flat" formControlName="Precio">
+                        <input type="number" class="form-control input-custom-flat" formControlName="Precio" min="0.01" step="0.01">
                     </div>
                 </div>
                 <div class="col-md-2">
                     <label class="form-label fw-bold small text-muted mb-1">Cantidad</label>
                     <div class="input-group-custom">
-                        <input type="number" class="form-control input-custom-flat" formControlName="Cantidad">
+                        <input type="number" class="form-control input-custom-flat" formControlName="Cantidad" min="0.01" step="0.01">
                     </div>
                 </div>
                 <div class="col-auto d-flex align-items-end">
@@ -167,12 +167,12 @@
                 @if (form.get('MetodoPago')?.value === 'Crédito') {
                 <div class="col-md-4">
                     <label class="form-label fw-bold mb-1 small text-muted">Fecha Vencimiento <span class="text-danger">*</span></label>
-                    <input type="date" class="form-control input-custom" formControlName="FechaVencimiento">
+                    <input type="date" class="form-control input-custom" formControlName="FechaVencimiento" [min]="fechaHoy">
                 </div>
                 }
-                @if (form.get('MetodoPago')?.value === 'Contado' && form.get('MedioPago')?.value === 'Tarjeta de Crédito') {
+                @if (form.get('MetodoPago')?.value === 'Contado' && (form.get('MedioPago')?.value === 'Tarjeta de Crédito' || form.get('MedioPago')?.value === 'Transferencia' || form.get('MedioPago')?.value === 'Cheque')) {
                 <div class="col-md-4">
-                    <label class="form-label fw-bold mb-1 small text-muted">No. Referencia / Voucher</label>
+                    <label class="form-label fw-bold mb-1 small text-muted">Referencia <span class="text-danger">*</span></label>
                     <input type="text" class="form-control input-custom" formControlName="Referencia" placeholder="Ej. 1565asd">
                 </div>
                 }
@@ -200,12 +200,14 @@
 
                 <!-- Custom Medio de Pago Dropdown -->
                 <div class="custom-dropdown-container">
-                    <div class="custom-dropdown-header shadow-sm" [style.background-color]="colorSistema"
-                        (click)="mostrarMedioPago.set(!mostrarMedioPago()); mostrarMetodoPago.set(false); $event.stopPropagation()">
-                        <span>{{ form.get('MedioPago')?.value || 'Medio de pago' }}</span>
+                    <div class="custom-dropdown-header shadow-sm"
+                        [class.dropdown-disabled]="medioPagoDeshabilitado()"
+                        [style.background-color]="medioPagoDeshabilitado() ? '#adb5bd' : colorSistema"
+                        (click)="toggleMedioPago($event)">
+                        <span>{{ medioPagoDeshabilitado() ? 'Medio de pago' : (form.get('MedioPago')?.value || 'Medio de pago') }}</span>
                         <i class="bi bi-caret-down-fill text-white ms-2"></i>
                     </div>
-                    @if (mostrarMedioPago()) {
+                    @if (mostrarMedioPago() && !medioPagoDeshabilitado()) {
                     <ul class="custom-dropdown-menu shadow">
                         <li class="dropdown-header-only">Medio de pago</li>
                         @for (m of mediosPago; track m) {

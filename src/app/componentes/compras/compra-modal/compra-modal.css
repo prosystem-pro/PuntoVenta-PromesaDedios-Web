@@ -193,6 +193,12 @@
     filter: brightness(1.05);
 }
 
+.custom-dropdown-header.dropdown-disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+    pointer-events: none;
+}
+
 .custom-dropdown-menu {
     position: absolute;
     bottom: 100%;

@@ -8,7 +8,7 @@ export class AlertaServicio {
 
     constructor() { }
 
-    MostrarExito(mensaje: string, titulo: string = 'Exito'): void {
+    MostrarExito(mensaje: string, titulo: string = 'Éxito'): void {
         Swal.fire({
             icon: 'success',
             title: titulo,
@@ -18,7 +18,7 @@ export class AlertaServicio {
         });
     }
 
-    MostrarAlerta(mensaje: string, titulo: string = 'Atencion'): void {
+    MostrarAlerta(mensaje: string, titulo: string = 'Atención'): void {
         Swal.fire({
             icon: 'warning',
             title: titulo,
@@ -28,7 +28,7 @@ export class AlertaServicio {
         });
     }
 
-    MostrarInfo(mensaje: string, titulo: string = 'Informacion'): void {
+    MostrarInfo(mensaje: string, titulo: string = 'Información'): void {
         Swal.fire({
             icon: 'info',
             title: titulo,
@@ -42,7 +42,7 @@ export class AlertaServicio {
         let mensaje = 'Ocurrio un error inesperado.';
 
         if (error && typeof error === 'object') {
-            mensaje = error.message || error.error?.message || mensaje;
+            mensaje = error.error?.message || error.message || mensaje;
         } else if (typeof error === 'string') {
             mensaje = error;
         }

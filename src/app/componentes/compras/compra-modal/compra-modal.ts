@@ -29,6 +29,7 @@ export class CompraModal implements OnInit {
     @Output() guardado = new EventEmitter<any>();
 
     colorSistema = Entorno.ColorSistema;
+    fechaHoy = new Date().toISOString().split('T')[0];
     form: FormGroup;
     itemForm: FormGroup; // Formulario para la fila superior de "edición"
     cargando = signal(false);
@@ -98,6 +99,8 @@ export class CompraModal implements OnInit {
             Referencia: ['']
         });
 
+        this.aplicarValidadorReferencia();
+
         // Formulario para capturar el item antes de añadirlo a la lista
         this.itemForm = this.fb.group({
             CodigoProducto: ['', Validators.required],
@@ -112,7 +115,39 @@ export class CompraModal implements OnInit {
     }
 
     async ngOnInit() {
+        this.form.get('MedioPago')?.valueChanges.subscribe(() => this.aplicarValidadorReferencia());
+        this.form.get('MetodoPago')?.valueChanges.subscribe(v => {
+            this.aplicarValidadorReferencia();
+            if (v === 'Crédito') this.mostrarMedioPago.set(false);
+        });
         await this.cargarCatalogos();
+    }
+
+    medioPagoDeshabilitado(): boolean {
+        return this.form.get('MetodoPago')?.value === 'Crédito';
+    }
+
+    toggleMedioPago(event: MouseEvent) {
+        event.stopPropagation();
+        if (this.medioPagoDeshabilitado()) return;
+        this.mostrarMedioPago.set(!this.mostrarMedioPago());
+        this.mostrarMetodoPago.set(false);
+    }
+
+    private aplicarValidadorReferencia() {
+        const medio = this.form.get('MedioPago')?.value;
+        const metodo = this.form.get('MetodoPago')?.value;
+        const referencia = this.form.get('Referencia');
+        const requiereReferencia = metodo === 'Contado' &&
+            (medio === 'Tarjeta de Crédito' || medio === 'Transferencia' || medio === 'Cheque');
+
+        if (requiereReferencia) {
+            referencia?.setValidators([Validators.required]);
+        } else {
+            referencia?.clearValidators();
+            referencia?.setValue('', { emitEvent: false });
+        }
+        referencia?.updateValueAndValidity({ emitEvent: false });
     }
 
     async cargarCatalogos() {
@@ -197,9 +232,17 @@ export class CompraModal implements OnInit {
         this.itemForm.get('CodigoProducto')?.setValue(null);
     }
 
-    agregarItemALista() {
+    async agregarItemALista() {
         if (this.itemForm.invalid) {
-            this.servicioAlerta.MostrarAlerta('Por favor complete los datos del producto y seleccione una unidad');
+            const precio = Number(this.itemForm.get('Precio')?.value);
+            const cantidad = Number(this.itemForm.get('Cantidad')?.value);
+            if (!isNaN(precio) && precio <= 0) {
+                this.servicioAlerta.MostrarAlerta('El Precio debe ser mayor a 0');
+            } else if (!isNaN(cantidad) && cantidad <= 0) {
+                this.servicioAlerta.MostrarAlerta('La Cantidad debe ser mayor a 0');
+            } else {
+                this.servicioAlerta.MostrarAlerta('Por favor complete los datos del producto y seleccione una unidad');
+            }
             return;
         }
 
@@ -208,6 +251,31 @@ export class CompraModal implements OnInit {
         // Buscar el nombre de la unidad para mostrarlo en la tabla
         const unidad = this.listadoUnidades().find(u => u.CodigoUnidadMedida == values.CodigoUnidadMedida);
         const nombreUnidad = unidad ? (unidad.NombreUnidad || unidad.Nombre) : 'N/A';
+
+        // Consolidación: si ya existe un item con mismo Producto + UnidadMedida + Precio,
+        // se ofrece sumar la cantidad al registro existente en lugar de crear duplicado.
+        const indiceExistente = this.items.controls.findIndex(ctrl => {
+            const v = ctrl.value;
+            return Number(v.CodigoProducto) === Number(values.CodigoProducto)
+                && Number(v.CodigoUnidadMedida) === Number(values.CodigoUnidadMedida)
+                && Number(v.Precio) === Number(values.Precio);
+        });
+
+        if (indiceExistente !== -1) {
+            const itemExistente = this.items.at(indiceExistente);
+            const cantidadActual = Number(itemExistente.value.Cantidad);
+            const cantidadNueva = Number(values.Cantidad);
+            const confirmar = await this.servicioAlerta.Confirmacion(
+                'Producto ya agregado',
+                `"${values.NombreProducto}" con la misma presentación y precio ya está en la lista (cantidad actual: ${cantidadActual}). ¿Desea sumar ${cantidadNueva} al registro existente?`,
+                'Sumar',
+                'Cancelar'
+            );
+            if (!confirmar) return;
+            itemExistente.patchValue({ Cantidad: cantidadActual + cantidadNueva });
+            this.resetItemForm();
+            return;
+        }
 
         this.items.push(this.fb.group({
             CodigoCategoriaProducto: [values.CodigoCategoriaProducto],
@@ -252,12 +320,37 @@ export class CompraModal implements OnInit {
         this.items.removeAt(index);
     }
 
-    onCerrar() {
+    private tieneInformacionPendiente(): boolean {
+        if (this.items.length > 0) return true;
+        if (this.textoBusquedaProveedor().trim() !== '') return true;
+        if (this.form.get('CodigoProveedor')?.value) return true;
+        const item = this.itemForm.getRawValue();
+        if (item.CodigoProducto || (item.NombreProducto || '').trim() !== '' || this.textoBusquedaProducto().trim() !== '') return true;
+        if (Number(item.Precio) > 0) return true;
+        return false;
+    }
+
+    async onCerrar() {
+        if (this.tieneInformacionPendiente()) {
+            const continuar = await this.servicioAlerta.Confirmacion(
+                '¿Cerrar sin guardar?',
+                'Si cierra esta ventana, se perderá la información ingresada. ¿Desea continuar?',
+                'Cerrar',
+                'Cancelar'
+            );
+            if (!continuar) return;
+        }
+        this.resetYCerrar();
+    }
+
+    private resetYCerrar() {
         this.form.reset({
             MedioPago: 'Efectivo',
             MetodoPago: 'Contado',
-            FechaVencimiento: new Date().toISOString().split('T')[0]
+            FechaVencimiento: new Date().toISOString().split('T')[0],
+            Referencia: ''
         });
+        this.aplicarValidadorReferencia();
         this.items.clear();
         this.resetItemForm();
         this.textoBusquedaProveedor.set('');
@@ -267,11 +360,22 @@ export class CompraModal implements OnInit {
     }
 
     async onGuardar() {
+        if (this.form.get('MetodoPago')?.value === 'Crédito') {
+            const fechaVenc = this.form.get('FechaVencimiento')?.value;
+            if (!fechaVenc || fechaVenc < this.fechaHoy) {
+                this.servicioAlerta.MostrarAlerta('La Fecha de Vencimiento debe ser igual o posterior a la fecha actual');
+                return;
+            }
+        }
+
         if (this.form.invalid) {
             if (this.items.length === 0) {
                 this.servicioAlerta.MostrarAlerta('Debe agregar al menos un producto a la compra');
             } else if (!this.form.get('CodigoProveedor')?.value) {
                 this.servicioAlerta.MostrarAlerta('Por favor seleccione un proveedor');
+            } else if (this.form.get('Referencia')?.errors?.['required']) {
+                this.servicioAlerta.MostrarAlerta('Debe ingresar la Referencia para Tarjeta, Transferencia o Cheque');
+                this.form.markAllAsTouched();
             } else {
                 this.servicioAlerta.MostrarAlerta('Por favor complete todos los campos obligatorios');
                 this.form.markAllAsTouched();
@@ -319,14 +423,26 @@ export class CompraModal implements OnInit {
             if (res.success) {
                 this.servicioAlerta.MostrarExito(res.message);
                 this.guardado.emit();
-                this.onCerrar();
+                this.resetYCerrar();
             } else {
                 this.servicioAlerta.MostrarError(res);
             }
         } catch (error: any) {
             console.error('Error al guardar compra:', error);
             const errorApi = error.response?.data || { success: false, message: 'Error al procesar la solicitud' };
-            this.servicioAlerta.MostrarError(errorApi);
+            const mensajeApi: string = errorApi?.error?.message || errorApi?.message || '';
+            const matchConversion = mensajeApi.match(/No existe conversi[oó]n de (.+?) a (.+)/i);
+            if (matchConversion) {
+                const unidadOrigen = matchConversion[1].trim();
+                const itemAfectado = this.items.controls.find(c => (c.value.NombrePresentacion || '').toLowerCase() === unidadOrigen.toLowerCase());
+                const nombreProd = itemAfectado?.value.NombreProducto || 'El producto';
+                this.servicioAlerta.MostrarError(
+                    { message: `"${nombreProd}" no admite la presentación "${unidadOrigen}". Verifique que la unidad corresponda a la categoría del producto.` },
+                    'Error de categoría'
+                );
+            } else {
+                this.servicioAlerta.MostrarError(errorApi);
+            }
         } finally {
             this.cargando.set(false);
         }

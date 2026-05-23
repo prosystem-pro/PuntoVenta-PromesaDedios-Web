@@ -21,7 +21,7 @@
                 <div class="col-md-6 mb-3">
                     <label class="small fw-bold text-muted mb-1">Fecha</label>
                     <div class="info-box p-2 bg-light border border-secondary-subtle rounded-3 small">
-                        {{ detalle()?.FechaVencimiento }}
+                        {{ detalle()?.FechaVencimiento | date:'dd/MM/yyyy':'UTC' }}
                     </div>
                 </div>
                 <div class="col-md-6 mb-3">
@@ -137,7 +137,7 @@
                             @for (p of abonosTemporales(); track $index) {
                             <tr class="table-light">
                                 <td class="small text-primary fw-bold">
-                                    <i class="bi bi-clock-history me-1"></i> {{ p.FechaPago }}
+                                    <i class="bi bi-clock-history me-1"></i> {{ p.FechaPago | date:'dd/MM/yyyy HH:mm' }}
                                 </td>
                                 <td class="small">{{ p.NombreMedioPago }}</td>
                                 <td class="small fw-bold text-end">Q {{ p.MontoAbono | number:'1.2-2' }}</td>

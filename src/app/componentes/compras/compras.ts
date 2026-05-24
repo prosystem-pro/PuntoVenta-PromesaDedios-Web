@@ -157,7 +157,17 @@ export class Compras implements OnInit {
     rangoFin = computed(() => Math.min(this.paginaActual() * this.itemsPorPagina(), this.totalRegistros()));
     totalPaginas = computed(() => Math.ceil(this.totalRegistros() / this.itemsPorPagina()));
 
-    paginasArray = computed(() => Array.from({ length: this.totalPaginas() }, (_, i) => i + 1));
+    paginasVisibles = computed<(number | string)[]>(() => {
+        const actual = this.paginaActual();
+        const total = this.totalPaginas();
+
+        if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1);
+
+        if (actual <= 3) return [1, 2, 3, 4, '...', total];
+        if (actual >= total - 2) return [1, '...', total - 3, total - 2, total - 1, total];
+
+        return [1, '...', actual - 1, actual, actual + 1, '...', total];
+    });
 
     irAPagina(p: number) {
         if (p > 0 && p <= this.totalPaginas()) {

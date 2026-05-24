@@ -139,11 +139,12 @@
                     </button>
                 </li>
 
-                @for (p of paginasArray(); track p) {
-                <li class="page-item" [class.active]="paginaActual() === p">
-                    <button class="page-link" (click)="irAPagina(p)"
+                @for (p of paginasVisibles(); track $index) {
+                <li class="page-item" [class.active]="paginaActual() === p" [class.disabled]="p === '...'">
+                    <button class="page-link" (click)="p !== '...' && irAPagina($any(p))"
                         [style.backgroundColor]="paginaActual() === p ? colorSistema : ''"
-                        [style.borderColor]="paginaActual() === p ? colorSistema : ''">
+                        [style.borderColor]="paginaActual() === p ? colorSistema : ''"
+                        [style.cursor]="p === '...' ? 'default' : 'pointer'">
                         {{ p }}
                     </button>
                 </li>

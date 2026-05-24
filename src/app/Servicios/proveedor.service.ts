@@ -45,6 +45,19 @@ export class ServicioProveedor {
         }
     }
 
+    /**
+     * Traduce errores conocidos del API (ej. SequelizeUniqueConstraintError → "NIT duplicado")
+     * a mensajes en español listos para mostrar al usuario.
+     */
+    interpretarError(res: any): string {
+        const tipo = res?.error?.type || '';
+        const msgApi = res?.error?.message || res?.message || '';
+        if (tipo === 'SequelizeUniqueConstraintError' || /validation error/i.test(msgApi)) {
+            return 'Ya existe un proveedor con la información ingresada. Verifique los datos antes de continuar.';
+        }
+        return msgApi || 'No se pudo guardar el proveedor.';
+    }
+
     private manejarError(error: any): RespuestaProveedor {
         if (error.response && error.response.data) {
             return error.response.data;

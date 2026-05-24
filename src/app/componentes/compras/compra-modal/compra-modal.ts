@@ -462,7 +462,7 @@ export class CompraModal implements OnInit {
         if (res.success) {
             this.servicioAlerta.MostrarExito(res.message || 'Proveedor guardado correctamente');
             await this.cargarCatalogos();
-            
+
             // Intentar seleccionar el proveedor recién creado si el API lo retornó
             if (res.data) {
                 // El API suele retornar el objeto creado o al menos { CodigoProveedor, NombreProveedor }
@@ -471,7 +471,8 @@ export class CompraModal implements OnInit {
 
             this.cerrarModalProveedor();
         } else {
-            this.servicioAlerta.MostrarError(res, 'Error al guardar proveedor');
+            const mensaje = this.servicioProveedor.interpretarError(res);
+            this.servicioAlerta.MostrarError({ message: mensaje }, 'Error al guardar proveedor');
         }
     }
 }

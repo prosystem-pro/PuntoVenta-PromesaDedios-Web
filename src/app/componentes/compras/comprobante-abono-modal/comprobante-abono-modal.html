@@ -1,0 +1,90 @@
+@if (visible) {
+<div class="comp-overlay d-flex align-items-center justify-content-center">
+    <div class="comp-modal shadow-lg rounded-4 bg-white overflow-hidden">
+        <div class="comp-header d-flex justify-content-between align-items-center px-3 py-2 border-bottom no-print">
+            <h5 class="m-0 fw-bold">Comprobante de pago</h5>
+            <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-outline-secondary" (click)="imprimir()" [disabled]="cargando() || !data()">
+                    <i class="bi bi-printer"></i> Imprimir
+                </button>
+                <button class="btn btn-sm btn-link text-decoration-none" (click)="onCerrar()">
+                    <i class="bi bi-x-circle-fill fs-4" [style.color]="colorSistema"></i>
+                </button>
+            </div>
+        </div>
+
+        @if (cargando()) {
+        <div class="d-flex justify-content-center py-5">
+            <div class="spinner-border" [style.color]="colorSistema" role="status"></div>
+        </div>
+        }
+
+        @if (data(); as d) {
+        <div class="comp-ticket px-4 py-4">
+            <!-- Logo + Empresa -->
+            <div class="text-center mb-3">
+                <img [src]="logoUrl" alt="Logo" class="comp-logo mb-2">
+                <h2 class="fw-bold m-0 comp-empresa">{{ d.Empresa?.NombreEmpresa }}</h2>
+                @if (d.Empresa?.Nit) { <div class="small mt-2">{{ d.Empresa?.Nit }}</div> }
+                @if (d.Empresa?.Direccion) { <div class="small">{{ d.Empresa?.Direccion }}</div> }
+                @if (d.Empresa?.Telefono) { <div class="small">{{ d.Empresa?.Telefono }}</div> }
+            </div>
+
+            <div class="comp-divider"></div>
+
+            <!-- Datos de comprobante -->
+            <h6 class="fw-bold text-center my-3">Datos de comprobante</h6>
+            <div class="row g-2 small">
+                <div class="col-6">Fecha: {{ d.Proveedor?.Fecha | date:'dd/MM/yyyy HH:mm' }} Horas</div>
+                <div class="col-6">Documento: {{ d.Proveedor?.Documento || '-' }}</div>
+                <div class="col-12">Responsable: {{ d.Proveedor?.Responsable || '-' }}</div>
+                <div class="col-6">Nombre: {{ d.Proveedor?.NombreProveedor || '-' }}</div>
+                <div class="col-6">Nit: {{ d.Proveedor?.Nit || '-' }}</div>
+                <div class="col-6">Dirección: {{ d.Proveedor?.Direccion || '-' }}</div>
+                <div class="col-6">Celular: {{ d.Proveedor?.Celular || '-' }}</div>
+            </div>
+
+            <div class="comp-divider"></div>
+
+            <!-- Nota -->
+            <h6 class="fw-bold text-center my-3">Nota</h6>
+            <div class="small">Autorizado por Propietario</div>
+
+            <div class="comp-divider"></div>
+
+            <!-- Saldo -->
+            <h6 class="fw-bold text-center my-3">Saldo</h6>
+            <div class="row g-2 small">
+                <div class="col-6">Saldo anterior:</div>
+                <div class="col-6 text-end">Q {{ d.Saldo?.SaldoAnterior | number:'1.2-2' }}</div>
+                <div class="col-6">Monto Abonado:</div>
+                <div class="col-6 text-end">Q {{ d.Saldo?.SaldoAbonado | number:'1.2-2' }}</div>
+                <div class="col-6 fw-bold">Saldo actual:</div>
+                <div class="col-6 text-end fw-bold">Q {{ d.Saldo?.SaldoActual | number:'1.2-2' }}</div>
+            </div>
+
+            <div class="comp-divider"></div>
+
+            <!-- Forma de pago -->
+            <h6 class="fw-bold text-center my-3">Forma de pago</h6>
+            <div class="row g-2 small">
+                <div class="col-4">Referencia: {{ d.FormaPago?.NumeroReferencia || '-' }}</div>
+                <div class="col-4 text-center text-capitalize">{{ d.FormaPago?.Metodo }}:</div>
+                <div class="col-4 text-end">Q {{ d.FormaPago?.Monto | number:'1.2-2' }}</div>
+                @if (d.FormaPago?.Banco) {
+                <div class="col-12">Banco: {{ d.FormaPago?.Banco }}</div>
+                }
+            </div>
+
+            <div class="comp-divider mt-4"></div>
+
+            <!-- Firma -->
+            <div class="text-center mt-5 pt-4">
+                <div class="comp-firma-linea">F.</div>
+                <div class="small">Firma</div>
+            </div>
+        </div>
+        }
+    </div>
+</div>
+}

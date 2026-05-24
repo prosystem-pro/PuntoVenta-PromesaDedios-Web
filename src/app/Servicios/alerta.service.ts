@@ -41,10 +41,17 @@ export class AlertaServicio {
     MostrarError(error: any, titulo: string = 'Error'): void {
         let mensaje = 'Ocurrio un error inesperado.';
 
-        if (error && typeof error === 'object') {
-            mensaje = error.error?.message || error.message || mensaje;
-        } else if (typeof error === 'string') {
+        if (typeof error === 'string') {
             mensaje = error;
+        } else if (error && typeof error === 'object') {
+            // Prioriza el mensaje específico que devuelve el backend:
+            // axios:   error.response.data.error.message  o  error.response.data.message
+            // backend: { error: { message } }              o  { message }
+            mensaje = error.response?.data?.error?.message
+                || error.response?.data?.message
+                || error.error?.message
+                || error.message
+                || mensaje;
         }
 
         Swal.fire({

@@ -49,4 +49,9 @@ export class CompraServicio {
         const res = await axiosInstance.delete(`compra/eliminarpago/${id}`);
         return res.data;
     }
+
+    async obtenerFacturaAbono(codigoPagoProveedor: number): Promise<RespuestaAPI<any>> {
+        const res = await axiosInstance.get(`compra/factura-abono/${codigoPagoProveedor}`);
+        return res.data;
+    }
 }

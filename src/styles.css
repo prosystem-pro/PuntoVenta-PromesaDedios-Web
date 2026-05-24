@@ -7,3 +7,8 @@ body {
     height: 100%;
     overflow-x: hidden;
 }
+
+/* SweetAlert2 debe quedar por encima de todos los modales del sistema (modal-proveedor usa z-index: 5000) */
+.swal2-container {
+    z-index: 20000 !important;
+}

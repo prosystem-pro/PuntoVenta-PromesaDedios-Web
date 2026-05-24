@@ -17,7 +17,7 @@
     <!-- Barra de busqueda -->
     <div class="search-container">
         <div class="search-box">
-            <input type="text" class="search-input" placeholder="Buscar por nombre, NIT, telefono o correo..."
+            <input type="text" class="search-input" placeholder="Buscar por nombre, NIT, celular o dirección..."
                 [value]="textoBusqueda()" (input)="alCambiarBusqueda($event)">
             <i class="bi bi-search search-icon"></i>
         </div>
@@ -46,12 +46,8 @@
                                 [ngClass]="columnaOrden() === 'NIT' ? (ordenAscendente() ? 'bi-sort-alpha-down' : 'bi-sort-alpha-up') : 'bi-arrow-down-up opacity-25'"></i>
                         </th>
                         <th style="cursor: pointer;" (click)="ordenar('Telefono')">
-                            Telefono <i class="bi ms-1"
+                            Celular <i class="bi ms-1"
                                 [ngClass]="columnaOrden() === 'Telefono' ? (ordenAscendente() ? 'bi-sort-numeric-down' : 'bi-sort-numeric-up') : 'bi-arrow-down-up opacity-25'"></i>
-                        </th>
-                        <th style="cursor: pointer;" (click)="ordenar('Correo')">
-                            Correo <i class="bi ms-1"
-                                [ngClass]="columnaOrden() === 'Correo' ? (ordenAscendente() ? 'bi-sort-alpha-down' : 'bi-sort-alpha-up') : 'bi-arrow-down-up opacity-25'"></i>
                         </th>
                         <th style="cursor: pointer;" (click)="ordenar('Direccion')">
                             Direccion <i class="bi ms-1"
@@ -66,7 +62,6 @@
                         <td>{{ proveedor.NombreProveedor }}</td>
                         <td>{{ proveedor.NIT }}</td>
                         <td>{{ proveedor.Telefono }}</td>
-                        <td>{{ proveedor.Correo }}</td>
                         <td class="text-truncate" style="max-width: 200px;">{{ proveedor.Direccion }}</td>
                         <td class="acciones-cell">
                             <button class="btn-accion btn-editar" (click)="editarProveedor(proveedor)" title="Editar">
@@ -79,7 +74,7 @@
                         </td>
                     </tr>
                     <tr *ngIf="proveedoresPaginados().length === 0">
-                        <td colspan="7" class="text-center py-4 text-muted">No se encontraron proveedores</td>
+                        <td colspan="6" class="text-center py-4 text-muted">No se encontraron proveedores</td>
                     </tr>
                 </tbody>
             </table>
@@ -101,12 +96,13 @@
                     </button>
                 </li>
 
-                <li class="page-item" *ngFor="let p of [].constructor(totalPaginas()); let i = index"
-                    [class.active]="paginaActual() === i + 1">
-                    <button class="page-link" (click)="irAPagina(i + 1)"
-                        [style.backgroundColor]="paginaActual() === i + 1 ? colorSistema : ''"
-                        [style.borderColor]="paginaActual() === i + 1 ? colorSistema : ''">
-                        {{ i + 1 }}
+                <li class="page-item" *ngFor="let p of paginasVisibles()"
+                    [class.active]="paginaActual() === p" [class.disabled]="p === '...'">
+                    <button class="page-link" (click)="p !== '...' && irAPagina($any(p))"
+                        [style.backgroundColor]="paginaActual() === p ? colorSistema : ''"
+                        [style.borderColor]="paginaActual() === p ? colorSistema : ''"
+                        [style.cursor]="p === '...' ? 'default' : 'pointer'">
+                        {{ p }}
                     </button>
                 </li>
 

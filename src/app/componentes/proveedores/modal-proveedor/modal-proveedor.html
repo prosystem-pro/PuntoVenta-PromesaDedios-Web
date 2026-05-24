@@ -17,20 +17,28 @@
                     <label for="NombreProveedor">Nombre</label>
                     <input type="text" id="NombreProveedor" formControlName="NombreProveedor"
                         placeholder="Nombre de proveedor"
+                        (blur)="normalizarCampo('NombreProveedor')"
                         [class.invalid]="proveedorForm.get('NombreProveedor')?.invalid && proveedorForm.get('NombreProveedor')?.touched">
+                    @if (proveedorForm.get('NombreProveedor')?.touched && proveedorForm.get('NombreProveedor')?.errors?.['pattern']) {
+                    <small class="text-danger">Solo se permiten letras y apóstrofo.</small>
+                    }
                 </div>
 
                 <!-- NIT -->
                 <div class="form-group text-start">
                     <label for="NIT">NIT</label>
-                    <input type="text" id="NIT" formControlName="NIT" placeholder="NIT de proveedor"
+                    <input type="text" id="NIT" formControlName="NIT" placeholder="NIT de proveedor (opcional)"
+                        inputmode="numeric"
+                        (blur)="normalizarCampo('NIT')"
                         [class.invalid]="proveedorForm.get('NIT')?.invalid && proveedorForm.get('NIT')?.touched">
                 </div>
 
-                <!-- Teléfono -->
+                <!-- Celular -->
                 <div class="form-group text-start">
-                    <label for="Telefono">Teléfono</label>
-                    <input type="text" id="Telefono" formControlName="Telefono" placeholder="Teléfono de proveedor"
+                    <label for="Telefono">Celular</label>
+                    <input type="text" id="Telefono" formControlName="Telefono" placeholder="Celular de proveedor"
+                        maxlength="8" inputmode="numeric"
+                        (blur)="normalizarCampo('Telefono')"
                         [class.invalid]="proveedorForm.get('Telefono')?.invalid && proveedorForm.get('Telefono')?.touched">
                 </div>
 
@@ -38,15 +46,10 @@
                 <div class="form-group text-start">
                     <label for="Direccion">Dirección</label>
                     <input type="text" id="Direccion" formControlName="Direccion" placeholder="Dirección de proveedor"
+                        (blur)="normalizarCampo('Direccion')"
                         [class.invalid]="proveedorForm.get('Direccion')?.invalid && proveedorForm.get('Direccion')?.touched">
                 </div>
 
-                <!-- Correo -->
-                <div class="form-group text-start sm-col-2">
-                    <label for="Correo">Correo Electrónico</label>
-                    <input type="email" id="Correo" formControlName="Correo" placeholder="correo@ejemplo.com"
-                        [class.invalid]="proveedorForm.get('Correo')?.invalid && proveedorForm.get('Correo')?.touched">
-                </div>
             </div>
 
             <!-- Footer / Acciones -->

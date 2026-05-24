@@ -49,10 +49,9 @@ export class Proveedores implements OnInit {
         if (busqueda) {
             filtrados = filtrados.filter(p =>
                 p.NombreProveedor.toLowerCase().includes(busqueda) ||
-                p.NIT.toLowerCase().includes(busqueda) ||
-                p.Telefono.includes(busqueda) ||
-                p.Direccion.toLowerCase().includes(busqueda) ||
-                p.Correo.toLowerCase().includes(busqueda)
+                (p.NIT || '').toLowerCase().includes(busqueda) ||
+                (p.Telefono || '').includes(busqueda) ||
+                (p.Direccion || '').toLowerCase().includes(busqueda)
             );
         }
 
@@ -91,6 +90,15 @@ export class Proveedores implements OnInit {
     // Total de registros y paginas
     totalRegistros = computed(() => this.proveedoresFiltrados().length);
     totalPaginas = computed(() => Math.ceil(this.totalRegistros() / this.itemsPorPagina));
+
+    paginasVisibles = computed<(number | string)[]>(() => {
+        const actual = this.paginaActual();
+        const total = this.totalPaginas();
+        if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1);
+        if (actual <= 3) return [1, 2, 3, 4, '...', total];
+        if (actual >= total - 2) return [1, '...', total - 3, total - 2, total - 1, total];
+        return [1, '...', actual - 1, actual, actual + 1, '...', total];
+    });
 
     // Proveedores de la pagina actual
     proveedoresPaginados = computed(() => {
@@ -201,7 +209,8 @@ export class Proveedores implements OnInit {
             this.cargarProveedores();
             this.cerrarModal();
         } else {
-            this.servicioAlerta.MostrarError(res, 'Error al guardar proveedor');
+            const mensaje = this.servicioProveedor.interpretarError(res);
+            this.servicioAlerta.MostrarError({ message: mensaje }, 'Error al guardar proveedor');
         }
     }
 
@@ -210,9 +219,8 @@ export class Proveedores implements OnInit {
             'No.': index + 1,
             'Nombre': p.NombreProveedor,
             'NIT': p.NIT,
-            'Telefono': p.Telefono,
+            'Celular': p.Telefono,
             'Direccion': p.Direccion,
-            'Correo': p.Correo,
             'Estatus': p.Estatus === 1 ? 'Activo' : 'Inactivo'
         }));
 

@@ -6,11 +6,12 @@ import { CompraDetalleCompleto } from '../../../Modelos/compra.modelo';
 import { Entorno } from '../../../Entorno/Entorno';
 import { AlertaServicio } from '../../../Servicios/alerta.service';
 import { ServicioConfiguracion } from '../../../Servicios/configuracion.service';
+import { ComprobanteAbonoModal } from '../comprobante-abono-modal/comprobante-abono-modal';
 
 @Component({
     selector: 'app-pago-modal',
     standalone: true,
-    imports: [CommonModule, FormsModule],
+    imports: [CommonModule, FormsModule, ComprobanteAbonoModal],
     templateUrl: './pago-modal.html',
     styleUrl: './pago-modal.css'
 })
@@ -35,6 +36,9 @@ export class PagoModal implements OnChanges {
     nuevoCodigoAperturaCaja = 1;
 
     abonosTemporales = signal<any[]>([]);
+
+    mostrarComprobante = signal(false);
+    codigoComprobante = signal<number | null>(null);
 
     mediosPago = ['Efectivo', 'Tarjeta de Crédito', 'Transferencia', 'Cheque'];
 
@@ -76,8 +80,36 @@ export class PagoModal implements OnChanges {
         }
     }
 
+    bloquearTeclasInvalidas(event: KeyboardEvent) {
+        if (['-', '+', 'e', 'E'].includes(event.key)) {
+            event.preventDefault();
+        }
+    }
+
+    private requiereReferencia(medio: string): boolean {
+        return medio === 'Tarjeta de Crédito' || medio === 'Transferencia' || medio === 'Cheque';
+    }
+
     agregarPago() {
-        if (!this.compraId || this.nuevoValor <= 0) return;
+        if (!this.compraId) return;
+
+        if (Number(this.nuevoValor) <= 0) {
+            this.servicioAlerta.MostrarAlerta('El Valor debe ser mayor a 0.');
+            return;
+        }
+
+        if (this.requiereReferencia(this.nuevoMedioPago) && !(this.nuevoNumeroReferencia || '').trim()) {
+            this.servicioAlerta.MostrarAlerta('El campo Referencia es obligatorio para la forma de pago seleccionada.');
+            return;
+        }
+
+        const saldoPendiente = Number(this.detalle()?.SaldoPendiente || 0);
+        const sumaTemporales = this.abonosTemporales().reduce((acc, a) => acc + Number(a.MontoAbono || 0), 0);
+        const saldoDisponible = saldoPendiente - sumaTemporales;
+        if (Number(this.nuevoValor) > saldoDisponible) {
+            this.servicioAlerta.MostrarAlerta(`El monto ingresado supera el saldo pendiente actual (Q ${saldoDisponible.toFixed(2)}).`);
+            return;
+        }
 
         const medioPagoMap: any = {
             'Efectivo': 1,
@@ -113,9 +145,21 @@ export class PagoModal implements OnChanges {
     async onGuardar() {
         const temporales = this.abonosTemporales();
         if (temporales.length === 0) {
-            this.onCerrar();
+            this.servicioAlerta.MostrarAlerta('Debe agregar al menos un abono antes de guardar.');
             return;
         }
+
+        const total = temporales.reduce((acc, a) => acc + Number(a.MontoAbono || 0), 0);
+        const detalle = temporales.length === 1
+            ? `Se registrará 1 abono por un total de Q ${total.toFixed(2)}.`
+            : `Se registrarán ${temporales.length} abonos por un total de Q ${total.toFixed(2)}.`;
+        const confirmado = await this.servicioAlerta.Confirmacion(
+            '¿Desea confirmar el registro del abono?',
+            detalle,
+            'Confirmar',
+            'Cancelar'
+        );
+        if (!confirmado) return;
 
         this.cargando.set(true);
         try {
@@ -129,20 +173,26 @@ export class PagoModal implements OnChanges {
                     NumeroReferencia: abono.NumeroReferencia,
                     Banco: abono.Banco
                 };
-                const res = await this.servicioCompra.registrarAbono(payload);
-                if (res.success) exitos++;
+                try {
+                    const res = await this.servicioCompra.registrarAbono(payload);
+                    if (res.success) {
+                        exitos++;
+                        this.abonosTemporales.update(lista => lista.filter(a => a !== abono));
+                    } else {
+                        this.servicioAlerta.MostrarError(res);
+                        break;
+                    }
+                } catch (errorAbono) {
+                    this.servicioAlerta.MostrarError(errorAbono);
+                    break;
+                }
             }
 
             if (exitos > 0) {
                 this.servicioAlerta.MostrarExito(`Se registraron ${exitos} abono(s) correctamente`);
-                this.abonosTemporales.set([]);
                 await this.cargarDetalle();
+                if (this.abonosTemporales().length === 0) this.onCerrar();
             }
-
-            // Si todos salieron bien o no había más, cerramos o nos quedamos
-            this.onCerrar();
-        } catch (error) {
-            this.servicioAlerta.MostrarError({ error: { message: 'Error al procesar los abonos' } });
         } finally {
             this.cargando.set(false);
         }
@@ -174,11 +224,35 @@ export class PagoModal implements OnChanges {
     }
 
     imprimirTicket(pago: any) {
-        const url = `${Entorno.ApiUrl}compra/imprimir/abono/${pago.CodigoPagoProveedor || pago.CodigoAbono}`;
-        window.open(url, '_blank');
+        const id = pago.CodigoPagoProveedor || pago.CodigoAbono;
+        if (!id) return;
+        this.codigoComprobante.set(id);
+        this.mostrarComprobante.set(true);
     }
 
-    onCerrar() {
+    cerrarComprobante() {
+        this.mostrarComprobante.set(false);
+        this.codigoComprobante.set(null);
+    }
+
+    private tieneInformacionPendiente(): boolean {
+        if (this.abonosTemporales().length > 0) return true;
+        if (Number(this.nuevoValor) > 0) return true;
+        if ((this.nuevoNumeroReferencia || '').trim() !== '') return true;
+        if ((this.nuevoBanco || '').trim() !== '') return true;
+        return false;
+    }
+
+    async onCerrar() {
+        if (this.tieneInformacionPendiente()) {
+            const continuar = await this.servicioAlerta.Confirmacion(
+                '¿Cerrar sin guardar?',
+                'Si cierra esta ventana, la información cargada no se guardará y se perderán los cambios realizados.',
+                'Cerrar',
+                'Cancelar'
+            );
+            if (!continuar) return;
+        }
         this.detalle.set(null);
         this.abonosTemporales.set([]);
         this.limpiarFormulario();

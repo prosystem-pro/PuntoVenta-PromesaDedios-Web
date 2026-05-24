@@ -53,9 +53,15 @@ export class ServicioProveedor {
         const tipo = res?.error?.type || '';
         const msgApi = res?.error?.message || res?.message || '';
         if (tipo === 'SequelizeUniqueConstraintError' || /validation error/i.test(msgApi)) {
-            return 'Ya existe un proveedor con la información ingresada. Verifique los datos antes de continuar.';
+            return 'Ya existe un proveedor registrado con este nombre.';
         }
-        return msgApi || 'No se pudo guardar el proveedor.';
+        if (
+            tipo === 'SequelizeForeignKeyConstraintError' ||
+            /REFERENCE constraint|FOREIGN KEY|conflicted with the REFERENCE|foreign key constraint/i.test(msgApi)
+        ) {
+            return 'No es posible eliminar el proveedor porque tiene registros asociados.';
+        }
+        return msgApi || 'No se pudo procesar la solicitud del proveedor.';
     }
 
     private manejarError(error: any): RespuestaProveedor {

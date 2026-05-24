@@ -92,6 +92,15 @@ export class Clientes implements OnInit {
     totalRegistros = computed(() => this.clientesFiltrados().length);
     totalPaginas = computed(() => Math.ceil(this.totalRegistros() / this.itemsPorPagina));
 
+    paginasVisibles = computed<(number | string)[]>(() => {
+        const actual = this.paginaActual();
+        const total = this.totalPaginas();
+        if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1);
+        if (actual <= 3) return [1, 2, 3, 4, '...', total];
+        if (actual >= total - 2) return [1, '...', total - 3, total - 2, total - 1, total];
+        return [1, '...', actual - 1, actual, actual + 1, '...', total];
+    });
+
     // Clientes de la pagina actual
     clientesPaginados = computed(() => {
         const inicio = (this.paginaActual() - 1) * this.itemsPorPagina;
@@ -197,7 +206,8 @@ export class Clientes implements OnInit {
             this.cargarClientes();
             this.cerrarModal();
         } else {
-            this.servicioAlerta.MostrarError(res, 'Error al guardar cliente');
+            const mensaje = this.servicioCliente.interpretarError(res);
+            this.servicioAlerta.MostrarError({ message: mensaje }, 'Error al guardar cliente');
         }
     }
 
@@ -206,8 +216,8 @@ export class Clientes implements OnInit {
             'No.': index + 1,
             'Nombre': c.NombreCliente,
             'NIT': c.NIT,
+            'Celular': c.Telefono,
             'Direccion': c.Direccion,
-            'Telefono': c.Telefono,
             'Estatus': c.Estatus === 1 ? 'Activo' : 'Inactivo'
         }));
 

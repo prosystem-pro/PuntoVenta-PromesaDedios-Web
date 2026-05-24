@@ -46,7 +46,7 @@
                                 [ngClass]="columnaOrden() === 'NIT' ? (ordenAscendente() ? 'bi-sort-alpha-down' : 'bi-sort-alpha-up') : 'bi-arrow-down-up opacity-25'"></i>
                         </th>
                         <th style="cursor: pointer;" (click)="ordenar('Telefono')">
-                            Telefono <i class="bi ms-1"
+                            Celular <i class="bi ms-1"
                                 [ngClass]="columnaOrden() === 'Telefono' ? (ordenAscendente() ? 'bi-sort-numeric-down' : 'bi-sort-numeric-up') : 'bi-arrow-down-up opacity-25'"></i>
                         </th>
                         <th style="cursor: pointer;" (click)="ordenar('Direccion')">
@@ -96,12 +96,13 @@
                     </button>
                 </li>
 
-                <li class="page-item" *ngFor="let p of [].constructor(totalPaginas()); let i = index"
-                    [class.active]="paginaActual() === i + 1">
-                    <button class="page-link" (click)="irAPagina(i + 1)"
-                        [style.backgroundColor]="paginaActual() === i + 1 ? colorSistema : ''"
-                        [style.borderColor]="paginaActual() === i + 1 ? colorSistema : ''">
-                        {{ i + 1 }}
+                <li class="page-item" *ngFor="let p of paginasVisibles()"
+                    [class.active]="paginaActual() === p" [class.disabled]="p === '...'">
+                    <button class="page-link" (click)="p !== '...' && irAPagina($any(p))"
+                        [style.backgroundColor]="paginaActual() === p ? colorSistema : ''"
+                        [style.borderColor]="paginaActual() === p ? colorSistema : ''"
+                        [style.cursor]="p === '...' ? 'default' : 'pointer'">
+                        {{ p }}
                     </button>
                 </li>
 

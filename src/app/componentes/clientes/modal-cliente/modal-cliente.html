@@ -14,23 +14,34 @@
             <div class="form-grid">
                 <!-- Nombre -->
                 <div class="form-group text-start sm-col-2">
-                    <label for="NombreCliente">Nombre Completo</label>
+                    <label for="NombreCliente">Nombre</label>
                     <input type="text" id="NombreCliente" formControlName="NombreCliente"
                         placeholder="Nombre del cliente"
+                        (input)="sanearEnVivo('NombreCliente')" (blur)="normalizarCampo('NombreCliente')"
                         [class.invalid]="clienteForm.get('NombreCliente')?.invalid && clienteForm.get('NombreCliente')?.touched">
+                    @if (clienteForm.get('NombreCliente')?.touched && clienteForm.get('NombreCliente')?.errors?.['pattern']) {
+                    <small class="text-danger">Solo se permiten letras y apóstrofo.</small>
+                    }
                 </div>
 
                 <!-- NIT -->
                 <div class="form-group text-start">
                     <label for="NIT">NIT</label>
-                    <input type="text" id="NIT" formControlName="NIT" placeholder="NIT del cliente"
+                    <input type="text" id="NIT" formControlName="NIT" placeholder="NIT del cliente (opcional)"
+                        inputmode="numeric" maxlength="13"
+                        (input)="sanearEnVivo('NIT')" (blur)="normalizarCampo('NIT')"
                         [class.invalid]="clienteForm.get('NIT')?.invalid && clienteForm.get('NIT')?.touched">
+                    @if (clienteForm.get('NIT')?.touched && clienteForm.get('NIT')?.errors?.['nitInvalido']) {
+                    <small class="text-danger">NIT inválido.</small>
+                    }
                 </div>
 
-                <!-- Teléfono -->
+                <!-- Celular -->
                 <div class="form-group text-start">
-                    <label for="Telefono">Teléfono</label>
-                    <input type="text" id="Telefono" formControlName="Telefono" placeholder="Teléfono del cliente"
+                    <label for="Telefono">Celular</label>
+                    <input type="text" id="Telefono" formControlName="Telefono" placeholder="Celular del cliente"
+                        maxlength="8" inputmode="numeric"
+                        (input)="sanearEnVivo('Telefono')" (blur)="normalizarCampo('Telefono')"
                         [class.invalid]="clienteForm.get('Telefono')?.invalid && clienteForm.get('Telefono')?.touched">
                 </div>
 
@@ -38,14 +49,8 @@
                 <div class="form-group text-start sm-col-2">
                     <label for="Direccion">Dirección</label>
                     <input type="text" id="Direccion" formControlName="Direccion" placeholder="Dirección del cliente"
+                        (input)="sanearEnVivo('Direccion')" (blur)="normalizarCampo('Direccion')"
                         [class.invalid]="clienteForm.get('Direccion')?.invalid && clienteForm.get('Direccion')?.touched">
-                </div>
-
-                <!-- Correo -->
-                <div class="form-group text-start sm-col-2">
-                    <label for="Correo">Correo Electrónico</label>
-                    <input type="email" id="Correo" formControlName="Correo" placeholder="Correo del cliente"
-                        [class.invalid]="clienteForm.get('Correo')?.invalid && clienteForm.get('Correo')?.touched">
                 </div>
             </div>
 

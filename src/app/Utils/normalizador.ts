@@ -32,3 +32,24 @@ export function normalizarTextoLimpio(valor: string | null | undefined): string 
     if (!valor) return '';
     return valor.toString().trim().replace(/\s+/g, ' ');
 }
+
+/**
+ * Valida un NIT guatemalteco mediante el dígito verificador módulo 11.
+ * Espera el valor ya normalizado (solo dígitos y opcionalmente 'K' al final).
+ * Devuelve true si el verificador coincide.
+ */
+export function esNITValido(valor: string | null | undefined): boolean {
+    const nit = (valor || '').toString().toUpperCase().replace(/[^0-9K]/g, '');
+    if (nit.length < 2) return false;
+    const cuerpo = nit.slice(0, -1);
+    const verificador = nit.slice(-1);
+    if (!/^\d+$/.test(cuerpo)) return false;
+    const largo = cuerpo.length;
+    let suma = 0;
+    for (let i = 0; i < largo; i++) {
+        suma += parseInt(cuerpo[i], 10) * (largo + 1 - i);
+    }
+    const esperadoNum = (11 - (suma % 11)) % 11;
+    const esperado = esperadoNum === 10 ? 'K' : esperadoNum.toString();
+    return verificador === esperado;
+}

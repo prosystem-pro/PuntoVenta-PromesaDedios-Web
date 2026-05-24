@@ -174,7 +174,8 @@ export class Proveedores implements OnInit {
                 this.servicioAlerta.MostrarExito(res.message || 'Proveedor eliminado correctamente');
                 this.cargarProveedores();
             } else {
-                this.servicioAlerta.MostrarError(res, 'Error al eliminar proveedor');
+                const mensaje = this.servicioProveedor.interpretarError(res);
+                this.servicioAlerta.MostrarError({ message: mensaje }, 'Error al eliminar proveedor');
             }
         }
     }

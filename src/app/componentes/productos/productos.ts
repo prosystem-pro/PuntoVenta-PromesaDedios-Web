@@ -6,6 +6,7 @@ import { Producto, CategoriaProducto, UnidadMedida } from '../../Modelos/product
 import { Entorno } from '../../Entorno/Entorno';
 import { ProductoServicio } from '../../Servicios/producto.service';
 import { AlertaServicio } from '../../Servicios/alerta.service';
+import { manejarErrorApi } from '../../Utils/error-parser';
 import * as XLSX from 'xlsx';
 
 @Component({
@@ -33,6 +34,8 @@ export class Productos implements OnInit {
     modoEdicion = signal<'lectura' | 'ajustar' | 'abastecer'>('lectura');
     // Coleccion de cambios: { CodigoProducto: ValorDigitado }
     cambiosPendientes = signal<Record<number, number>>({});
+    // Productos con valor invalido en el input de stock
+    productosConError = signal<Record<number, boolean>>({});
 
     // Busqueda
     textoBusqueda = signal('');
@@ -53,6 +56,11 @@ export class Productos implements OnInit {
             const tipo = (p.TipoProducto || '').toLowerCase();
             return tipo !== 'insumo';
         });
+
+        // En modo Abastecer, solo mostrar productos con produccion pendiente
+        if (this.modoEdicion() === 'abastecer') {
+            filtrados = filtrados.filter(p => (p.CantidadProducida || 0) > 0);
+        }
 
         // Filtro por codigo de barras
         const barra = this.codigoBarrasBusqueda().trim();
@@ -153,6 +161,7 @@ export class Productos implements OnInit {
                 CodigoCategoriaProducto: p.Categoria, // API: Categoria -> Front: CodigoCategoria
                 NombreCategoria: p.NombreCategoriaProducto, // API: NombreCategoriaProducto -> Front: NombreCategoria
                 Stock: p.StockActual, // API: StockActual -> Front: Stock
+                CantidadProducida: Number(p.CantidadProducida) || 0,
                 TipoProducto: p.TipoProducto?.toUpperCase(), // Normalizar
                 // Otros campos que coinciden: Estatus, NombreUnidad, etc.
             }));
@@ -189,10 +198,10 @@ export class Productos implements OnInit {
                     this.servicioAlerta.MostrarExito(res.message);
                     this.cargarProductos();
                 } else {
-                    this.servicioAlerta.MostrarError(res);
+                    this.servicioAlerta.MostrarError({ message: manejarErrorApi(res) });
                 }
             } catch (error) {
-                this.servicioAlerta.MostrarError({ error: { message: 'Error al eliminar el producto' } });
+                this.servicioAlerta.MostrarError({ message: manejarErrorApi(error) });
             }
         }
     }
@@ -218,51 +227,144 @@ export class Productos implements OnInit {
             this.cancelarEdicion();
         } else {
             this.modoEdicion.set('abastecer');
-            this.cambiosPendientes.set({});
+            // Prellenar con las cantidades efectivamente producidas (no editables manualmente)
+            const inicial: Record<number, number> = {};
+            this.productos().forEach(p => {
+                if (p.CodigoProducto && (p.CantidadProducida || 0) > 0) {
+                    inicial[p.CodigoProducto] = p.CantidadProducida || 0;
+                }
+            });
+            this.cambiosPendientes.set(inicial);
+            this.paginaActual.set(1);
         }
     }
 
-    cancelarEdicion() {
+    hayCambiosPendientes(): boolean {
+        const cambios = this.cambiosPendientes();
+        const modo = this.modoEdicion();
+        if (modo === 'lectura') return false;
+        // Cualquier valor invalido cuenta como cambio pendiente
+        if (Object.keys(this.productosConError()).length > 0) return true;
+        return Object.entries(cambios).some(([id, valor]) => {
+            const producto = this.productos().find(p => p.CodigoProducto === Number(id));
+            if (!producto) return false;
+            const referencia = modo === 'ajustar' ? (producto.Stock || 0) : (producto.CantidadProducida || 0);
+            return Number(valor) !== Number(referencia);
+        });
+    }
+
+    async cancelarEdicion() {
+        if (this.hayCambiosPendientes()) {
+            const confirmado = await this.servicioAlerta.Confirmacion(
+                '¿Desea salir sin guardar?',
+                'Se perderán los cambios realizados en el stock.',
+                'Sí, descartar cambios',
+                'Continuar editando'
+            );
+            if (!confirmado) return;
+        }
+        this.reiniciarEdicion();
+    }
+
+    private reiniciarEdicion() {
         this.modoEdicion.set('lectura');
         this.cambiosPendientes.set({});
+        this.productosConError.set({});
     }
 
     alCambiarValorStock(codigo: number | undefined, valor: string) {
         if (!codigo) return;
-        const num = parseFloat(valor) || 0;
-        this.cambiosPendientes.update(c => ({ ...c, [codigo]: num }));
+        const limpio = (valor ?? '').toString().trim();
+        const num = limpio === '' ? 0 : parseFloat(limpio);
+        const esValido = Number.isFinite(num) && num >= 0;
+        this.cambiosPendientes.update(c => ({ ...c, [codigo]: esValido ? num : num }));
+        this.productosConError.update(e => {
+            const copia = { ...e };
+            if (esValido) delete copia[codigo];
+            else copia[codigo] = true;
+            return copia;
+        });
     }
+
+    tieneError(codigo: number | undefined): boolean {
+        if (!codigo) return false;
+        return !!this.productosConError()[codigo];
+    }
+
+    hayProductosConError = computed(() => Object.keys(this.productosConError()).length > 0);
 
     async guardarCambiosStock() {
         const cambios = this.cambiosPendientes();
         const listaCodigos = Object.keys(cambios).map(Number);
+
+        // Validar valores invalidos antes de cualquier llamada al API
+        const codigosConError = Object.keys(this.productosConError()).map(Number);
+        if (codigosConError.length > 0) {
+            const nombres = codigosConError
+                .map(id => this.productos().find(p => p.CodigoProducto === id)?.NombreProducto)
+                .filter(Boolean)
+                .join(', ');
+            this.servicioAlerta.MostrarAlerta(
+                `Existen valores inválidos en: ${nombres}. Solo se permiten números mayores o iguales a 0.`,
+                'Valores inválidos'
+            );
+            return;
+        }
+
+        if (this.modoEdicion() === 'abastecer' && listaCodigos.length === 0) {
+            this.servicioAlerta.MostrarAlerta(
+                'No hay productos con producción pendiente para abastecer.',
+                'Sin productos para abastecer'
+            );
+            return;
+        }
 
         if (listaCodigos.length === 0) {
             this.cancelarEdicion();
             return;
         }
 
+        // Confirmacion antes de abastecer
+        if (this.modoEdicion() === 'abastecer') {
+            const totalProductos = listaCodigos.length;
+            const totalUnidades = listaCodigos.reduce((acc, id) => acc + (cambios[id] || 0), 0);
+            const confirmado = await this.servicioAlerta.Confirmacion(
+                '¿Confirmar abastecimiento?',
+                `Se abastecerán ${totalProductos} producto(s) con un total de ${totalUnidades} unidad(es). Esta acción incrementará el stock y marcará las producciones como abastecidas.`,
+                'Sí, abastecer',
+                'Cancelar'
+            );
+            if (!confirmado) return;
+        }
+
         this.cargando.set(true);
         try {
             if (this.modoEdicion() === 'ajustar') {
-                // El API incrementa (StockActual + X), asi que enviamos la diferencia
-                const payload = {
-                    Productos: listaCodigos.map(id => {
+                // El API sobreescribe StockActual con el valor enviado
+                const productosCambiados = listaCodigos
+                    .map(id => {
                         const productoReal = this.productos().find(p => p.CodigoProducto === id);
                         const stockActual = productoReal?.Stock || 0;
                         const nuevoStock = cambios[id];
-                        return {
-                            CodigoProducto: id,
-                            StockActual: nuevoStock - stockActual
-                        };
-                    }).filter(p => p.StockActual !== 0) // Solo enviar si hay cambio real
-                };
+                        return { CodigoProducto: id, StockActual: nuevoStock, _anterior: stockActual };
+                    })
+                    .filter(p => p.StockActual !== p._anterior);
 
-                if (payload.Productos.length > 0) {
-                    const res = await this.servicioProducto.ActualizarStockProducto(payload);
-                    if (res.success) this.servicioAlerta.MostrarExito(res.message);
-                    else this.servicioAlerta.MostrarError(res);
+                if (productosCambiados.length === 0) {
+                    this.servicioAlerta.MostrarAlerta(
+                        'No se detectaron cambios en el stock de los productos.',
+                        'Sin cambios para guardar'
+                    );
+                    this.cargando.set(false);
+                    return;
                 }
+
+                const payload = {
+                    Productos: productosCambiados.map(({ CodigoProducto, StockActual }) => ({ CodigoProducto, StockActual }))
+                };
+                const res = await this.servicioProducto.ActualizarStockProducto(payload);
+                if (res.success) this.servicioAlerta.MostrarExito(res.message);
+                else this.servicioAlerta.MostrarError(res);
             } else if (this.modoEdicion() === 'abastecer') {
                 const payload = {
                     Productos: listaCodigos.map(id => ({
@@ -279,7 +381,7 @@ export class Productos implements OnInit {
             }
 
             await this.cargarProductos();
-            this.cancelarEdicion();
+            this.reiniciarEdicion();
         } catch (error) {
             this.servicioAlerta.MostrarError({ error: { message: 'Error al procesar cambios de stock' } });
         } finally {

@@ -34,6 +34,7 @@ export class ProductoDetalle implements OnInit {
     categorias = signal<CategoriaProducto[]>([]);
     unidades = signal<UnidadMedida[]>([]);
     todosLosProductos = signal<Producto[]>([]); // Para el buscador de ingredientes
+    productosVentanillaCocina = signal<Producto[]>([]); // Para validar codigo de barra unico
 
     // Modales
     mostrarCategoriaModal = signal(false);
@@ -99,26 +100,43 @@ export class ProductoDetalle implements OnInit {
     productoId: number | null = null;
 
     constructor() {
+        // Validadores de formato
+        const dosDecimales = Validators.pattern(/^\d+(\.\d{1,2})?$/);
+        const soloDigitos8 = Validators.pattern(/^\d{0,8}$/);
+
         this.productoForm = this.fb.group({
             NombreProducto: ['', [Validators.required]],
             CodigoCategoriaProducto: [null, [Validators.required]],
             CodigoUnidadMedida: [null, [Validators.required]],
-            TipoProducto: ['VENTANILLA', [Validators.required]],
-            CodigoBarra: [''],
-            Iva: [0], // Porcentaje
-            PrecioVenta: [0, [Validators.required, Validators.min(0.01)]],
+            TipoProducto: [null, [Validators.required]],
+            CodigoBarra: ['', [soloDigitos8]],
+            Iva: [0, [Validators.min(0), Validators.max(100), dosDecimales]],
+            PrecioVenta: [0, [Validators.required, Validators.min(0.01), dosDecimales]],
             TieneReceta: [false],
             Estatus: [1],
-            Stock: [0],
-            StockMinimo: [0],
-            StockSugerido: [0],
-            PrecioCompra: [0],
+            Stock: [null, [Validators.required, Validators.min(0), dosDecimales]],
+            StockMinimo: [0, [Validators.min(0), dosDecimales]],
+            StockSugerido: [0, [Validators.min(0), dosDecimales]],
+            PrecioCompra: [0, [Validators.min(0), dosDecimales]],
             Ingredientes: this.fb.array([])
         });
     }
 
     get ingredientes() {
         return this.productoForm.get('Ingredientes') as FormArray;
+    }
+
+    esInvalido(nombreControl: string): boolean {
+        const c = this.productoForm.get(nombreControl);
+        return !!c && c.invalid && (c.touched || c.dirty);
+    }
+
+    filtrarSoloDigitos(nombreControl: string, input: HTMLInputElement) {
+        const limpio = (input.value || '').replace(/\D+/g, '').slice(0, 8);
+        if (limpio !== input.value) {
+            input.value = limpio;
+        }
+        this.productoForm.get(nombreControl)?.setValue(limpio, { emitEvent: false });
     }
 
     async ngOnInit() {
@@ -135,11 +153,16 @@ export class ProductoDetalle implements OnInit {
 
     async cargarCatalogos() {
         try {
-            const [resCat, resUni, resProd] = await Promise.all([
+            const [resCat, resUni, resProd, resProdAll] = await Promise.all([
                 this.servicioProducto.ListarCategorias(),
                 this.servicioProducto.ListarUnidades(),
-                this.servicioProducto.ListarInsumos()
+                this.servicioProducto.ListarInsumos(),
+                this.servicioProducto.Listar()
             ]);
+            if (resProdAll.success) {
+                const listado = Array.isArray(resProdAll.data) ? resProdAll.data : (resProdAll.data?.Listado || []);
+                this.productosVentanillaCocina.set(listado);
+            }
             if (resCat.success) {
                 const listado = Array.isArray(resCat.data) ? resCat.data : (resCat.data?.Listado || []);
                 this.categorias.set(listado);
@@ -307,6 +330,12 @@ export class ProductoDetalle implements OnInit {
             return;
         }
 
+        const cantidad = Number(this.cantidadIngrediente());
+        if (!Number.isFinite(cantidad) || cantidad <= 0) {
+            this.servicioAlerta.MostrarAlerta('La cantidad debe ser mayor a 0.', 'Cantidad inválida');
+            return;
+        }
+
         try {
             this.cargando.set(true);
             const resCosto = await this.servicioProducto.CalcularCostoIngrediente({
@@ -340,9 +369,17 @@ export class ProductoDetalle implements OnInit {
             this.textoFiltroIngrediente.set('');
             this.cantidadIngrediente.set(1);
             this.unidadIngrediente.set(null);
-        } catch (error) {
-            console.error('Error calculando costo:', error);
-            this.servicioAlerta.MostrarError({ message: 'Error al calcular el costo del ingrediente' });
+        } catch (error: any) {
+            const mensajeApi = error?.response?.data?.error?.message
+                || error?.response?.data?.message
+                || '';
+            const esConversion = /No existe.*conversi[oó]n/i.test(mensajeApi);
+            this.servicioAlerta.MostrarAlerta(
+                esConversion
+                    ? 'La presentación seleccionada no corresponde al insumo configurado.'
+                    : (mensajeApi || 'Error al calcular el costo del ingrediente.'),
+                esConversion ? 'Presentación inválida' : 'Error'
+            );
         } finally {
             this.cargando.set(false);
         }
@@ -357,28 +394,60 @@ export class ProductoDetalle implements OnInit {
         const unidadId = grupo.get('CodigoUnidadMedida')?.value;
         const unidadObj = this.unidades().find(u => u.CodigoUnidadMedida == unidadId);
 
-        if (unidadObj) {
-            try {
-                this.cargando.set(true);
-                const resCosto = await this.servicioProducto.CalcularCostoIngrediente({
-                    CodigoProducto: Number(grupo.get('CodigoProducto')?.value),
-                    NombreUnidadDestino: unidadObj.NombreUnidad,
-                    Cantidad: Number(grupo.get('Cantidad')?.value)
-                });
-
-                const precioProporcional = resCosto.success ? resCosto.data.PrecioProporcional : 0;
-                grupo.patchValue({
-                    NombreUnidad: unidadObj.NombreUnidad,
-                    PrecioProporcional: precioProporcional
-                });
-            } catch (error) {
-                console.error('Error re-calculando costo:', error);
-            } finally {
-                this.cargando.set(false);
-            }
+        if (!unidadObj) {
+            this.servicioAlerta.MostrarAlerta(
+                'La presentación seleccionada no corresponde al insumo configurado.',
+                'Presentación inválida'
+            );
+            return;
         }
 
-        this.indiceEdicionIngrediente.set(null);
+        const codigoProducto = Number(grupo.get('CodigoProducto')?.value);
+        const cantidad = Number(grupo.get('Cantidad')?.value);
+
+        if (!Number.isFinite(cantidad) || cantidad <= 0) {
+            this.servicioAlerta.MostrarAlerta('La cantidad debe ser mayor a 0.', 'Cantidad inválida');
+            return;
+        }
+
+        try {
+            this.cargando.set(true);
+            const resCosto = await this.servicioProducto.CalcularCostoIngrediente({
+                CodigoProducto: codigoProducto,
+                NombreUnidadDestino: unidadObj.NombreUnidad,
+                Cantidad: cantidad
+            });
+
+            if (!resCosto.success) {
+                this.servicioAlerta.MostrarAlerta(
+                    'La presentación seleccionada no corresponde al insumo configurado.',
+                    'Presentación inválida'
+                );
+                return;
+            }
+
+            // Actualizar precio (proporcional y unitario desde catalogo) y presentacion
+            const insumo = this.todosLosProductos().find(p => p.CodigoProducto === codigoProducto);
+            grupo.patchValue({
+                NombreUnidad: unidadObj.NombreUnidad,
+                PrecioUnitario: insumo?.PrecioCompra ?? grupo.get('PrecioUnitario')?.value,
+                PrecioProporcional: resCosto.data.PrecioProporcional
+            });
+            this.indiceEdicionIngrediente.set(null);
+        } catch (error: any) {
+            const mensajeApi = error?.response?.data?.error?.message
+                || error?.response?.data?.message
+                || '';
+            const esConversion = /No existe.*conversi[oó]n/i.test(mensajeApi);
+            this.servicioAlerta.MostrarAlerta(
+                esConversion
+                    ? 'La presentación seleccionada no corresponde al insumo configurado.'
+                    : (mensajeApi || 'Error al recalcular el costo del ingrediente.'),
+                esConversion ? 'Presentación inválida' : 'Error'
+            );
+        } finally {
+            this.cargando.set(false);
+        }
     }
 
     cancelarEdicion() {
@@ -408,19 +477,58 @@ export class ProductoDetalle implements OnInit {
 
     // Imagen
     alSeleccionarImagen(event: any) {
-        const file = event.target.files[0];
-        if (file) {
-            this.archivoImagen = file;
-            const reader = new FileReader();
-            reader.onload = () => this.imagenPreview.set(reader.result as string);
-            reader.readAsDataURL(file);
+        const input = event.target as HTMLInputElement;
+        const file = input.files?.[0];
+        if (!file) return;
+
+        const formatosPermitidos = ['image/jpeg', 'image/png'];
+        const tamanoMaximo = 1024 * 1024; // 1 MB
+        const formatoValido = formatosPermitidos.includes(file.type);
+        const tamanoValido = file.size <= tamanoMaximo;
+
+        if (!formatoValido || !tamanoValido) {
+            this.servicioAlerta.MostrarAlerta(
+                'La imagen seleccionada supera el tamaño permitido o el formato no es válido. Solo se permiten archivos PNG y JPG de hasta 1 MB.',
+                'Imagen no válida'
+            );
+            input.value = '';
+            return;
         }
+
+        this.archivoImagen = file;
+        const reader = new FileReader();
+        reader.onload = () => this.imagenPreview.set(reader.result as string);
+        reader.readAsDataURL(file);
     }
 
     async guardar() {
         if (this.productoForm.invalid) {
             this.productoForm.markAllAsTouched();
+            this.servicioAlerta.MostrarAlerta(
+                'Complete los campos obligatorios resaltados en rojo antes de continuar.',
+                'Campos obligatorios'
+            );
             return;
+        }
+
+        // Codigo de barra unico (cuando no esta vacio)
+        const codigoBarra = (this.productoForm.value.CodigoBarra || '').toString().trim();
+        if (codigoBarra) {
+            const duplicado = [
+                ...this.productosVentanillaCocina(),
+                ...this.todosLosProductos()
+            ].some((p: any) =>
+                p.CodigoBarra && p.CodigoBarra.toString().trim() === codigoBarra
+                && p.CodigoProducto !== this.productoId
+            );
+            if (duplicado) {
+                this.productoForm.get('CodigoBarra')?.markAsTouched();
+                this.servicioAlerta.MostrarAlerta(
+                    'El código de barra ingresado ya se encuentra registrado.',
+                    'Código de barra duplicado'
+                );
+                return;
+            }
         }
 
         this.cargando.set(true);
@@ -442,12 +550,17 @@ export class ProductoDetalle implements OnInit {
             StockMinimo: Number(formValue.StockMinimo || 0),
             StockSugerido: Number(formValue.StockSugerido || 0),
             PrecioCompra: Number(formValue.PrecioCompra || 0),
-            // Ingredientes
-            Ingredientes: formValue.TieneReceta ? formValue.Ingredientes.map((ing: any) => ({
-                CodigoProducto: Number(ing.CodigoProducto),
-                CodigoUnidadMedida: Number(ing.CodigoUnidadMedida),
-                Cantidad: Number(ing.Cantidad)
-            })) : []
+            // Ingredientes:
+            // - Con receta activa: enviamos la lista actual (el API reemplaza los detalles).
+            // - Sin receta activa: enviamos undefined para que el API conserve los detalles existentes
+            //   (soft-disable) y no los pisemos al reactivar.
+            Ingredientes: formValue.TieneReceta
+                ? formValue.Ingredientes.map((ing: any) => ({
+                    CodigoProducto: Number(ing.CodigoProducto),
+                    CodigoUnidadMedida: Number(ing.CodigoUnidadMedida),
+                    Cantidad: Number(ing.Cantidad)
+                }))
+                : undefined
         };
 
         try {

@@ -7,7 +7,8 @@
                 [style.background-color]="colorSistema" (click)="exportarExcel()">
                 <i class="bi bi-file-earmark-spreadsheet me-2"></i> Exportar a exel
             </button>
-            <button *ngIf="modoEdicion() !== 'lectura'" class="btn btn-regresar shadow-sm" (click)="cancelarEdicion()">
+            <button *ngIf="modoEdicion() !== 'lectura'" class="btn btn-regresar shadow-sm"
+                [style.background-color]="colorSistema" (click)="cancelarEdicion()">
                 <i class="bi bi-chevron-left me-2"></i> Regresar
             </button>
         </div>
@@ -23,7 +24,8 @@
         <div class="header-side text-end">
             <!-- Boton Guardar (Solo en edicion) -->
             <button *ngIf="modoEdicion() !== 'lectura'" class="btn btn-guardar shadow-sm"
-                (click)="guardarCambiosStock()">
+                [style.background-color]="colorSistema"
+                [disabled]="hayProductosConError()" (click)="guardarCambiosStock()">
                 <i class="bi bi-cloud-arrow-up me-2"></i> Guardar
             </button>
 
@@ -109,15 +111,18 @@
                                     {{ (producto.Stock || 0) === 0 ? '0' : producto.Stock }}
                                 </span>
                             </ng-container>
-                            <input *ngIf="modoEdicion() === 'ajustar'" type="number"
+                            <input *ngIf="modoEdicion() === 'ajustar'" type="number" min="0" step="1"
                                 class="form-control form-control-sm stock-input"
-                                [value]="cambiosPendientes()[producto.CodigoProducto || 0] || 0"
+                                [class.is-invalid]="tieneError(producto.CodigoProducto)"
+                                [value]="cambiosPendientes()[producto.CodigoProducto || 0] ?? 0"
                                 (input)="alCambiarValorStock(producto.CodigoProducto, $any($event.target).value)">
+                            <small *ngIf="tieneError(producto.CodigoProducto)" class="text-danger d-block mt-1"
+                                style="font-size: 0.75rem;">
+                                Valor inválido
+                            </small>
                         </td>
                         <td class="text-latin" *ngIf="modoEdicion() === 'abastecer'">
-                            <input type="number" class="form-control form-control-sm stock-input"
-                                [value]="cambiosPendientes()[producto.CodigoProducto || 0] || ''" placeholder="-"
-                                (input)="alCambiarValorStock(producto.CodigoProducto, $any($event.target).value)">
+                            <span class="fw-semibold">{{ producto.CantidadProducida || 0 }}</span>
                         </td>
                         <td class="text-latin">
                             <span class="badge rounded-pill px-3"
@@ -139,8 +144,12 @@
                     </tr>
                     <tr *ngIf="productosPaginados().length === 0">
                         <td [attr.colspan]="modoEdicion() === 'abastecer' ? 8 : 7" class="text-center py-4 text-muted">
-                            No
-                            se encontraron productos</td>
+                            <ng-container *ngIf="modoEdicion() === 'abastecer'; else sinResultados">
+                                <i class="bi bi-box-seam me-2"></i>
+                                No existen productos ni cantidades por abastecer.
+                            </ng-container>
+                            <ng-template #sinResultados>No se encontraron productos</ng-template>
+                        </td>
                     </tr>
                 </tbody>
             </table>

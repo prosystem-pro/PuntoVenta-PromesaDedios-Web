@@ -46,6 +46,7 @@ export interface Producto {
     NombreCategoria?: string;
     NombreUnidad?: string;
     CantidadConsumida?: number;
+    CantidadProducida?: number;
 }
 
 export interface Inventario {

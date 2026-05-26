@@ -13,7 +13,8 @@
                         <div class="form-group">
                             <label class="form-label">Categoría<span class="text-danger">*</span></label>
                             <div class="input-with-button">
-                                <select formControlName="CodigoCategoriaProducto" class="form-select">
+                                <select formControlName="CodigoCategoriaProducto" class="form-select"
+                                    [class.is-invalid]="esInvalido('CodigoCategoriaProducto')">
                                     <option [ngValue]="null">Seleccionar</option>
                                     @for (cat of categorias(); track cat.CodigoCategoriaProducto) {
                                     <option [ngValue]="cat.CodigoCategoriaProducto">{{ cat.NombreCategoriaProducto }}
@@ -30,14 +31,15 @@
                         <div class="form-group">
                             <label class="form-label">Producto<span class="text-danger">*</span></label>
                             <input type="text" formControlName="NombreProducto" class="form-control"
-                                placeholder="Nombre">
+                                [class.is-invalid]="esInvalido('NombreProducto')" placeholder="Nombre">
                         </div>
 
                         <!-- Fila 2 -->
                         <div class="form-group">
                             <label class="form-label">Presentación<span class="text-danger">*</span></label>
                             <div class="input-with-button">
-                                <select formControlName="CodigoUnidadMedida" class="form-select">
+                                <select formControlName="CodigoUnidadMedida" class="form-select"
+                                    [class.is-invalid]="esInvalido('CodigoUnidadMedida')">
                                     <option [ngValue]="null">Seleccionar</option>
                                     @for (uni of unidades(); track uni.CodigoUnidadMedida) {
                                     <option [ngValue]="uni.CodigoUnidadMedida">{{ uni.NombreUnidad }}</option>
@@ -54,28 +56,32 @@
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Tipo producto</label>
-                            <select formControlName="TipoProducto" class="form-select">
+                            <label class="form-label">Tipo producto<span class="text-danger">*</span></label>
+                            <select formControlName="TipoProducto" class="form-select"
+                                [class.is-invalid]="esInvalido('TipoProducto')">
+                                <option [ngValue]="null">Seleccionar</option>
                                 <option value="VENTANILLA">Ventanilla</option>
                                 <option value="COCINA">Cocina</option>
-                                <!-- <option value="INSUMO">Insumo</option> -->
                             </select>
                         </div>
 
                         <!-- Fila Stock -->
                         <div class="d-flex gap-3" style="grid-column: span 2;">
                             <div class="form-group flex-grow-1">
-                                <label class="form-label">Stock</label>
-                                <input type="number" formControlName="Stock" class="form-control" placeholder="Cant.">
+                                <label class="form-label">Stock<span class="text-danger">*</span></label>
+                                <input type="number" min="0" step="0.01" formControlName="Stock" class="form-control"
+                                    [class.is-invalid]="esInvalido('Stock')" placeholder="Cant.">
                             </div>
                             <div class="form-group flex-grow-1">
                                 <label class="form-label">Stock Mínimo</label>
-                                <input type="number" formControlName="StockMinimo" class="form-control"
+                                <input type="number" min="0" step="0.01" formControlName="StockMinimo"
+                                    class="form-control" [class.is-invalid]="esInvalido('StockMinimo')"
                                     placeholder="Cant.">
                             </div>
                             <div class="form-group flex-grow-1">
                                 <label class="form-label">Stock Sugerido</label>
-                                <input type="number" formControlName="StockSugerido" class="form-control"
+                                <input type="number" min="0" step="0.01" formControlName="StockSugerido"
+                                    class="form-control" [class.is-invalid]="esInvalido('StockSugerido')"
                                     placeholder="Cant.">
                             </div>
                         </div>
@@ -83,25 +89,33 @@
                         <!-- Fila Precios -->
                         <div class="form-group">
                             <label class="form-label">Precio compra</label>
-                            <input type="number" formControlName="PrecioCompra" class="form-control"
+                            <input type="number" min="0" step="0.01" formControlName="PrecioCompra"
+                                class="form-control" [class.is-invalid]="esInvalido('PrecioCompra')"
                                 placeholder="Cantidad">
                         </div>
                         <div class="form-group">
                             <label class="form-label">Precio venta<span class="text-danger">*</span></label>
-                            <input type="number" formControlName="PrecioVenta" class="form-control"
-                                placeholder="Cantidad">
+                            <input type="number" min="0" step="0.01" formControlName="PrecioVenta" class="form-control"
+                                [class.is-invalid]="esInvalido('PrecioVenta')" placeholder="Cantidad">
                         </div>
 
                         <!-- Fila Codigo/IVA e Imagen -->
                         <div class="d-flex gap-3 align-items-end" style="grid-column: span 2;">
                             <div class="form-group flex-grow-1">
                                 <label class="form-label">Código de barra</label>
-                                <input type="text" formControlName="CodigoBarra" class="form-control"
-                                    placeholder="Código">
+                                <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="8"
+                                    formControlName="CodigoBarra" class="form-control"
+                                    [class.is-invalid]="esInvalido('CodigoBarra')"
+                                    (input)="filtrarSoloDigitos('CodigoBarra', $any($event.target))" placeholder="Código">
                             </div>
                             <div class="form-group" style="width: 120px;">
                                 <label class="form-label">Iva (%)</label>
-                                <input type="number" formControlName="Iva" class="form-control" placeholder="0">
+                                <input type="number" min="0" max="100" step="0.01" formControlName="Iva"
+                                    class="form-control" [class.is-invalid]="esInvalido('Iva')" placeholder="0">
+                                <small *ngIf="esInvalido('Iva')" class="text-danger d-block mt-1"
+                                    style="font-size: 0.75rem;">
+                                    El IVA debe estar entre 0 y 100.
+                                </small>
                             </div>
 
                             <div class="upload-section ms-2">
@@ -111,7 +125,7 @@
                                         <i class="bi bi-upload"></i>
                                     </button>
                                     <input #fileInput type="file" hidden (change)="alSeleccionarImagen($event)"
-                                        accept="image/*">
+                                        accept="image/png,image/jpeg,.png,.jpg,.jpeg">
                                     <div class="mini-preview border rounded">
                                         @if(imagenPreview()) {
                                         <img [src]="imagenPreview()" alt="Preview">
@@ -170,7 +184,7 @@
 
                             <div class="form-group">
                                 <label class="form-label">Cantidad</label>
-                                <input type="number" class="form-control" placeholder="Cantidad"
+                                <input type="number" min="0.01" step="0.01" class="form-control" placeholder="Cantidad"
                                     [value]="cantidadIngrediente()" (input)="cantidadIngrediente.set(+cant.value)"
                                     #cant>
                             </div>
@@ -226,7 +240,7 @@
                                         </td>
                                         <td>
                                             @if(indiceEdicionIngrediente() === getIndiceAbsoluto($index)) {
-                                            <input type="number" formControlName="Cantidad"
+                                            <input type="number" min="0.01" step="0.01" formControlName="Cantidad"
                                                 class="form-control form-control-sm table-input">
                                             } @else {
                                             {{ ing.get('Cantidad')?.value }}

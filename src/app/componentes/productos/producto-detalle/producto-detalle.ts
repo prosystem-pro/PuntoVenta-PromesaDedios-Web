@@ -10,6 +10,7 @@ import { Entorno } from '../../../Entorno/Entorno';
 import { ServicioAutenticacion } from '../../../Servicios/auth.service';
 import { CategoriaModal } from '../modales/categoria-modal/categoria-modal';
 import { PresentacionModal } from '../modales/presentacion-modal/presentacion-modal';
+import { manejarErrorApi } from '../../../Utils/error-parser';
 
 @Component({
     selector: 'app-producto-detalle',
@@ -586,7 +587,7 @@ export class ProductoDetalle implements OnInit {
                 this.servicioAlerta.MostrarExito(res.message);
                 this.router.navigate(['/productos']);
             } else {
-                this.servicioAlerta.MostrarError(res);
+                this.servicioAlerta.MostrarError({ message: manejarErrorApi(res) });
             }
         } catch (error) {
             console.error('Error guardando:', error);

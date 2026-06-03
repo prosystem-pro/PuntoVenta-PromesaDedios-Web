@@ -9,6 +9,7 @@ import { Entorno } from '../../../Entorno/Entorno';
 import { ServicioAutenticacion } from '../../../Servicios/auth.service';
 import { CategoriaModal } from '../../productos/modales/categoria-modal/categoria-modal';
 import { PresentacionModal } from '../../productos/modales/presentacion-modal/presentacion-modal';
+import { manejarErrorApi } from '../../../Utils/error-parser';
 
 @Component({
     selector: 'app-materia-prima-detalle',
@@ -411,6 +412,9 @@ export class MateriaPrimaDetalle implements OnInit {
         try {
             const payload: Partial<Producto> = {
                 ...val,
+                // Stock Minimo y Sugerido no son obligatorios: si quedan vacios se guardan como 0
+                StockMinimo: Number(val.StockMinimo || 0),
+                StockSugerido: Number(val.StockSugerido || 0),
                 TipoProducto: 'Insumo',
                 PrecioVenta: 0,
                 TieneReceta: false
@@ -424,7 +428,7 @@ export class MateriaPrimaDetalle implements OnInit {
                 this.servicioAlerta.MostrarExito('Materia prima actualizada correctamente');
                 this.router.navigate(['/materia-prima']);
             } else {
-                this.servicioAlerta.MostrarError(res);
+                this.servicioAlerta.MostrarError({ message: manejarErrorApi(res) });
             }
         } catch (error) {
             this.servicioAlerta.MostrarError({ error: { message: 'Error al actualizar' } });

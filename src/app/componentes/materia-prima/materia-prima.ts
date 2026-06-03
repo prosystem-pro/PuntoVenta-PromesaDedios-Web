@@ -57,10 +57,15 @@ export class MateriaPrima implements OnInit {
     insumosFiltrados = computed(() => {
         let filtrados = [...this.insumos()];
 
-        // Filtro por codigo de barras
-        const barra = this.codigoBarrasBusqueda().trim();
+        // En modo abastecer, mostrar unicamente productos con cantidad pendiente de abastecer
+        if (this.modo() === 'abastecer') {
+            filtrados = filtrados.filter(p => (p.CantidadConsumida || 0) > 0);
+        }
+
+        // Filtro dinamico por codigo de barras (coincidencia parcial, sin distinguir mayusculas)
+        const barra = this.codigoBarrasBusqueda().trim().toLowerCase();
         if (barra) {
-            filtrados = filtrados.filter(p => p.CodigoBarra === barra);
+            filtrados = filtrados.filter(p => (p.CodigoBarra || '').toLowerCase().includes(barra));
         }
 
         // Filtro por texto
@@ -142,6 +147,7 @@ export class MateriaPrima implements OnInit {
             const insumosMapeados = listadoRaw.map((p: any) => ({
                 ...p,
                 CodigoProducto: p.CodigoProducto,
+                CodigoBarra: p.CodigoBarra ?? p.CodigoBarras ?? p.Codigobarra ?? '',
                 NombreProducto: p.Producto || p.NombreProducto,
                 NombreCategoria: p.NombreCategoriaProducto || p.NombreCategoria || (p.CategoriaProducto?.NombreCategoriaProducto),
                 NombreUnidad: p.NombreUnidad || p.Abreviatura || (p.UnidadMedida?.NombreUnidad),

@@ -431,14 +431,21 @@ export class CompraModal implements OnInit {
             console.error('Error al guardar compra:', error);
             const errorApi = error.response?.data || { success: false, message: 'Error al procesar la solicitud' };
             const mensajeApi: string = errorApi?.error?.message || errorApi?.message || '';
-            const matchConversion = mensajeApi.match(/No existe conversi[oó]n de (.+?) a (.+)/i);
-            if (matchConversion) {
-                const unidadOrigen = matchConversion[1].trim();
-                const itemAfectado = this.items.controls.find(c => (c.value.NombrePresentacion || '').toLowerCase() === unidadOrigen.toLowerCase());
+            // Error de conversion de presentacion: mensaje coherente, igual que en Productos
+            const esConversion = /No existe.*conversi[oó]n/i.test(mensajeApi);
+            if (esConversion) {
+                const matchConversion = mensajeApi.match(/No existe conversi[oó]n de (.+?) a (.+)/i);
+                const unidadOrigen = matchConversion ? matchConversion[1].trim() : '';
+                const itemAfectado = unidadOrigen
+                    ? this.items.controls.find(c => (c.value.NombrePresentacion || '').toLowerCase() === unidadOrigen.toLowerCase())
+                    : undefined;
                 const nombreProd = itemAfectado?.value.NombreProducto || 'El producto';
+                const detalle = unidadOrigen
+                    ? `"${nombreProd}" no corresponde con la presentación "${unidadOrigen}".`
+                    : 'La presentación seleccionada no corresponde al producto.';
                 this.servicioAlerta.MostrarError(
-                    { message: `"${nombreProd}" no admite la presentación "${unidadOrigen}". Verifique que la unidad corresponda a la categoría del producto.` },
-                    'Error de categoría'
+                    { message: `${detalle} Verifique que la unidad sea compatible con la categoría del producto.` },
+                    'Presentación inválida'
                 );
             } else {
                 this.servicioAlerta.MostrarError(errorApi);

@@ -503,6 +503,28 @@ export class ProductoDetalle implements OnInit {
     }
 
     async guardar() {
+        // Validar valores negativos antes del mensaje generico de obligatorios
+        const v = this.productoForm.value;
+        const camposNumericos: { etiqueta: string; valor: any }[] = [
+            { etiqueta: 'Stock', valor: v.Stock },
+            { etiqueta: 'Stock mínimo', valor: v.StockMinimo },
+            { etiqueta: 'Stock sugerido', valor: v.StockSugerido },
+            { etiqueta: 'Precio compra', valor: v.PrecioCompra },
+            { etiqueta: 'Precio venta', valor: v.PrecioVenta },
+            { etiqueta: 'IVA', valor: v.Iva }
+        ];
+        const negativos = camposNumericos.filter(c =>
+            c.valor !== null && c.valor !== undefined && c.valor !== '' && Number(c.valor) < 0
+        );
+        if (negativos.length > 0) {
+            this.productoForm.markAllAsTouched();
+            this.servicioAlerta.MostrarAlerta(
+                `No se permiten valores negativos en: ${negativos.map(c => c.etiqueta).join(', ')}.`,
+                'Valor inválido'
+            );
+            return;
+        }
+
         if (this.productoForm.invalid) {
             this.productoForm.markAllAsTouched();
             this.servicioAlerta.MostrarAlerta(

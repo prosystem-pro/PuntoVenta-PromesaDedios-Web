@@ -66,8 +66,14 @@ export class PagoModal implements OnChanges {
         this.cargando.set(true);
         try {
             const res = await this.servicioCompra.obtenerDetalle(this.compraId);
-            if (res.success) {
-                this.detalle.set(res.data || null);
+            if (res.success && res.data) {
+                const data: any = res.data;
+                // El API devuelve el proveedor bajo 'Proveedor_CodigoProveedor';
+                // lo mapeamos a 'Proveedor' para mostrar nombre y telefono.
+                const proveedor = data.Proveedor_CodigoProveedor || data.Proveedor || null;
+                this.detalle.set({ ...data, Proveedor: proveedor });
+            } else {
+                this.detalle.set(null);
             }
 
             // Cargar Caja Actual

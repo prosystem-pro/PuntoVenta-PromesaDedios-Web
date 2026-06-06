@@ -63,10 +63,10 @@ export class MateriaPrimaDetalle implements OnInit {
             CodigoCategoriaProducto: [null, [Validators.required]],
             NombreProducto: ['', [Validators.required]],
             CodigoUnidadMedida: [null, [Validators.required]],
-            Stock: [0, [Validators.required]],
+            Stock: [null, [Validators.required]],
             StockMinimo: [0],
             StockSugerido: [0],
-            PrecioCompra: [0, [Validators.required]],
+            PrecioCompra: [null, [Validators.required]],
             CodigoBarra: [''],
             Iva: [0],
             Estatus: [1]
@@ -275,8 +275,9 @@ export class MateriaPrimaDetalle implements OnInit {
 
         this.listaCarga.update(prev => [...prev, nuevoItem]);
 
-        // Reset form e imagen
-        this.form.reset({ Stock: 0, Iva: 0 });
+        // Reset form e imagen (Estatus vuelve a su valor predeterminado "Activo";
+        // Stock y Precio compra quedan vacios para forzar nueva captura)
+        this.form.reset({ Iva: 0, Estatus: 1 });
         this.imagenPreview.set(null);
         this.archivoImagen = null;
     }

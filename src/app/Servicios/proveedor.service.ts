@@ -46,22 +46,14 @@ export class ServicioProveedor {
     }
 
     /**
-     * Traduce errores conocidos del API (ej. SequelizeUniqueConstraintError → "NIT duplicado")
-     * a mensajes en español listos para mostrar al usuario.
+     * Mapea directamente el mensaje del API. El API ya entrega mensajes claros
+     * en español (duplicidad de nombre/NIT, validaciones de formato, integridad
+     * referencial al eliminar, etc.), así que el cliente no traduce ni bloquea:
+     * solo muestra lo que responde el API.
      */
     interpretarError(res: any): string {
-        const tipo = res?.error?.type || '';
-        const msgApi = res?.error?.message || res?.message || '';
-        if (tipo === 'SequelizeUniqueConstraintError' || /validation error/i.test(msgApi)) {
-            return 'Ya existe un proveedor registrado con este nombre.';
-        }
-        if (
-            tipo === 'SequelizeForeignKeyConstraintError' ||
-            /REFERENCE constraint|FOREIGN KEY|conflicted with the REFERENCE|foreign key constraint/i.test(msgApi)
-        ) {
-            return 'No es posible eliminar el proveedor porque tiene registros asociados.';
-        }
-        return msgApi || 'No se pudo procesar la solicitud del proveedor.';
+        return (res?.error?.message || res?.message || '').toString().trim()
+            || 'No se pudo procesar la solicitud del proveedor.';
     }
 
     private manejarError(error: any): RespuestaProveedor {

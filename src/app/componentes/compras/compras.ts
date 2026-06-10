@@ -36,7 +36,14 @@ export class Compras implements OnInit {
     filtrosAplicados = signal({ inicio: '', fin: '' });
 
     // Estado del botón dinámico
-    estaFiltrado = computed(() => this.filtrosAplicados().inicio !== '' || this.filtrosAplicados().fin !== '');
+    // Solo se considera "filtrado" (botón Cancelar) cuando el rango aplicado es personalizado,
+    // es decir, distinto al mes actual que se carga por defecto.
+    estaFiltrado = computed(() => {
+        const { inicio, fin } = this.filtrosAplicados();
+        if (!inicio || !fin) return false;
+        const mes = this.rangoMesActual();
+        return !(inicio === mes.inicio && fin === mes.fin);
+    });
     haCambiadoFiltro = computed(() => {
         const { inicio, fin } = this.filtrosAplicados();
         return this.fechaInicioInput() !== inicio || this.fechaFinalInput() !== fin;
@@ -54,13 +61,31 @@ export class Compras implements OnInit {
     constructor() { }
 
     async ngOnInit() {
+        // Por defecto se muestran las compras del mes actual (regla de negocio del QA)
+        const { inicio, fin } = this.rangoMesActual();
+        this.fechaInicioInput.set(inicio);
+        this.fechaFinalInput.set(fin);
+        this.filtrosAplicados.set({ inicio, fin });
         await this.cargarCompras();
+    }
+
+    // Rango (YYYY-MM-DD) del primer al último día del mes en curso
+    private rangoMesActual(): { inicio: string; fin: string } {
+        const hoy = new Date();
+        const primero = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+        const ultimo = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0);
+        const fmt = (d: Date) =>
+            `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        return { inicio: fmt(primero), fin: fmt(ultimo) };
     }
 
     async cargarCompras() {
         this.cargando.set(true);
         try {
-            const res = await this.servicioCompra.listar();
+            // El API filtra por FechaCompra; si por alguna razón falta el rango, usamos el mes actual
+            const { inicio, fin } = this.filtrosAplicados();
+            const rango = (inicio && fin) ? { inicio, fin } : this.rangoMesActual();
+            const res = await this.servicioCompra.listar(rango.inicio, rango.fin);
             if (res.success) {
                 this.compras.set(res.data || []);
             }
@@ -69,19 +94,23 @@ export class Compras implements OnInit {
         }
     }
 
-    aplicarFiltros() {
+    async aplicarFiltros() {
         this.filtrosAplicados.set({
             inicio: this.fechaInicioInput(),
             fin: this.fechaFinalInput()
         });
         this.paginaActual.set(1);
+        await this.cargarCompras();
     }
 
-    limpiarFiltros() {
-        this.fechaInicioInput.set('');
-        this.fechaFinalInput.set('');
-        this.filtrosAplicados.set({ inicio: '', fin: '' });
+    async limpiarFiltros() {
+        // "Limpiar" regresa al rango por defecto (mes actual), no a "todas"
+        const { inicio, fin } = this.rangoMesActual();
+        this.fechaInicioInput.set(inicio);
+        this.fechaFinalInput.set(fin);
+        this.filtrosAplicados.set({ inicio, fin });
         this.paginaActual.set(1);
+        await this.cargarCompras();
     }
 
     ordenarPor(columna: string) {
@@ -96,12 +125,11 @@ export class Compras implements OnInit {
     // Listado filtrado y ordenado localmente
     listadoFiltrado = computed(() => {
         const text = this.busqueda().toLowerCase();
-        const { inicio, fin } = this.filtrosAplicados();
         const col = this.columnaActiva();
         const asc = this.ordenAscendente();
 
+        // El filtro por fecha lo aplica el API (por FechaCompra); aquí solo texto y orden
         let filtrados = this.compras().filter(c => {
-            // 1. Filtro por texto extendido (Nombre, No, Pagos, Pendiente, Estatus)
             const coincideTexto =
                 (c.Nombre?.toLowerCase() || '').includes(text) ||
                 c.No.toString().includes(text) ||
@@ -109,18 +137,7 @@ export class Compras implements OnInit {
                 c.Pendiente.toString().includes(text) ||
                 (c.Estatus?.toLowerCase() || '').includes(text);
 
-            if (!coincideTexto) return false;
-
-            // 2. Filtro por rango de fechas aplicado
-            if (inicio || fin) {
-                const fechaV = c.Vencimiento;
-                if (!fechaV) return false;
-
-                if (inicio && fechaV < inicio) return false;
-                if (fin && fechaV > fin) return false;
-            }
-
-            return true;
+            return coincideTexto;
         });
 
         // 3. Ordenamiento

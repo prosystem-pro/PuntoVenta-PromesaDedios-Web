@@ -25,8 +25,13 @@ export class CompraServicio {
         return res.data;
     }
 
-    async listar(): Promise<RespuestaAPI<Compra[]>> {
-        const res = await axiosInstance.get('compra/listado');
+    async listar(fechaInicio?: string, fechaFin?: string): Promise<RespuestaAPI<Compra[]>> {
+        const body: { fechaInicio?: string; fechaFin?: string } = {};
+        if (fechaInicio && fechaFin) {
+            body.fechaInicio = fechaInicio;
+            body.fechaFin = fechaFin;
+        }
+        const res = await axiosInstance.post('compra/listado', body);
         return res.data;
     }
 

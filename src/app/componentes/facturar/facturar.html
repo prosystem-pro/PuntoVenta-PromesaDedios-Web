@@ -1,0 +1,196 @@
+<div class="venta-container bg-light h-100 d-flex flex-column overflow-hidden">
+    <!-- Header Superior -->
+    <header class="bg-white shadow-sm p-2 d-flex align-items-center gap-3 flex-wrap">
+        <span class="fw-bold fs-5 text-dark d-none d-lg-inline">Código de producto</span>
+
+        <div class="input-group" style="max-width: 320px;">
+            <span class="input-group-text bg-white border-end-0"><i class="bi bi-upc-scan"></i></span>
+            <input type="text" class="form-control border-start-0" placeholder="Código de producto"
+                [ngModel]="codigoBarra()" (ngModelChange)="codigoBarra.set($event)"
+                (keyup.enter)="buscarPorCodigoBarra()">
+        </div>
+
+        <button class="btn btn-outline-secondary d-flex align-items-center gap-2" (click)="cambiarAMesa()">
+            <i class="bi bi-grid-3x3-gap-fill"></i> Cambiar a mesa
+        </button>
+
+        <div class="input-group flex-grow-1" style="max-width: 500px;">
+            <input type="text" class="form-control border-end-0" placeholder="Buscar producto"
+                [ngModel]="textoFiltro()" (ngModelChange)="textoFiltro.set($event)">
+            <span class="input-group-text bg-white border-start-0"><i class="bi bi-search"></i></span>
+        </div>
+    </header>
+
+    <div class="row g-0 flex-grow-1 overflow-hidden">
+        <!-- Panel Izquierdo: Productos -->
+        <div class="col-md-7 col-lg-8 d-flex flex-column h-100 p-2">
+            <!-- Categorías -->
+            <div class="categories-scroll d-flex gap-2 pb-3 mb-2 overflow-auto flex-wrap">
+                @for (cat of categorias(); track cat.CodigoCategoriaProducto) {
+                <button class="btn btn-category"
+                    [class.active]="categoriaSeleccionada() === cat.CodigoCategoriaProducto"
+                    (click)="seleccionarCategoria(cat.CodigoCategoriaProducto)">
+                    {{ cat.NombreCategoriaProducto }}
+                </button>
+                }
+            </div>
+
+            <!-- Grid de Productos -->
+            <div class="flex-grow-1 overflow-auto pe-2">
+                @if (cargando()) {
+                <div class="text-center py-5 text-muted">
+                    <div class="spinner-border" role="status"></div>
+                    <div class="mt-2">Cargando productos...</div>
+                </div>
+                } @else {
+                <div class="row row-cols-2 row-cols-sm-3 row-cols-lg-4 g-3">
+                    @for (prod of productosFiltrados(); track prod.CodigoProducto) {
+                    <div class="col">
+                        <div class="card product-card border-0 shadow-sm h-100 rounded-4 overflow-hidden position-relative"
+                            (click)="agregarAlCarrito(prod)">
+                            <div class="position-absolute top-0 start-0 p-2">
+                                <span class="badge bg-success shadow-sm">Q {{ prod.PrecioUnitario | number:'1.2-2' }}</span>
+                            </div>
+
+                            @if (cantidadEnCarrito(prod.CodigoProducto) > 0) {
+                            <div class="position-absolute top-0 end-0 p-2">
+                                <span class="badge rounded-pill bg-danger shadow-sm">
+                                    {{ cantidadEnCarrito(prod.CodigoProducto) }}
+                                </span>
+                            </div>
+                            }
+
+                            @if (prod.ImagenUrl) {
+                            <img [src]="prod.ImagenUrl" class="card-img-top" alt="producto">
+                            } @else {
+                            <div class="card-img-top d-flex align-items-center justify-content-center bg-light text-muted">
+                                <i class="bi bi-image fs-2"></i>
+                            </div>
+                            }
+
+                            <div class="card-body p-2 text-center">
+                                <h6 class="product-title m-0 text-truncate">{{ prod.NombreProducto }}</h6>
+                                @if (prod.Stock !== undefined && prod.Stock !== null && prod.Stock < 5) {
+                                <small class="text-danger fw-bold d-block">Stock bajo {{ prod.Stock }} Unidades!</small>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    }
+                </div>
+
+                @if (productosFiltrados().length === 0) {
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-box-seam display-4 d-block mb-3 opacity-25"></i>
+                    No hay productos para mostrar
+                </div>
+                }
+                }
+            </div>
+        </div>
+
+        <!-- Panel Derecho: Orden de compra -->
+        <div class="col-md-5 col-lg-4 bg-white border-start shadow-sm d-flex flex-column h-100">
+            <div class="order-header p-3 text-white text-center fw-bold" [style.background-color]="colorSistema">
+                Orden de compra
+            </div>
+
+            <div class="order-items flex-grow-1 overflow-auto p-2">
+                <table class="table table-hover align-middle">
+                    <thead class="bg-light sticky-top">
+                        <tr>
+                            <th class="border-0 small text-muted">Producto</th>
+                            <th class="border-0 small text-muted">Precio</th>
+                            <th class="border-0 small text-muted text-center">Cantidad</th>
+                            <th class="border-0"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (item of carrito(); track item.CodigoProducto) {
+                        <tr>
+                            <td class="small fw-bold">{{ item.NombreProducto }}</td>
+                            <td class="small">Q {{ item.PrecioUnitario | number:'1.2-2' }}</td>
+                            <td>
+                                <div class="d-flex align-items-center justify-content-center gap-1">
+                                    <button class="btn btn-qty"
+                                        (click)="actualizarCantidad(item.CodigoProducto, item.Cantidad - 1)">-</button>
+                                    <span class="fw-bold small px-1">{{ item.Cantidad }}</span>
+                                    <button class="btn btn-qty"
+                                        (click)="actualizarCantidad(item.CodigoProducto, item.Cantidad + 1)">+</button>
+                                </div>
+                            </td>
+                            <td>
+                                <button class="btn btn-link btn-sm p-0 text-dark">
+                                    <i class="bi bi-chat-left-text-fill"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+
+                @if (carrito().length === 0) {
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-cart3 display-4 d-block mb-3 opacity-25"></i>
+                    No hay productos seleccionados
+                </div>
+                }
+            </div>
+
+            <div class="order-footer p-3 bg-light border-top">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="m-0 fw-bold">Total a pagar</h5>
+                    <div class="total-bubble bg-price-light px-4 py-2 rounded-3 fs-4 fw-bold text-success">
+                        Q {{ total() | number:'1.2-2' }}
+                    </div>
+                </div>
+
+                <div class="row g-2">
+                    <div class="col-6">
+                        <button class="btn btn-outline-secondary w-100 py-2 d-flex justify-content-center align-items-center gap-2"
+                            (click)="bajoPedido()">
+                            <i class="bi bi-card-checklist"></i> Bajo pedido
+                        </button>
+                    </div>
+                    <div class="col-6">
+                        <button class="btn w-100 py-2 d-flex justify-content-center align-items-center gap-2 text-white"
+                            [style.background-color]="colorSistema" (click)="facturar()">
+                            <i class="bi bi-clipboard-check"></i> Facturar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Cliente -->
+    <app-cliente-factura-modal
+        [visible]="mostrarModalCliente()"
+        [colorSistema]="colorSistema"
+        [textoConfirmar]="flujo() === 'pedido' ? 'Bajo pedido' : 'Facturar'"
+        [requiereCliente]="flujo() === 'pedido'"
+        [pedirFechaEntrega]="flujo() === 'pedido'"
+        (alCerrar)="cerrarModalCliente()"
+        (alConfirmar)="clienteConfirmado($event)">
+    </app-cliente-factura-modal>
+
+    <!-- Modal Monto -->
+    <app-monto-pago-modal
+        [visible]="mostrarModalMonto()"
+        [colorSistema]="colorSistema"
+        [total]="total()"
+        [modo]="flujo() === 'pedido' ? 'pedido' : 'contado'"
+        [procesando]="procesandoPago()"
+        (alCerrar)="cerrarModalMonto()"
+        (alProcesar)="procesarPago($event)">
+    </app-monto-pago-modal>
+
+    <!-- Comprobante -->
+    <app-comprobante-venta-modal
+        [visible]="mostrarComprobante()"
+        [data]="comprobante()"
+        [colorSistema]="colorSistema"
+        [accionAuto]="accionComprobante()"
+        (cerrar)="cerrarComprobante()">
+    </app-comprobante-venta-modal>
+</div>

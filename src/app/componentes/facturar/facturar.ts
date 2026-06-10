@@ -1,0 +1,361 @@
+import { Component, OnInit, signal, inject, computed } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Router, RouterModule } from '@angular/router';
+import { Producto, CategoriaProducto } from '../../Modelos/producto.modelo';
+import { Cliente } from '../../Modelos/cliente.modelo';
+import { ComprobanteVenta, FacturarVentanillaRequest, CrearVentaPedidoRequest } from '../../Modelos/venta.modelo';
+import { ProductoServicio } from '../../Servicios/producto.service';
+import { VentaServicio } from '../../Servicios/venta.service';
+import { AlertaServicio } from '../../Servicios/alerta.service';
+import { Entorno } from '../../Entorno/Entorno';
+import { ClienteFacturaModal } from './cliente-factura-modal/cliente-factura-modal';
+import { MontoPagoModal, ResultadoPago } from './monto-pago-modal/monto-pago-modal';
+import { ComprobanteVentaModal } from './comprobante-venta-modal/comprobante-venta-modal';
+
+interface ItemCarrito {
+    CodigoProducto: number;
+    NombreProducto: string;
+    PrecioUnitario: number;
+    Cantidad: number;
+    Nota: string;
+}
+
+// Producto normalizado para la vista (proviene del endpoint por categoría)
+interface ProductoVenta {
+    CodigoProducto: number;
+    NombreProducto: string;
+    PrecioUnitario: number; // precio con IVA (lo que se cobra)
+    ImagenUrl?: string | null;
+    Stock: number | null;
+    CodigoBarra?: string | null;
+}
+
+@Component({
+    selector: 'app-facturar',
+    standalone: true,
+    imports: [CommonModule, FormsModule, RouterModule, ClienteFacturaModal, MontoPagoModal, ComprobanteVentaModal],
+    templateUrl: './facturar.html',
+    styleUrl: './facturar.css'
+})
+export class Facturar implements OnInit {
+    private servicioProducto = inject(ProductoServicio);
+    private servicioVenta = inject(VentaServicio);
+    private servicioAlerta = inject(AlertaServicio);
+    private router = inject(Router);
+
+    colorSistema = Entorno.ColorSistema;
+
+    // Catalogos
+    categorias = signal<CategoriaProducto[]>([]);
+    productos = signal<ProductoVenta[]>([]);          // productos de la categoría activa
+    private productosGlobal: Producto[] = [];          // catálogo completo (para código de barras)
+
+    // Estado vista
+    categoriaSeleccionada = signal<number | null>(null);
+    textoFiltro = signal('');
+    codigoBarra = signal('');
+    cargando = signal(false);
+
+    // Carrito / Orden
+    carrito = signal<ItemCarrito[]>([]);
+    total = computed(() =>
+        this.carrito().reduce((acc, item) => acc + (item.PrecioUnitario * item.Cantidad), 0)
+    );
+
+    // Modal Cliente
+    mostrarModalCliente = signal(false);
+    flujo = signal<'facturar' | 'pedido'>('facturar');
+    clienteSeleccionado = signal<Cliente | null>(null);
+    fechaEntrega = signal<string | null>(null);
+
+    // Modal Monto
+    mostrarModalMonto = signal(false);
+    procesandoPago = signal(false);
+
+    // Comprobante
+    mostrarComprobante = signal(false);
+    comprobante = signal<ComprobanteVenta | null>(null);
+    accionComprobante = signal<'imprimir' | 'descargar' | null>(null);
+
+    async ngOnInit() {
+        await this.cargarCategorias();
+        // Catálogo completo en segundo plano (solo para resolver código de barras)
+        this.servicioProducto.Listar().then(res => {
+            if (res.success) this.productosGlobal = res.data || [];
+        });
+    }
+
+    async cargarCategorias() {
+        this.cargando.set(true);
+        try {
+            const res = await this.servicioProducto.ListarCategorias();
+            if (res.success) {
+                const cats = res.data || [];
+                this.categorias.set(cats);
+                // Selecciona la primera categoría por defecto (no hay opción "Todos")
+                if (cats.length > 0 && cats[0].CodigoCategoriaProducto) {
+                    await this.seleccionarCategoria(cats[0].CodigoCategoriaProducto);
+                }
+            }
+        } finally {
+            this.cargando.set(false);
+        }
+    }
+
+    async seleccionarCategoria(id: number | undefined) {
+        if (!id) return;
+        this.categoriaSeleccionada.set(id);
+        await this.cargarProductosCategoria(id);
+    }
+
+    async cargarProductosCategoria(codigoCategoria: number) {
+        this.cargando.set(true);
+        this.productos.set([]);
+        try {
+            const res = await this.servicioProducto.ProductosPorCategoria(codigoCategoria);
+            if (res.success) {
+                const lista = (res.data || []).map((p: any): ProductoVenta => ({
+                    CodigoProducto: p.CodigoProducto,
+                    NombreProducto: p.Producto,
+                    PrecioUnitario: Number(p.PrecioConIva ?? p.PrecioVenta ?? 0),
+                    ImagenUrl: p.ImagenUrl,
+                    Stock: p.StockActual ?? null
+                }));
+                this.productos.set(lista);
+            }
+        } finally {
+            this.cargando.set(false);
+        }
+    }
+
+    productosFiltrados = computed(() => {
+        const busqueda = this.textoFiltro().toLowerCase().trim();
+        if (!busqueda) return this.productos();
+        return this.productos().filter(p => p.NombreProducto?.toLowerCase().includes(busqueda));
+    });
+
+    // Cantidad de un producto que ya está en el carrito (para el badge)
+    cantidadEnCarrito(codigo: number | undefined): number {
+        if (!codigo) return 0;
+        return this.carrito().find(it => it.CodigoProducto === codigo)?.Cantidad ?? 0;
+    }
+
+    agregarAlCarrito(producto: ProductoVenta) {
+        if (!producto.CodigoProducto) return;
+        const actual = this.carrito();
+        const existe = actual.find(it => it.CodigoProducto === producto.CodigoProducto);
+
+        if (existe) {
+            this.actualizarCantidad(producto.CodigoProducto, existe.Cantidad + 1);
+        } else {
+            this.carrito.set([...actual, {
+                CodigoProducto: producto.CodigoProducto,
+                NombreProducto: producto.NombreProducto,
+                PrecioUnitario: producto.PrecioUnitario,
+                Cantidad: 1,
+                Nota: ''
+            }]);
+        }
+    }
+
+    actualizarCantidad(codigo: number, nuevaCant: number) {
+        if (nuevaCant <= 0) {
+            this.carrito.update(items => items.filter(it => it.CodigoProducto !== codigo));
+            return;
+        }
+        this.carrito.update(items => items.map(it =>
+            it.CodigoProducto === codigo ? { ...it, Cantidad: nuevaCant } : it
+        ));
+    }
+
+    // Buscar producto por código de barras (en todo el catálogo) y agregarlo
+    buscarPorCodigoBarra() {
+        const codigo = this.codigoBarra().trim();
+        if (!codigo) return;
+
+        const prod = this.productosGlobal.find(p => p.CodigoBarra === codigo);
+        if (prod && prod.CodigoProducto) {
+            const precioConIva = Number((prod.PrecioVenta * (1 + (prod.Iva || 0) / 100)).toFixed(2));
+            this.agregarAlCarrito({
+                CodigoProducto: prod.CodigoProducto,
+                NombreProducto: prod.NombreProducto,
+                PrecioUnitario: precioConIva,
+                ImagenUrl: prod.ImagenUrl,
+                Stock: prod.Stock ?? null,
+                CodigoBarra: prod.CodigoBarra
+            });
+            this.codigoBarra.set('');
+        } else {
+            this.servicioAlerta.MostrarToast('No se encontró un producto con ese código', 'warning');
+        }
+    }
+
+    cambiarAMesa() {
+        this.router.navigate(['/ventas']);
+    }
+
+    limpiar() {
+        this.carrito.set([]);
+    }
+
+    // --- Acciones de pago ---
+    facturar() {
+        if (this.carrito().length === 0) {
+            this.servicioAlerta.MostrarAlerta('Agregue al menos un producto a la orden');
+            return;
+        }
+        this.flujo.set('facturar');
+        this.mostrarModalCliente.set(true);
+    }
+
+    bajoPedido() {
+        if (this.carrito().length === 0) {
+            this.servicioAlerta.MostrarAlerta('Agregue al menos un producto a la orden');
+            return;
+        }
+        this.flujo.set('pedido');
+        this.mostrarModalCliente.set(true);
+    }
+
+    cerrarModalCliente() {
+        this.mostrarModalCliente.set(false);
+    }
+
+    // Cliente confirmado en el modal → continúa al paso de pago
+    clienteConfirmado(datos: { cliente: Cliente | null; fechaEntrega: string | null }) {
+        this.clienteSeleccionado.set(datos.cliente);
+        this.fechaEntrega.set(datos.fechaEntrega);
+        this.mostrarModalCliente.set(false);
+        this.mostrarModalMonto.set(true);
+    }
+
+    cerrarModalMonto() {
+        this.mostrarModalMonto.set(false);
+    }
+
+    private etiquetaMetodo(codigo: number): string {
+        switch (codigo) {
+            case 1: return 'EFECTIVO';
+            case 2: return 'TARJETA';
+            case 3: return 'TRANSFERENCIA';
+            case 4: return 'CHEQUE';
+            default: return 'DESCONOCIDO';
+        }
+    }
+
+    // Procesa el pago contra el API y muestra el comprobante
+    async procesarPago(resultado: ResultadoPago) {
+        if (this.flujo() === 'pedido') {
+            await this.procesarPedido(resultado);
+        } else {
+            await this.procesarFactura(resultado);
+        }
+    }
+
+    private async procesarFactura(resultado: ResultadoPago) {
+        this.procesandoPago.set(true);
+        try {
+            const request: FacturarVentanillaRequest = {
+                CodigoCliente: this.clienteSeleccionado()?.CodigoCliente ?? null,
+                Productos: this.carrito().map(it => ({
+                    CodigoProducto: it.CodigoProducto,
+                    Cantidad: it.Cantidad,
+                    PrecioUnitario: it.PrecioUnitario
+                })),
+                Pagos: resultado.pago ? [resultado.pago] : [],
+                Propina: 0
+            };
+
+            const res = await this.servicioVenta.facturarVentanilla(request);
+
+            if (res.success) {
+                this.comprobante.set(res.data as ComprobanteVenta);
+                this.mostrarComprobanteConAccion(resultado.accion);
+            } else {
+                this.servicioAlerta.MostrarError(res, 'No se pudo facturar la venta');
+            }
+        } catch (error) {
+            this.servicioAlerta.MostrarError(error, 'No se pudo facturar la venta');
+        } finally {
+            this.procesandoPago.set(false);
+        }
+    }
+
+    private async procesarPedido(resultado: ResultadoPago) {
+        this.procesandoPago.set(true);
+        try {
+            const itemsSnapshot = this.carrito();
+            const pago = resultado.pago;
+
+            const request: CrearVentaPedidoRequest = {
+                CodigoCliente: this.clienteSeleccionado()?.CodigoCliente ?? null,
+                FechaEntrega: this.fechaEntrega() ?? '',
+                Productos: itemsSnapshot.map(it => ({
+                    CodigoProducto: it.CodigoProducto,
+                    Cantidad: it.Cantidad,
+                    PrecioUnitario: it.PrecioUnitario
+                })),
+                Pagos: pago ? [pago] : [],
+                Propina: 0
+            };
+
+            const res = await this.servicioVenta.crearVentaPedido(request);
+
+            if (res.success) {
+                // El API del pedido no devuelve Productos ni FormaPago: los completamos del frontend
+                const data = res.data || {};
+                const comprobante: ComprobanteVenta = {
+                    Empresa: data.Empresa || {},
+                    DatosComprobante: {
+                        FechaFacturacion: data.DatosComprobante?.FechaCreacion ?? null,
+                        FechaEntrega: data.DatosComprobante?.FechaEntrega ?? this.fechaEntrega(),
+                        Documento: data.DatosComprobante?.Documento ?? null,
+                        Responsable: data.DatosComprobante?.Responsable ?? null,
+                        Cliente: data.DatosComprobante?.Cliente ?? null,
+                        Direccion: data.DatosComprobante?.Direccion ?? null,
+                        Nit: data.DatosComprobante?.Nit ?? null,
+                        Celular: data.DatosComprobante?.Celular ?? null
+                    },
+                    Productos: itemsSnapshot.map(it => ({
+                        Cantidad: it.Cantidad,
+                        Producto: it.NombreProducto,
+                        Total: Number((it.PrecioUnitario * it.Cantidad).toFixed(2))
+                    })),
+                    Totales: data.Totales || { Subtotal: 0, Iva: 0, Propina: 0, Total: 0, TotalCobrado: 0 },
+                    FormaPago: pago ? [{
+                        MetodoPago: this.etiquetaMetodo(pago.MetodoPago as number),
+                        MontoCobrado: pago.Monto,
+                        MontoRecibido: pago.MontoRecibido,
+                        Cambio: pago.Cambio
+                    }] : []
+                };
+
+                this.comprobante.set(comprobante);
+                this.mostrarComprobanteConAccion(resultado.accion);
+            } else {
+                this.servicioAlerta.MostrarError(res, 'No se pudo crear el pedido');
+            }
+        } catch (error) {
+            this.servicioAlerta.MostrarError(error, 'No se pudo crear el pedido');
+        } finally {
+            this.procesandoPago.set(false);
+        }
+    }
+
+    private mostrarComprobanteConAccion(accion: 'imprimir' | 'descargar') {
+        this.accionComprobante.set(accion);
+        this.mostrarModalMonto.set(false);
+        this.mostrarComprobante.set(true);
+        // Limpia la orden procesada
+        this.carrito.set([]);
+        this.clienteSeleccionado.set(null);
+        this.fechaEntrega.set(null);
+    }
+
+    cerrarComprobante() {
+        this.mostrarComprobante.set(false);
+        this.comprobante.set(null);
+        this.accionComprobante.set(null);
+    }
+}

@@ -1,0 +1,101 @@
+@if (visible) {
+<div class="cf-overlay">
+    <div class="cf-content">
+        <!-- Header -->
+        <div class="cf-header">
+            <h2 class="cf-titulo">Cliente</h2>
+            <button class="cf-close" [style.background-color]="colorSistema" (click)="cerrar()">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+
+        <!-- Body -->
+        <div class="cf-body">
+            <div class="row g-4">
+                <!-- Nombre (buscador) + nuevo cliente -->
+                <div class="col-md-6">
+                    <label class="cf-label">Nombre:</label>
+                    <div class="d-flex gap-2">
+                        <div class="cf-search flex-grow-1 position-relative">
+                            <input type="text" class="cf-input" placeholder="C/F"
+                                [ngModel]="textoBusqueda()"
+                                (ngModelChange)="alEscribir($event)"
+                                (focus)="mostrarSugerencias.set(true)"
+                                (blur)="ocultarSugerencias()">
+                            <i class="bi bi-search cf-search-icon"></i>
+
+                            @if (mostrarSugerencias() && sugerencias().length > 0) {
+                            <ul class="cf-sugerencias">
+                                @for (c of sugerencias(); track c.CodigoCliente) {
+                                <li (mousedown)="seleccionarCliente(c)">
+                                    <span class="fw-semibold">{{ c.NombreCliente }}</span>
+                                    <small class="text-muted d-block">
+                                        NIT: {{ c.NIT || 'N/A' }} · Tel: {{ c.Telefono || '—' }}
+                                    </small>
+                                </li>
+                                }
+                            </ul>
+                            }
+                            @if (mostrarSugerencias() && !cargando() && sugerencias().length === 0) {
+                            <ul class="cf-sugerencias">
+                                <li class="text-muted text-center">Sin coincidencias</li>
+                            </ul>
+                            }
+                        </div>
+
+                        <button class="cf-btn-nuevo" [style.background-color]="colorSistema"
+                            title="Registrar nuevo cliente" (click)="abrirNuevoCliente()">
+                            <i class="bi bi-person-plus-fill"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- NIT -->
+                <div class="col-md-6">
+                    <label class="cf-label">Nit:</label>
+                    <input type="text" class="cf-input" readonly
+                        [value]="clienteSeleccionado()?.NIT || 'N/A'">
+                </div>
+
+                <!-- Dirección -->
+                <div class="col-md-6">
+                    <label class="cf-label">Dirección:</label>
+                    <input type="text" class="cf-input" readonly
+                        [value]="clienteSeleccionado()?.Direccion || '—'">
+                </div>
+
+                <!-- Celular -->
+                <div class="col-md-6">
+                    <label class="cf-label">Celular:</label>
+                    <input type="text" class="cf-input" readonly
+                        [value]="clienteSeleccionado()?.Telefono || '000 - 0000'">
+                </div>
+
+                <!-- Fecha de entrega (solo flujo Bajo pedido) -->
+                @if (pedirFechaEntrega) {
+                <div class="col-md-6">
+                    <label class="cf-label">Fecha de entrega:</label>
+                    <input type="date" class="cf-input"
+                        [ngModel]="fechaEntrega()" (ngModelChange)="fechaEntrega.set($event)">
+                </div>
+                }
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="cf-footer">
+            <button class="cf-btn-confirmar" [style.background-color]="colorSistema" (click)="confirmar()">
+                <i class="bi bi-clipboard-check"></i> {{ textoConfirmar }}
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de registro de cliente nuevo (reutilizado) -->
+<app-modal-cliente
+    [visible]="mostrarModalNuevo()"
+    [colorSistema]="colorSistema"
+    (alCerrar)="cerrarNuevoCliente()"
+    (alGuardar)="guardarNuevoCliente($event)">
+</app-modal-cliente>
+}

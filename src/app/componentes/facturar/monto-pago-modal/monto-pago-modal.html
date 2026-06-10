@@ -1,0 +1,72 @@
+@if (visible) {
+<div class="mp-overlay">
+    <div class="mp-content">
+        <!-- Close -->
+        <button class="mp-close" [style.background-color]="colorSistema" (click)="cerrar()" [disabled]="procesando">
+            <i class="bi bi-x-lg"></i>
+        </button>
+
+        <!-- Logo -->
+        <div class="text-center mb-2">
+            <img src="logoPromesaDeDios.png" alt="Logo" class="mp-logo">
+        </div>
+
+        <h4 class="text-center fw-semibold mb-1">Monto</h4>
+        <div class="mp-total text-center fw-bold mb-4">Q {{ total | number:'1.2-2' }}</div>
+
+        <!-- Pagará con -->
+        <label class="mp-label text-center d-block fw-bold mb-2">Pagará con:</label>
+        <div class="mp-select-wrapper mb-3">
+            <select class="mp-select" [ngModel]="metodoPago()" (ngModelChange)="cambiarMetodo($event)"
+                [disabled]="procesando">
+                @for (m of metodos; track m.valor) {
+                <option [ngValue]="m.valor">{{ m.etiqueta }}</option>
+                }
+            </select>
+            <i class="bi bi-caret-down-fill mp-caret"></i>
+        </div>
+
+        <!-- Referencia (solo métodos no-efectivo) -->
+        @if (!esEfectivo()) {
+        <input type="text" class="mp-input mb-2"
+            [placeholder]="metodoPago() === 4 ? 'No. de cheque' : 'No. de referencia / autorización'"
+            [ngModel]="referencia()" (ngModelChange)="referencia.set($event)" [disabled]="procesando">
+        }
+
+        <!-- Monto recibido (contado) / Abono (pedido) -->
+        <input type="number" class="mp-input mb-2"
+            [placeholder]="esPedido() ? 'Ingrese abono (opcional)' : 'Ingrese cantidad'" min="0" step="0.01"
+            [ngModel]="montoRecibido()" (ngModelChange)="montoRecibido.set($event)" [disabled]="procesando">
+
+        @if (esPedido()) {
+        <!-- Saldo pendiente -->
+        <label class="mp-label text-center d-block fw-bold mt-2 mb-2">Saldo pendiente:</label>
+        <div class="mp-cambio text-center mb-4">Q {{ saldoPendiente() | number:'1.2-2' }}</div>
+        } @else {
+        <!-- Cambio -->
+        <label class="mp-label text-center d-block fw-bold mt-2 mb-2">Su cambio:</label>
+        <div class="mp-cambio text-center mb-4">Q {{ cambio() | number:'1.2-2' }}</div>
+        }
+
+        <!-- Imprimir -->
+        <div class="text-center">
+            <button class="mp-btn-imprimir" [style.background-color]="colorSistema"
+                (click)="procesar('imprimir')" [disabled]="procesando">
+                @if (procesando) {
+                <span class="spinner-border spinner-border-sm me-2"></span> Procesando...
+                } @else {
+                <i class="bi bi-printer-fill me-2"></i> Imprimir
+                }
+            </button>
+        </div>
+
+        <!-- Descargar PDF -->
+        <div class="mp-descargar">
+            <button class="mp-btn-descargar" [style.border-color]="colorSistema" [style.color]="colorSistema"
+                title="Descargar PDF" (click)="procesar('descargar')" [disabled]="procesando">
+                <i class="bi bi-download"></i>
+            </button>
+        </div>
+    </div>
+</div>
+}

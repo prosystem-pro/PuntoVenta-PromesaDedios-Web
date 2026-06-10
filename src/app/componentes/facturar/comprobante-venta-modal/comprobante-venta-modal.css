@@ -1,0 +1,93 @@
+.cv-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 4000;
+    overflow-y: auto;
+    padding: 1rem;
+}
+
+.cv-modal {
+    width: 100%;
+    max-width: 420px;
+    max-height: 95vh;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.cv-ticket {
+    overflow-y: auto;
+    background: #fff;
+    color: #212529;
+    font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+.cv-logo {
+    height: 64px;
+    object-fit: contain;
+}
+
+.cv-empresa {
+    font-size: 1.8rem;
+    letter-spacing: 0.5px;
+}
+
+.cv-divider {
+    border-top: 2px dashed #9aa0a6;
+    margin: 0.6rem 0;
+}
+
+.cv-table {
+    font-size: 0.85rem;
+}
+
+.cv-table th {
+    font-weight: 700;
+}
+
+@media print {
+    @page {
+        size: 80mm auto;
+        margin: 0;
+    }
+    html, body {
+        width: 80mm !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #fff !important;
+    }
+    body * { visibility: hidden !important; }
+    .cv-overlay, .cv-overlay * { visibility: visible !important; }
+    .cv-overlay {
+        position: absolute !important;
+        inset: 0 !important;
+        background: #fff !important;
+        padding: 0 !important;
+        display: block !important;
+        overflow: visible !important;
+    }
+    .cv-modal {
+        box-shadow: none !important;
+        border: none !important;
+        border-radius: 0 !important;
+        max-width: 80mm !important;
+        width: 80mm !important;
+        max-height: none !important;
+        overflow: visible !important;
+    }
+    .cv-ticket {
+        font-family: 'Consolas', 'Courier New', monospace !important;
+        font-size: 10pt !important;
+        padding: 2mm !important;
+        color: #000 !important;
+        line-height: 1.25 !important;
+        overflow: visible !important;
+    }
+    .cv-ticket h2.cv-empresa { font-size: 13pt !important; line-height: 1.2 !important; }
+    .cv-ticket h6 { font-size: 10pt !important; margin: 4px 0 !important; }
+    .cv-ticket .small, .cv-table { font-size: 9pt !important; }
+    .cv-logo { height: 14mm !important; }
+    .cv-divider { border-top: 1px dashed #000 !important; margin: 4px 0 !important; }
+    .no-print { display: none !important; }
+}

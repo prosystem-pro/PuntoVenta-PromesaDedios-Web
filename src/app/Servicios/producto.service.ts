@@ -52,6 +52,11 @@ export class ProductoServicio {
         return res.data;
     }
 
+    async ProductosPorCategoria(codigoCategoria: number): Promise<RespuestaAPI<any[]>> {
+        const res = await axiosInstance.get(`/categoriaproducto/${codigoCategoria}`);
+        return res.data;
+    }
+
     async CrearCategoria(categoria: Partial<CategoriaProducto>): Promise<RespuestaAPI<CategoriaProducto>> {
         const res = await axiosInstance.post('/categoriaproducto/crear', categoria);
         return res.data;

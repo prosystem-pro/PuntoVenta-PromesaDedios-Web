@@ -19,7 +19,7 @@ export class ComprobanteVentaModal implements OnChanges {
     @Input() visible = false;
     @Input() data: ComprobanteVenta | null = null;
     @Input() colorSistema = Entorno.ColorSistema;
-    /** Acción automática a ejecutar al abrir el comprobante */
+    /** Acción automática al abrir el comprobante: 'imprimir' dispara la pantalla de impresión */
     @Input() accionAuto: 'imprimir' | 'descargar' | null = null;
 
     @Output() cerrar = new EventEmitter<void>();

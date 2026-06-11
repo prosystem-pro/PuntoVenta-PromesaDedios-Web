@@ -93,10 +93,13 @@
             <h6 class="fw-bold text-center my-2">Forma de pago</h6>
             @for (fp of data.FormaPago; track $index) {
             <div class="row g-1 small">
-                <div class="col-7 text-capitalize">{{ fp.MetodoPago | titlecase }}:</div>
+                @if (fp.Referencia) {
+                <div class="col-12">Referencia: {{ fp.Referencia }}</div>
+                }
+                <div class="col-7 text-end text-capitalize">{{ fp.MetodoPago | titlecase }}:</div>
                 <div class="col-5 text-end">Q {{ fp.MontoCobrado | number:'1.2-2' }}</div>
                 @if (!data.DatosComprobante.FechaEntrega) {
-                <div class="col-7">Cambio:</div>
+                <div class="col-7 text-end">Cambio:</div>
                 <div class="col-5 text-end">Q {{ fp.Cambio | number:'1.2-2' }}</div>
                 }
             </div>

@@ -29,32 +29,68 @@
 }
 
 .btn-category.active {
-    background: orange;
+    background: var(--color-sistema, orange);
     color: white;
-    border-color: orange;
-    box-shadow: 0 4px 8px rgba(255, 165, 0, 0.3);
+    border-color: var(--color-sistema, orange);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .product-card {
     cursor: pointer;
     transition: transform 0.2s, box-shadow 0.2s;
-    border-bottom: 4px solid orange !important;
+    /* El color lo define --color-sistema (se inyecta desde colorSistema) */
+    border: 2px solid var(--color-sistema, #f7941d) !important;
+    border-radius: 18px !important;
+    background: #fff;
 }
 
 .product-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1) !important;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.18) !important;
 }
 
 .card-img-top {
-    height: 100px;
+    height: 140px;
     object-fit: cover;
 }
 
+/* Franja inferior con el nombre del producto */
+.product-card .card-body {
+    background: var(--color-sistema, #f7941d);
+    padding: 0.55rem 0.5rem !important;
+}
+
 .product-title {
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     font-weight: 600;
     line-height: 1.2;
+    color: #fff;
+    white-space: normal;
+}
+
+/* Badge de precio (pildora verde) */
+.product-card .badge.bg-success {
+    font-size: 0.9rem;
+    font-weight: 700;
+    padding: 0.4rem 0.7rem;
+    border-radius: 999px;
+}
+
+/* Badge de cantidad en el carrito (circulo rojo) */
+.product-card .badge.bg-danger {
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.product-stock-bajo {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #b81414;
 }
 
 .order-header {
@@ -80,10 +116,44 @@
     align-items: center;
     justify-content: center;
     border-radius: 6px;
-    background: orange;
+    background: var(--color-sistema, orange);
     color: white;
     border: none;
     font-weight: bold;
+    flex-shrink: 0;
+}
+
+.btn-qty:hover {
+    filter: brightness(0.92);
+    color: white;
+}
+
+.qty-input {
+    width: 48px;
+    padding: 2px 4px;
+    font-weight: 700;
+    -moz-appearance: textfield;
+}
+
+.qty-input:focus {
+    border-color: var(--color-sistema, orange);
+    box-shadow: 0 0 0 0.15rem rgba(0, 0, 0, 0.08);
+}
+
+/* Oculta las flechas nativas del input number */
+.qty-input::-webkit-outer-spin-button,
+.qty-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.comentario-input {
+    resize: none;
+}
+
+.comentario-input:focus {
+    border-color: var(--color-sistema, orange);
+    box-shadow: 0 0 0 0.15rem rgba(0, 0, 0, 0.08);
 }
 
 .bg-price-light {

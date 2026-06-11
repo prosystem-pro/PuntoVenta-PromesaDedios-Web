@@ -68,5 +68,5 @@ export interface ComprobanteVenta {
     };
     Productos: { Cantidad: number; Producto?: string | null; Total: number }[];
     Totales: { Subtotal: number; Iva: number; Propina: number; Total: number; TotalCobrado: number; Abonado?: number; SaldoPendiente?: number };
-    FormaPago: { MetodoPago: string; MontoCobrado: number; MontoRecibido: number; Cambio: number }[];
+    FormaPago: { MetodoPago: string; MontoCobrado: number; MontoRecibido: number; Cambio: number; Referencia?: string | null }[];
 }

@@ -28,6 +28,7 @@ interface ProductoVenta {
     PrecioUnitario: number; // precio con IVA (lo que se cobra)
     ImagenUrl?: string | null;
     Stock: number | null;
+    StockMinimo?: number | null;
     CodigoBarra?: string | null;
 }
 
@@ -59,6 +60,7 @@ export class Facturar implements OnInit {
 
     // Carrito / Orden
     carrito = signal<ItemCarrito[]>([]);
+    comentarioAbierto = signal<number | null>(null);  // CodigoProducto con el comentario desplegado
     total = computed(() =>
         this.carrito().reduce((acc, item) => acc + (item.PrecioUnitario * item.Cantidad), 0)
     );
@@ -120,7 +122,10 @@ export class Facturar implements OnInit {
                     NombreProducto: p.Producto,
                     PrecioUnitario: Number(p.PrecioConIva ?? p.PrecioVenta ?? 0),
                     ImagenUrl: p.ImagenUrl,
-                    Stock: p.StockActual ?? null
+                    Stock: p.StockActual ?? null,
+                    // El API aún no envía StockMinimo en este endpoint; cuando lo haga,
+                    // el aviso de "stock bajo" se calculará contra este valor.
+                    StockMinimo: p.StockMinimo ?? null
                 }));
                 this.productos.set(lista);
             }
@@ -134,6 +139,14 @@ export class Facturar implements OnInit {
         if (!busqueda) return this.productos();
         return this.productos().filter(p => p.NombreProducto?.toLowerCase().includes(busqueda));
     });
+
+    // Hay stock bajo cuando el stock actual es menor o igual al stock mínimo del producto.
+    // Si el API no envía StockMinimo, no se muestra aviso (evita falsos positivos).
+    esStockBajo(prod: ProductoVenta): boolean {
+        return prod.Stock !== null && prod.Stock !== undefined
+            && prod.StockMinimo !== null && prod.StockMinimo !== undefined
+            && prod.Stock <= prod.StockMinimo;
+    }
 
     // Cantidad de un producto que ya está en el carrito (para el badge)
     cantidadEnCarrito(codigo: number | undefined): number {
@@ -159,9 +172,30 @@ export class Facturar implements OnInit {
         }
     }
 
+    // Cantidad editada manualmente en el input. Mientras el campo está vacío
+    // (NaN) no se toca el carrito para no eliminar la fila a medio escribir.
+    cambiarCantidad(codigo: number, valor: string | number | null) {
+        if (valor === '' || valor === null || valor === undefined) return;
+        const n = Math.floor(Number(valor));
+        if (isNaN(n)) return;
+        this.actualizarCantidad(codigo, n);
+    }
+
+    // Muestra/oculta el campo de comentario de un producto
+    toggleComentario(codigo: number) {
+        this.comentarioAbierto.update(actual => actual === codigo ? null : codigo);
+    }
+
+    cambiarNota(codigo: number, texto: string) {
+        this.carrito.update(items => items.map(it =>
+            it.CodigoProducto === codigo ? { ...it, Nota: texto } : it
+        ));
+    }
+
     actualizarCantidad(codigo: number, nuevaCant: number) {
         if (nuevaCant <= 0) {
             this.carrito.update(items => items.filter(it => it.CodigoProducto !== codigo));
+            if (this.comentarioAbierto() === codigo) this.comentarioAbierto.set(null);
             return;
         }
         this.carrito.update(items => items.map(it =>
@@ -261,7 +295,8 @@ export class Facturar implements OnInit {
                 Productos: this.carrito().map(it => ({
                     CodigoProducto: it.CodigoProducto,
                     Cantidad: it.Cantidad,
-                    PrecioUnitario: it.PrecioUnitario
+                    PrecioUnitario: it.PrecioUnitario,
+                    Observaciones: it.Nota?.trim() || null
                 })),
                 Pagos: resultado.pago ? [resultado.pago] : [],
                 Propina: 0
@@ -270,8 +305,17 @@ export class Facturar implements OnInit {
             const res = await this.servicioVenta.facturarVentanilla(request);
 
             if (res.success) {
-                this.comprobante.set(res.data as ComprobanteVenta);
-                this.mostrarComprobanteConAccion(resultado.accion);
+                const comprobante = res.data as ComprobanteVenta;
+                // El API no devuelve la Referencia en FormaPago; la completamos
+                // con la que ingresó el usuario en el modal de pago.
+                if (comprobante.FormaPago?.length) {
+                    comprobante.FormaPago = comprobante.FormaPago.map((fp, i) => ({
+                        ...fp,
+                        Referencia: request.Pagos[i]?.Referencia ?? null
+                    }));
+                }
+                this.comprobante.set(comprobante);
+                this.abrirComprobante(resultado.accion);
             } else {
                 this.servicioAlerta.MostrarError(res, 'No se pudo facturar la venta');
             }
@@ -294,7 +338,8 @@ export class Facturar implements OnInit {
                 Productos: itemsSnapshot.map(it => ({
                     CodigoProducto: it.CodigoProducto,
                     Cantidad: it.Cantidad,
-                    PrecioUnitario: it.PrecioUnitario
+                    PrecioUnitario: it.PrecioUnitario,
+                    Observaciones: it.Nota?.trim() || null
                 })),
                 Pagos: pago ? [pago] : [],
                 Propina: 0
@@ -327,12 +372,13 @@ export class Facturar implements OnInit {
                         MetodoPago: this.etiquetaMetodo(pago.MetodoPago as number),
                         MontoCobrado: pago.Monto,
                         MontoRecibido: pago.MontoRecibido,
-                        Cambio: pago.Cambio
+                        Cambio: pago.Cambio,
+                        Referencia: pago.Referencia ?? null
                     }] : []
                 };
 
                 this.comprobante.set(comprobante);
-                this.mostrarComprobanteConAccion(resultado.accion);
+                this.abrirComprobante(resultado.accion);
             } else {
                 this.servicioAlerta.MostrarError(res, 'No se pudo crear el pedido');
             }
@@ -343,7 +389,9 @@ export class Facturar implements OnInit {
         }
     }
 
-    private mostrarComprobanteConAccion(accion: 'imprimir' | 'descargar') {
+    // Abre el comprobante. Si la acción es 'imprimir' dispara la pantalla de
+    // impresión de una; si es 'descargar' genera el PDF automáticamente.
+    private abrirComprobante(accion: 'imprimir' | 'descargar') {
         this.accionComprobante.set(accion);
         this.mostrarModalMonto.set(false);
         this.mostrarComprobante.set(true);
@@ -351,6 +399,7 @@ export class Facturar implements OnInit {
         this.carrito.set([]);
         this.clienteSeleccionado.set(null);
         this.fechaEntrega.set(null);
+        this.comentarioAbierto.set(null);
     }
 
     cerrarComprobante() {

@@ -119,7 +119,9 @@ export class MateriaPrimaModal implements OnChanges {
                 this.servicioAlerta.MostrarError(res);
             }
         } catch (error) {
-            this.servicioAlerta.MostrarError({ error: { message: 'Error al guardar' } });
+            // Propaga el error real para que se muestre el mensaje del API
+            // (p. ej. "El código de barra ingresado ya se encuentra registrado.")
+            this.servicioAlerta.MostrarError(error);
         } finally {
             this.cargando.set(false);
         }

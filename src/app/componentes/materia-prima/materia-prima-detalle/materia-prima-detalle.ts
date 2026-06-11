@@ -339,6 +339,7 @@ export class MateriaPrimaDetalle implements OnInit {
         this.cargando.set(true);
         let exitos = 0;
         let errores = 0;
+        const mensajesError: string[] = [];
 
         for (const item of this.listaCarga()) {
             try {
@@ -369,9 +370,11 @@ export class MateriaPrimaDetalle implements OnInit {
                     }
                 } else {
                     errores++;
+                    mensajesError.push(manejarErrorApi(res));
                 }
             } catch (e) {
                 errores++;
+                mensajesError.push(manejarErrorApi(e));
             }
         }
 
@@ -379,8 +382,16 @@ export class MateriaPrimaDetalle implements OnInit {
         if (errores === 0) {
             this.servicioAlerta.MostrarExito(`Se guardaron ${exitos} productos correctamente`);
             this.router.navigate(['/materia-prima']);
+        } else if (exitos === 0 && errores === 1) {
+            // Un solo producto y falló: mostrar el mensaje real del API
+            // (p. ej. "El código de barra ingresado ya se encuentra registrado.")
+            this.servicioAlerta.MostrarError(mensajesError[0]);
         } else {
-            this.servicioAlerta.MostrarAlerta(`Proceso terminado. Éxitos: ${exitos}, Errores: ${errores}`);
+            // Lote con resultados mixtos: resumen + detalle de los errores
+            const detalle = [...new Set(mensajesError)].join(' · ');
+            this.servicioAlerta.MostrarAlerta(
+                `Éxitos: ${exitos}, Errores: ${errores}. ${detalle}`
+            );
         }
     }
 
@@ -429,10 +440,12 @@ export class MateriaPrimaDetalle implements OnInit {
                 this.servicioAlerta.MostrarExito('Materia prima actualizada correctamente');
                 this.router.navigate(['/materia-prima']);
             } else {
-                this.servicioAlerta.MostrarError({ message: manejarErrorApi(res) });
+                this.servicioAlerta.MostrarError(manejarErrorApi(res));
             }
         } catch (error) {
-            this.servicioAlerta.MostrarError({ error: { message: 'Error al actualizar' } });
+            // Muestra el mensaje real del API
+            // (p. ej. "El código de barra ingresado ya se encuentra registrado.")
+            this.servicioAlerta.MostrarError(manejarErrorApi(error));
         } finally {
             this.cargando.set(false);
         }

@@ -1,0 +1,133 @@
+@if (visible) {
+<div class="modal-overlay d-flex align-items-center justify-content-center">
+    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden" [style.max-width]="'820px'">
+        <div class="modal-header bg-white border-bottom p-3 d-flex justify-content-center position-relative">
+            <h4 class="modal-title fw-bold m-0">Pagos realizados</h4>
+            <button type="button" class="btn-close-custom position-absolute end-0 top-50 translate-middle-y me-3"
+                (click)="onCerrar()">
+                <i class="bi bi-x-circle-fill fs-3" [style.color]="colorSistema"></i>
+            </button>
+        </div>
+
+        <div class="modal-body p-4 bg-white">
+            <!-- Datos del pedido (solo lectura) -->
+            <div class="row mb-4">
+                <div class="col-md-6 mb-3">
+                    <label class="small fw-bold text-muted mb-1">Fecha</label>
+                    <div class="info-box p-2 border rounded-3 small">
+                        {{ (pedido?.Fecha | date:'dd/MM/yyyy HH:mm') || '—' }}
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="small fw-bold text-muted mb-1">No. Documento</label>
+                    <div class="info-box p-2 border rounded-3 small">{{ pedido?.Documento || '—' }}</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="small fw-bold text-muted mb-1">Cliente</label>
+                    <div class="info-box p-2 border rounded-3 small text-truncate" [title]="pedido?.Cliente">
+                        {{ pedido?.Cliente || '—' }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label class="small fw-bold text-muted mb-1">Telefono</label>
+                    <div class="info-box p-2 border rounded-3 small">{{ pedido?.Telefono || '—' }}</div>
+                </div>
+            </div>
+
+            <!-- Agregar abono -->
+            <div class="pago-section p-3 rounded-4 border mb-4 shadow-sm bg-white">
+                <h6 class="fw-bold mb-3 border-bottom pb-2">Agregar abono</h6>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="small fw-bold mb-1">Medio de pago</label>
+                        <select class="form-select shadow-sm border bg-white"
+                            [ngModel]="medioPago()" (ngModelChange)="medioPago.set(+$event)"
+                            [disabled]="saldoPendiente() <= 0">
+                            @for (m of mediosPago; track m.valor) { <option [value]="m.valor">{{ m.nombre }}</option> }
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="small fw-bold mb-1">Valor</label>
+                        <input type="number" class="form-control shadow-sm border bg-white" min="0.01" step="0.01"
+                            placeholder="0.00" [ngModel]="valor()" (ngModelChange)="valor.set($event)"
+                            (keydown)="bloquearTeclasInvalidas($event)" [disabled]="saldoPendiente() <= 0">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="small fw-bold mb-1">Saldo pendiente</label>
+                        <div class="pending-box p-2 border rounded-3 fw-bold text-center shadow-sm"
+                            [class.text-success]="saldoPendiente() <= 0">
+                            Q {{ saldoPendiente() | number:'1.2-2' }}
+                        </div>
+                    </div>
+
+                    @if (!esEfectivo()) {
+                    <div class="col-md-4">
+                        <label class="small fw-bold mb-1 d-flex align-items-center gap-1">
+                            {{ etiquetaReferencia() }} <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" inputmode="numeric" class="form-control shadow-sm border bg-white"
+                            [ngModel]="referencia()" (ngModelChange)="referencia.set($event)"
+                            [disabled]="saldoPendiente() <= 0" [placeholder]="etiquetaReferencia()">
+                    </div>
+                    }
+
+                    <div class="col-md-4 d-flex align-items-end ms-auto">
+                        <button
+                            class="btn text-white w-100 py-2 shadow-sm d-flex align-items-center justify-content-center gap-2 fw-bold"
+                            [style.background-color]="colorSistema" (click)="agregarAbono()"
+                            [disabled]="saldoPendiente() <= 0">
+                            <i class="bi bi-plus-lg"></i> Agregar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pagos realizados -->
+            <div class="pago-history p-3 rounded-4 border bg-white shadow-sm">
+                <h6 class="fw-bold mb-3 border-bottom pb-2">Pagos realizados</h6>
+                <div class="table-responsive" [style.max-height]="'250px'">
+                    <table class="table table-hover align-middle m-0">
+                        <thead>
+                            <tr>
+                                <th class="small py-2 border-bottom">Fecha de pago</th>
+                                <th class="small py-2 border-bottom">Medio de pago</th>
+                                <th class="small py-2 border-bottom text-end">Valor pagado</th>
+                                <th class="small py-2 border-bottom text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (p of pagos(); track $index) {
+                            <tr>
+                                <td class="small">{{ p.FechaPago | date:'dd/MM/yyyy HH:mm' }}</td>
+                                <td class="small">{{ p.MedioPago }}</td>
+                                <td class="small fw-bold text-end">Q {{ p.Valor | number:'1.2-2' }}</td>
+                                <td class="text-center">
+                                    <div class="d-flex justify-content-center gap-2">
+                                        <button class="btn btn-sm btn-outline-dark border-0 shadow-none"
+                                            (click)="verComprobante(p)" title="Ver comprobante">
+                                            <i class="bi bi-file-earmark-text fs-5"></i>
+                                        </button>
+                                        @if (esSuperAdmin) {
+                                        <button class="btn btn-sm btn-delete border-0 shadow-none"
+                                            (click)="eliminarPago($index)" title="Eliminar pago">
+                                            <i class="bi bi-trash fs-5"></i>
+                                        </button>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                            } @empty {
+                            <tr>
+                                <td colspan="4" class="text-center py-4 text-muted small">
+                                    No hay pagos registrados para este pedido.
+                                </td>
+                            </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+}

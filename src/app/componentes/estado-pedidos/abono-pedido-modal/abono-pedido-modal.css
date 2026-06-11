@@ -1,0 +1,81 @@
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 1050;
+    backdrop-filter: blur(2px);
+}
+
+.modal-content {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-height: 90vh;
+    background: white;
+}
+
+.modal-body {
+    overflow-y: auto;
+    flex: 1;
+}
+
+.btn-close-custom {
+    background: transparent;
+    border: none;
+    transition: transform 0.2s;
+}
+
+.btn-close-custom:hover {
+    transform: scale(1.1);
+}
+
+.info-box {
+    background: #e0e0e0 !important;
+    border: 1px solid #ced4da;
+    color: #495057;
+    min-height: 42px;
+}
+
+.pending-box {
+    background: #e0e0e0 !important;
+    border: 1px solid #ced4da;
+    min-height: 42px;
+}
+
+.form-select,
+.form-control {
+    border-radius: 8px;
+    padding: 10px;
+}
+
+.table thead th {
+    font-weight: bold;
+    color: #495057;
+}
+
+.table tbody td {
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.btn-delete {
+    background: transparent;
+    color: #dc3545;
+    transition: all 0.2s;
+}
+
+.btn-delete:hover {
+    background: rgba(220, 53, 69, 0.1);
+    transform: scale(1.1);
+}
+
+.modal-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+    background: #dee2e6;
+    border-radius: 10px;
+}

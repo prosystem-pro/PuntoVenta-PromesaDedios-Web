@@ -31,6 +31,7 @@ export const routes: Routes = [
       { path: 'productos/editar/:id', loadComponent: () => import('./componentes/productos/producto-detalle/producto-detalle').then(m => m.ProductoDetalle) },
       { path: 'compras', loadComponent: () => import('./componentes/compras/compras').then(m => m.Compras) },
       { path: 'facturar', loadComponent: () => import('./componentes/facturar/facturar').then(m => m.Facturar) },
+      { path: 'pedidos', loadComponent: () => import('./componentes/estado-pedidos/estado-pedidos').then(m => m.EstadoPedidos) },
       { path: 'ventas', loadComponent: () => import('./componentes/mesa/mesa-listado/mesa-listado').then(m => m.MesaListado) },
       { path: 'ventas/mesa/:id', loadComponent: () => import('./componentes/mesa/venta-mesa/venta-mesa').then(m => m.VentaMesa) },
       { path: 'produccion', loadComponent: () => import('./componentes/produccion/produccion-listado/produccion-listado').then(m => m.ProduccionListado) },

@@ -1,0 +1,159 @@
+<div class="pedidos-container" [style.--color-sistema]="colorSistema">
+    <!-- Header con botones y titulo -->
+    <div class="pedidos-header">
+        <button class="btn btn-top" [style.background-color]="colorSistema" (click)="abrirEstadoPagos()">
+            <i class="bi bi-card-list"></i> Estado de pagos
+        </button>
+
+        <h2 class="pedidos-titulo" [style.color]="colorSistema">
+            LISTADO PEDIDOS
+        </h2>
+
+        <button class="btn btn-top" [style.background-color]="colorSistema" (click)="abonarCliente()">
+            <i class="bi bi-person-plus-fill"></i> Abonar cliente
+        </button>
+    </div>
+
+    <!-- Barra de busqueda y filtros -->
+    <div class="row align-items-center filters-row">
+        <div class="col-md-6 d-flex gap-3 align-items-center">
+            <div class="d-flex align-items-center gap-2">
+                <label class="small fw-bold text-muted">Inicio</label>
+                <input type="date" class="form-control form-control-sm" [ngModel]="fechaInicioInput()"
+                    (ngModelChange)="fechaInicioInput.set($event)">
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <label class="small fw-bold text-muted">Final</label>
+                <input type="date" class="form-control form-control-sm" [ngModel]="fechaFinalInput()"
+                    (ngModelChange)="fechaFinalInput.set($event)">
+            </div>
+            <div class="d-flex gap-1">
+                @if (estaFiltrado() && !haCambiadoFiltro()) {
+                <button class="btn btn-sm px-3 btn-secondary shadow-sm" (click)="limpiarFiltros()">
+                    Cancelar
+                </button>
+                } @else {
+                <button class="btn btn-sm px-3 text-white shadow-sm" [style.background-color]="colorSistema"
+                    (click)="aplicarFiltros()">
+                    Buscar
+                </button>
+                }
+            </div>
+        </div>
+        <div class="col-md-6 d-flex justify-content-end">
+            <div class="search-box">
+                <input type="text" class="search-input" placeholder="Buscar por cliente o No. pedido..."
+                    [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event); paginaActual.set(1)">
+                <i class="bi bi-search search-icon"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla -->
+    <div class="users-card table-card shadow-sm border-0">
+        <div class="table-container p-0">
+            @if (cargando()) {
+            <div class="text-center py-5">
+                <div class="spinner-border" [style.color]="colorSistema" role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+            </div>
+            } @else {
+            <table class="pedidos-table">
+                <thead>
+                    <tr>
+                        <th (click)="ordenarPor('Pedido')" style="cursor: pointer;">
+                            Pedido
+                            <i [class]="columnaActiva() === 'Pedido' ? (ordenAscendente() ? 'bi bi-arrow-up' : 'bi bi-arrow-down') : 'bi bi-arrow-down-up'" class="ms-1 small text-muted"></i>
+                        </th>
+                        <th (click)="ordenarPor('Nombre')" style="cursor: pointer;">
+                            Nombre
+                            <i [class]="columnaActiva() === 'Nombre' ? (ordenAscendente() ? 'bi bi-arrow-up' : 'bi bi-arrow-down') : 'bi bi-arrow-down-up'" class="ms-1 small text-muted"></i>
+                        </th>
+                        <th class="text-center" (click)="ordenarPor('Produccion')" style="cursor: pointer;">
+                            Producción
+                            <i [class]="columnaActiva() === 'Produccion' ? (ordenAscendente() ? 'bi bi-arrow-up' : 'bi bi-arrow-down') : 'bi bi-arrow-down-up'" class="ms-1 small text-muted"></i>
+                        </th>
+                        <th class="text-center" (click)="ordenarPor('FechaEntrega')" style="cursor: pointer;">
+                            Fecha Entrega
+                            <i [class]="columnaActiva() === 'FechaEntrega' ? (ordenAscendente() ? 'bi bi-arrow-up' : 'bi bi-arrow-down') : 'bi bi-arrow-down-up'" class="ms-1 small text-muted"></i>
+                        </th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (p of pedidosPaginados(); track $index) {
+                    <tr>
+                        <td class="text-muted small">{{ p.Pedido }}</td>
+                        <td>{{ p.Nombre || '—' }}</td>
+                        <td class="text-center fw-semibold" [class]="claseProduccion(p.Produccion)">
+                            {{ etiquetaProduccion(p.Produccion) }}
+                        </td>
+                        <td class="text-center">{{ (p.FechaEntrega | date:'dd/MM/yyyy':'UTC') || '—' }}</td>
+                        <td class="acciones-cell">
+                            @if (puedeEntregar(p)) {
+                            <button class="btn btn-entregar" [style.background-color]="colorSistema"
+                                (click)="entregar(p)">
+                                Entregar
+                            </button>
+                            }
+                        </td>
+                    </tr>
+                    } @empty {
+                    <tr>
+                        <td colspan="5" class="text-center py-5 text-muted">
+                            <i class="bi bi-clipboard-x d-block fs-3 mb-2 opacity-50"></i>
+                            No se encontraron pedidos.
+                        </td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+            }
+        </div>
+    </div>
+
+    <!-- Paginacion -->
+    <div class="pagination-footer footer-row d-flex align-items-center justify-content-between">
+        <div class="pagination-info text-muted small">
+            Mostrando <strong>{{ rangoInicio() }}</strong> al <strong>{{ rangoFin() }}</strong> de <strong>{{
+                totalRegistros() }}</strong> registros
+        </div>
+
+        <nav aria-label="Page navigation">
+            <ul class="pagination pagination-sm mb-0">
+                <li class="page-item" [class.disabled]="paginaActual() === 1">
+                    <button class="page-link" (click)="paginaAnterior()">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                </li>
+
+                @for (p of paginasVisibles(); track $index) {
+                <li class="page-item" [class.active]="paginaActual() === p" [class.disabled]="p === '...'">
+                    <button class="page-link" (click)="p !== '...' && irAPagina($any(p))"
+                        [style.backgroundColor]="paginaActual() === p ? colorSistema : ''"
+                        [style.borderColor]="paginaActual() === p ? colorSistema : ''"
+                        [style.cursor]="p === '...' ? 'default' : 'pointer'">
+                        {{ p }}
+                    </button>
+                </li>
+                }
+
+                <li class="page-item" [class.disabled]="paginaActual() === totalPaginas() || totalPaginas() === 0">
+                    <button class="page-link" (click)="paginaSiguiente()">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>
+
+<!-- Modal Abonar / Pagos realizados (diseño, sin integrar) -->
+<app-abono-pedido-modal
+    [visible]="mostrarAbono()"
+    [colorSistema]="colorSistema"
+    [pedido]="pedidoAbono()"
+    [esSuperAdmin]="esSuperAdmin"
+    (cerrar)="cerrarAbono()">
+</app-abono-pedido-modal>

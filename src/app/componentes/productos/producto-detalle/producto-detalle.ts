@@ -609,11 +609,13 @@ export class ProductoDetalle implements OnInit {
                 this.servicioAlerta.MostrarExito(res.message);
                 this.router.navigate(['/productos']);
             } else {
-                this.servicioAlerta.MostrarError({ message: manejarErrorApi(res) });
+                this.servicioAlerta.MostrarError(manejarErrorApi(res));
             }
         } catch (error) {
             console.error('Error guardando:', error);
-            this.servicioAlerta.MostrarError({ message: 'Error durante la operación' });
+            // Muestra el mensaje real del API
+            // (p. ej. "El código de barra ingresado ya se encuentra registrado.")
+            this.servicioAlerta.MostrarError(manejarErrorApi(error));
         } finally {
             this.cargando.set(false);
         }

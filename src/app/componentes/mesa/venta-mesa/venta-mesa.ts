@@ -82,7 +82,7 @@ export class VentaMesa implements OnInit {
         try {
             const [resP, resC] = await Promise.all([
                 this.servicioProducto.Listar(),
-                this.servicioProducto.ListarCategorias()
+                this.servicioProducto.ListarCategorias('VENTANILLA')
             ]);
             if (resP.success) this.productos.set(resP.data || []);
             if (resC.success) this.categorias.set(resC.data || []);

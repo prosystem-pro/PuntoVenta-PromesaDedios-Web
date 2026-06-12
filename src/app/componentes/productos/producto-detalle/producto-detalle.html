@@ -103,7 +103,7 @@
                         <div class="d-flex gap-3 align-items-end" style="grid-column: span 2;">
                             <div class="form-group flex-grow-1">
                                 <label class="form-label">Código de barra</label>
-                                <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="8"
+                                <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="13"
                                     formControlName="CodigoBarra" class="form-control"
                                     [class.is-invalid]="esInvalido('CodigoBarra')"
                                     (input)="filtrarSoloDigitos('CodigoBarra', $any($event.target))" placeholder="Código">
@@ -319,10 +319,16 @@
                 <!-- Cinta de Acciones (En la misma columna) -->
                 <div class="card shadow-sm border-0 p-3 col-actions-card animate__animated animate__fadeInUp">
                     <div class="d-flex justify-content-end gap-3">
-                        <button type="button" class="btn btn-cancelar" (click)="cancelar()">Cancelar</button>
+                        <button type="button" class="btn btn-cancelar" (click)="cancelar()"
+                            [disabled]="cargando()">Cancelar</button>
                         <button type="button" class="btn btn-guardar-main" [style.background-color]="colorSistema"
-                            (click)="guardar()">
+                            (click)="guardar()" [disabled]="cargando()">
+                            @if (cargando()) {
+                            <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                            Guardando...
+                            } @else {
                             <i class="bi bi-download"></i> Guardar
+                            }
                         </button>
                     </div>
                 </div>
@@ -331,7 +337,7 @@
     </form>
 </div>
 
-<app-categoria-modal [visible]="mostrarCategoriaModal()" [colorSistema]="colorSistema"
+<app-categoria-modal [visible]="mostrarCategoriaModal()" [colorSistema]="colorSistema" tipoProducto="VENTANILLA"
     (alCerrar)="mostrarCategoriaModal.set(false)" (alGuardar)="cargarCatalogos()">
 </app-categoria-modal>
 

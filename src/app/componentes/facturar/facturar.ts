@@ -47,6 +47,23 @@ export class Facturar implements OnInit {
 
     colorSistema = Entorno.ColorSistema;
 
+    // Texto de la banda del nombre: blanco si el color del sistema es oscuro, negro si es claro
+    get colorTextoBanda(): string {
+        return this.esColorOscuro(this.colorSistema) ? '#ffffff' : '#212529';
+    }
+
+    private esColorOscuro(hex: string): boolean {
+        const c = (hex || '').replace('#', '').trim();
+        if (c.length < 6) return false;
+        const r = parseInt(c.substring(0, 2), 16);
+        const g = parseInt(c.substring(2, 4), 16);
+        const b = parseInt(c.substring(4, 6), 16);
+        if ([r, g, b].some(n => isNaN(n))) return false;
+        // Luminancia percibida (0 = negro, 1 = blanco)
+        const luminancia = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+        return luminancia < 0.6;
+    }
+
     // Catalogos
     categorias = signal<CategoriaProducto[]>([]);
     productos = signal<ProductoVenta[]>([]);          // productos de la categoría activa
@@ -91,7 +108,7 @@ export class Facturar implements OnInit {
     async cargarCategorias() {
         this.cargando.set(true);
         try {
-            const res = await this.servicioProducto.ListarCategorias();
+            const res = await this.servicioProducto.ListarCategorias('VENTANILLA');
             if (res.success) {
                 const cats = res.data || [];
                 this.categorias.set(cats);
@@ -123,8 +140,7 @@ export class Facturar implements OnInit {
                     PrecioUnitario: Number(p.PrecioConIva ?? p.PrecioVenta ?? 0),
                     ImagenUrl: p.ImagenUrl,
                     Stock: p.StockActual ?? null,
-                    // El API aún no envía StockMinimo en este endpoint; cuando lo haga,
-                    // el aviso de "stock bajo" se calculará contra este valor.
+                    // El API ya envía StockMinimo: el aviso de "stock bajo" se calcula contra este valor.
                     StockMinimo: p.StockMinimo ?? null
                 }));
                 this.productos.set(lista);

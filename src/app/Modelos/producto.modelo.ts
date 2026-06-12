@@ -8,6 +8,7 @@ export interface UnidadMedida {
 export interface CategoriaProducto {
     CodigoCategoriaProducto?: number;
     NombreCategoriaProducto: string;
+    TipoProducto?: 'VENTANILLA' | 'INSUMO';
     Estatus: number;
 }
 

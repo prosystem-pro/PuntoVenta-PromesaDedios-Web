@@ -47,38 +47,41 @@
                 <div class="row row-cols-2 row-cols-sm-3 row-cols-lg-4 g-3">
                     @for (prod of productosFiltrados(); track prod.CodigoProducto) {
                     <div class="col">
-                        <div class="card product-card shadow-sm h-100 overflow-hidden position-relative"
+                        <div class="card product-card position-relative"
                             [style.--color-sistema]="colorSistema"
                             (click)="agregarAlCarrito(prod)">
-                            <div class="position-absolute top-0 start-50 translate-middle-x p-2">
-                                <span class="badge bg-success shadow-sm">Q {{ prod.PrecioUnitario | number:'1.2-2' }}</span>
+                            <!-- Badge de precio (pildora verde, centrada arriba) -->
+                            <div class="price-badge-wrap">
+                                <span class="price-badge">Q {{ prod.PrecioUnitario | number:'1.2-2' }}</span>
                             </div>
 
+                            <!-- Badge de cantidad (circulo rojo, esquina superior derecha) -->
                             @if (cantidadEnCarrito(prod.CodigoProducto) > 0) {
                             <div class="position-absolute top-0 end-0 p-2">
-                                <span class="badge rounded-pill bg-danger shadow-sm">
-                                    {{ cantidadEnCarrito(prod.CodigoProducto) }}
-                                </span>
+                                <span class="qty-badge">{{ cantidadEnCarrito(prod.CodigoProducto) }}</span>
                             </div>
                             }
 
                             @if (prod.ImagenUrl) {
-                            <img [src]="prod.ImagenUrl" class="card-img-top" alt="producto">
+                            <img [src]="prod.ImagenUrl" class="prod-img" alt="producto">
                             } @else {
-                            <div class="card-img-top d-flex align-items-center justify-content-center bg-light text-muted">
+                            <div class="prod-img prod-img-placeholder">
                                 <i class="bi bi-image fs-2"></i>
                             </div>
                             }
 
-                            <div class="card-body p-2 text-center">
-                                <h6 class="product-title m-0">{{ prod.NombreProducto }}</h6>
+                            <!-- Banda con el nombre del producto -->
+                            <div class="name-band">
+                                <h6 class="product-title" [style.color]="colorTextoBanda">{{ prod.NombreProducto }}</h6>
                             </div>
-                            @if (esStockBajo(prod)) {
-                            <div class="bg-white text-center py-1">
-                                <span class="product-stock-bajo">Stock bajo {{ prod.Stock }} Unidades!</span>
-                            </div>
-                            }
                         </div>
+
+                        <!-- Aviso de stock bajo: fuera de la tarjeta (como el prototipo) -->
+                        @if (esStockBajo(prod)) {
+                        <div class="stock-bajo-wrap">
+                            <span class="product-stock-bajo">Stock bajo {{ prod.Stock }} Unidades!</span>
+                        </div>
+                        }
                     </div>
                     }
                 </div>

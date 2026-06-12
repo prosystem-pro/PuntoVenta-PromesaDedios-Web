@@ -47,8 +47,8 @@ export class ProductoServicio {
     }
 
     // --- CATEGORIAS ---
-    async ListarCategorias(): Promise<RespuestaAPI<CategoriaProducto[]>> {
-        const res = await axiosInstance.get('/categoriaproducto/listado');
+    async ListarCategorias(tipoProducto: 'VENTANILLA' | 'INSUMO'): Promise<RespuestaAPI<CategoriaProducto[]>> {
+        const res = await axiosInstance.post('/categoriaproducto/listado', { TipoProducto: tipoProducto });
         return res.data;
     }
 

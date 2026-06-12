@@ -75,7 +75,7 @@
                 @if (pedirFechaEntrega) {
                 <div class="col-md-6">
                     <label class="cf-label">Fecha de entrega:</label>
-                    <input type="date" class="cf-input"
+                    <input type="date" class="cf-input" [min]="hoyISO"
                         [ngModel]="fechaEntrega()" (ngModelChange)="fechaEntrega.set($event)">
                 </div>
                 }

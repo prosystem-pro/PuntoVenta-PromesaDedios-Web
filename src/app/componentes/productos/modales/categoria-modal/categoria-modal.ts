@@ -20,11 +20,13 @@ export class CategoriaModal implements OnInit {
 
     @Input() visible = false;
     @Input() colorSistema = Entorno.ColorSistema;
+    // Define qué interfaz consume el modal: VENTANILLA (productos) o INSUMO (materia prima)
+    @Input() tipoProducto: 'VENTANILLA' | 'INSUMO' = 'VENTANILLA';
     @Output() alCerrar = new EventEmitter<void>();
     @Output() alGuardar = new EventEmitter<void>();
 
     categorias = signal<CategoriaProducto[]>([]);
-    nuevaCategoria = {
+    nuevaCategoria: { NombreCategoriaProducto: string; Estatus: number } = {
         NombreCategoriaProducto: '',
         Estatus: 1
     };
@@ -57,7 +59,7 @@ export class CategoriaModal implements OnInit {
 
     async cargarCategorias() {
         try {
-            const res = await this.servicioProducto.ListarCategorias();
+            const res = await this.servicioProducto.ListarCategorias(this.tipoProducto);
             if (res.success) {
                 const listado = Array.isArray(res.data) ? res.data : (res.data?.Listado || []);
                 this.categorias.set(listado);
@@ -91,7 +93,10 @@ export class CategoriaModal implements OnInit {
                     this.servicioAlerta.MostrarAlerta('Las categorías nuevas solo pueden crearse en estado Activo.', 'Atención');
                     return;
                 }
-                res = await this.servicioProducto.CrearCategoria(this.nuevaCategoria);
+                res = await this.servicioProducto.CrearCategoria({
+                    ...this.nuevaCategoria,
+                    TipoProducto: this.tipoProducto
+                });
             }
 
             if (res.success) {

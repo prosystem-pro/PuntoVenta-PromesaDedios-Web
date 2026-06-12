@@ -172,7 +172,7 @@ export class CompraModal implements OnInit {
             }).catch(e => console.error('Error cargando productos:', e));
 
             // Cargar Categorías y Unidades
-            this.servicioProducto.ListarCategorias().then(res => {
+            this.servicioProducto.ListarCategorias('INSUMO').then(res => {
                 if (res.success) this.listadoCategorias.set(res.data || []);
             }).catch(e => console.error('Error cargando categorías:', e));
 

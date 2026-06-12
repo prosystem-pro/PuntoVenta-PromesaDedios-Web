@@ -123,7 +123,7 @@ export class MateriaPrima implements OnInit {
     async cargarCatalogos() {
         try {
             const [resCat, resUni] = await Promise.all([
-                this.servicioProducto.ListarCategorias(),
+                this.servicioProducto.ListarCategorias('INSUMO'),
                 this.servicioProducto.ListarUnidades()
             ]);
             if (resCat.success) {

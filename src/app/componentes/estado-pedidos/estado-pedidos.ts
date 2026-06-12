@@ -1,6 +1,7 @@
 import { Component, OnInit, signal, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { EstadoPedido } from '../../Modelos/estado-pedido.modelo';
 import { EstadoPedidoServicio } from '../../Servicios/estado-pedido.service';
 import { AlertaServicio } from '../../Servicios/alerta.service';
@@ -17,6 +18,7 @@ import { AbonoPedidoModal, PedidoAbono } from './abono-pedido-modal/abono-pedido
 export class EstadoPedidos implements OnInit {
     private servicio = inject(EstadoPedidoServicio);
     private servicioAlerta = inject(AlertaServicio);
+    private router = inject(Router);
 
     colorSistema = Entorno.ColorSistema;
 
@@ -44,21 +46,23 @@ export class EstadoPedidos implements OnInit {
     esSuperAdmin = true;
 
     async ngOnInit() {
-        // Por defecto: del día 1 del mes actual a hoy (regla 02 del prototipo)
-        const { inicio, fin } = this.rangoMesActual();
+        // Por defecto: entregas de hoy en adelante (sin tope superior)
+        const { inicio, fin } = this.rangoDefecto();
         this.fechaInicioInput.set(inicio);
         this.fechaFinalInput.set(fin);
         this.filtrosAplicados.set({ inicio, fin });
         await this.cargar();
     }
 
-    // Rango (YYYY-MM-DD) del primer día del mes en curso a hoy
-    private rangoMesActual(): { inicio: string; fin: string } {
-        const hoy = new Date();
-        const primero = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
-        const fmt = (d: Date) =>
-            `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-        return { inicio: fmt(primero), fin: fmt(hoy) };
+    // Fecha de hoy en formato YYYY-MM-DD
+    private hoyISO(): string {
+        const d = new Date();
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+
+    // Rango por defecto: desde hoy en adelante (fin vacío = sin límite superior)
+    private rangoDefecto(): { inicio: string; fin: string } {
+        return { inicio: this.hoyISO(), fin: '' };
     }
 
     async cargar() {
@@ -85,7 +89,7 @@ export class EstadoPedidos implements OnInit {
     }
 
     limpiarFiltros() {
-        const { inicio, fin } = this.rangoMesActual();
+        const { inicio, fin } = this.rangoDefecto();
         this.fechaInicioInput.set(inicio);
         this.fechaFinalInput.set(fin);
         this.filtrosAplicados.set({ inicio, fin });
@@ -93,12 +97,11 @@ export class EstadoPedidos implements OnInit {
         this.paginaActual.set(1);
     }
 
-    // El botón cambia a "Cancelar" solo cuando el rango aplicado es distinto al mes actual
+    // El botón cambia a "Cancelar" solo cuando el rango aplicado es distinto al de por defecto
     estaFiltrado = computed(() => {
         const { inicio, fin } = this.filtrosAplicados();
-        if (!inicio || !fin) return false;
-        const mes = this.rangoMesActual();
-        return !(inicio === mes.inicio && fin === mes.fin);
+        const def = this.rangoDefecto();
+        return !(inicio === def.inicio && fin === def.fin);
     });
     haCambiadoFiltro = computed(() => {
         const { inicio, fin } = this.filtrosAplicados();
@@ -126,11 +129,26 @@ export class EstadoPedidos implements OnInit {
         }
     }
 
-    // Mientras el API no devuelva el saldo (estado de pago), el botón Entregar
-    // se muestra solo según la producción finalizada. La condición real es
-    // pago cancelado + producción finalizada (pendiente del API).
+    // --- Estado de pago: PENDIENTE (por cobrar) / CANCELADO (pagado) ---
+    etiquetaEstado(e: string | null): string {
+        switch (e) {
+            case 'PENDIENTE': return 'Pendiente';
+            case 'CANCELADO': return 'Cancelado';
+            default: return '—';
+        }
+    }
+
+    claseEstado(e: string | null): string {
+        switch (e) {
+            case 'PENDIENTE': return 'estado-pendiente';
+            case 'CANCELADO': return 'estado-cancelado';
+            default: return 'estado-neutro';
+        }
+    }
+
+    // Solo se puede entregar cuando el pago está cancelado y la producción finalizada.
     puedeEntregar(pedido: EstadoPedido): boolean {
-        return pedido.Produccion === 'FINALIZADO';
+        return pedido.Estado === 'CANCELADO' && pedido.Produccion === 'FINALIZADO';
     }
 
     ordenarPor(columna: string) {
@@ -154,11 +172,13 @@ export class EstadoPedidos implements OnInit {
                 || (p.Nombre?.toLowerCase() || '').includes(texto)
                 || (p.Pedido?.toLowerCase() || '').includes(texto);
 
-            // Filtro por fecha de entrega dentro del rango (el API no filtra)
+            // Filtro por fecha de entrega (el API no filtra). inicio y fin son
+            // independientes: con fin vacío no hay tope superior (hoy en adelante).
             let coincideFecha = true;
-            if (inicio && fin && p.FechaEntrega) {
+            if (p.FechaEntrega) {
                 const fecha = p.FechaEntrega.substring(0, 10);
-                coincideFecha = fecha >= inicio && fecha <= fin;
+                if (inicio && fecha < inicio) coincideFecha = false;
+                if (fin && fecha > fin) coincideFecha = false;
             }
             return coincideTexto && coincideFecha;
         });
@@ -208,19 +228,21 @@ export class EstadoPedidos implements OnInit {
         if (this.paginaActual() < this.totalPaginas()) this.paginaActual.update(p => p + 1);
     }
 
-    // --- Acciones sin endpoint todavía (placeholders) ---
+    // Navega a la pantalla "Estado de pagos / Pagos de clientes"
     abrirEstadoPagos() {
-        this.servicioAlerta.MostrarInfo('Pantalla disponible cuando el API tenga el endpoint correspondiente.', 'Pendiente');
+        this.router.navigate(['/estado-pagos']);
     }
-    abonarCliente() {
-        // Diseño: abre el modal con datos de ejemplo. Cuando el API tenga el
-        // endpoint, aquí se cargará el detalle real del pedido seleccionado.
+
+    // Doble clic en una fila: abre el modal de Pagos realizados del pedido.
+    // (Diseño: el saldo y los pagos vendrán del API cuando exista el endpoint.)
+    abrirAbono(pedido: EstadoPedido) {
         this.pedidoAbono.set({
-            Fecha: new Date().toISOString(),
-            Documento: '—',
-            Cliente: '—',
+            Fecha: pedido.FechaEntrega,
+            Documento: pedido.Pedido,
+            Cliente: pedido.Nombre,
             Telefono: '—',
-            SaldoPendiente: 0
+            // Saldo de ejemplo mientras el API no lo devuelva
+            SaldoPendiente: 3000
         });
         this.mostrarAbono.set(true);
     }

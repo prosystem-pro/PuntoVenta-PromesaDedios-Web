@@ -29,6 +29,8 @@ export class MateriaPrimaDetalle implements OnInit {
     colorSistema = Entorno.ColorSistema;
     form: FormGroup;
     cargando = signal(false);
+    // Bloquea el botón mientras se guarda/actualiza (evita doble envío por doble clic)
+    guardando = signal(false);
 
     // Catalogos
     categorias = signal<CategoriaProducto[]>([]);
@@ -115,7 +117,7 @@ export class MateriaPrimaDetalle implements OnInit {
     async cargarCatalogos() {
         try {
             const [resCat, resUni] = await Promise.all([
-                this.servicioProducto.ListarCategorias(),
+                this.servicioProducto.ListarCategorias('INSUMO'),
                 this.servicioProducto.ListarUnidades()
             ]);
             if (resCat.success) {
@@ -324,17 +326,24 @@ export class MateriaPrimaDetalle implements OnInit {
     }
 
     async guardarTodo() {
+        // Evita doble envío (doble clic), incluso durante el diálogo de confirmación
+        if (this.guardando()) return;
+
         if (this.listaCarga().length === 0) {
             this.servicioAlerta.MostrarAlerta('No hay productos en la lista de carga');
             return;
         }
 
+        this.guardando.set(true);
         const confirmado = await this.servicioAlerta.Confirmacion(
             '¿Desea guardar todos estos productos?',
             `Se registrarán ${this.listaCarga().length} productos de materia prima.`
         );
 
-        if (!confirmado) return;
+        if (!confirmado) {
+            this.guardando.set(false);
+            return;
+        }
 
         this.cargando.set(true);
         let exitos = 0;
@@ -379,6 +388,7 @@ export class MateriaPrimaDetalle implements OnInit {
         }
 
         this.cargando.set(false);
+        this.guardando.set(false);
         if (errores === 0) {
             this.servicioAlerta.MostrarExito(`Se guardaron ${exitos} productos correctamente`);
             this.router.navigate(['/materia-prima']);
@@ -396,6 +406,9 @@ export class MateriaPrimaDetalle implements OnInit {
     }
 
     async actualizar() {
+        // Evita doble envío por doble clic
+        if (this.guardando()) return;
+
         const val = this.form.value;
 
         // 1. Validaciones numéricas de rango y decimales primero
@@ -420,6 +433,7 @@ export class MateriaPrimaDetalle implements OnInit {
             return;
         }
 
+        this.guardando.set(true);
         this.cargando.set(true);
         try {
             const payload: Partial<Producto> = {
@@ -448,6 +462,7 @@ export class MateriaPrimaDetalle implements OnInit {
             this.servicioAlerta.MostrarError(manejarErrorApi(error));
         } finally {
             this.cargando.set(false);
+            this.guardando.set(false);
         }
     }
 

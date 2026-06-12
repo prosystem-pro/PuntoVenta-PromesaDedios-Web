@@ -1,15 +1,14 @@
 <div class="pedidos-container" [style.--color-sistema]="colorSistema">
-    <!-- Header con boton y titulo -->
+    <!-- Header: regresar + titulo -->
     <div class="pedidos-header">
-        <button class="btn btn-top" [style.background-color]="colorSistema" (click)="abrirEstadoPagos()">
-            <i class="bi bi-card-list"></i> Estado de pagos
+        <button class="btn btn-top" [style.background-color]="colorSistema" (click)="regresar()">
+            <i class="bi bi-chevron-left"></i> Regresar
         </button>
 
         <h2 class="pedidos-titulo flex-grow-1 text-center" [style.color]="colorSistema">
-            LISTADO PEDIDOS
+            PAGOS DE CLIENTES
         </h2>
 
-        <!-- Espaciador para centrar el titulo -->
         <span class="header-spacer"></span>
     </div>
 
@@ -17,12 +16,12 @@
     <div class="row align-items-center filters-row">
         <div class="col-md-6 d-flex gap-3 align-items-center">
             <div class="d-flex align-items-center gap-2">
-                <label class="small fw-bold text-muted">Inicio</label>
+                <label class="small fw-bold text-muted">Fecha Inicio</label>
                 <input type="date" class="form-control form-control-sm" [ngModel]="fechaInicioInput()"
                     (ngModelChange)="fechaInicioInput.set($event)">
             </div>
             <div class="d-flex align-items-center gap-2">
-                <label class="small fw-bold text-muted">Final</label>
+                <label class="small fw-bold text-muted">Fecha Final</label>
                 <input type="date" class="form-control form-control-sm" [ngModel]="fechaFinalInput()"
                     (ngModelChange)="fechaFinalInput.set($event)">
             </div>
@@ -69,54 +68,53 @@
                             Nombre
                             <i [class]="columnaActiva() === 'Nombre' ? (ordenAscendente() ? 'bi bi-arrow-up' : 'bi bi-arrow-down') : 'bi bi-arrow-down-up'" class="ms-1 small text-muted"></i>
                         </th>
-                        <th class="text-center" (click)="ordenarPor('Estado')" style="cursor: pointer;">
-                            Estado
-                            <i [class]="columnaActiva() === 'Estado' ? (ordenAscendente() ? 'bi bi-arrow-up' : 'bi bi-arrow-down') : 'bi bi-arrow-down-up'" class="ms-1 small text-muted"></i>
+                        <th class="text-center" (click)="ordenarPor('Pagos')" style="cursor: pointer;">
+                            Pagos
+                            <i [class]="columnaActiva() === 'Pagos' ? (ordenAscendente() ? 'bi bi-arrow-up' : 'bi bi-arrow-down') : 'bi bi-arrow-down-up'" class="ms-1 small text-muted"></i>
                         </th>
-                        <th class="text-center" (click)="ordenarPor('Produccion')" style="cursor: pointer;">
-                            Producción
-                            <i [class]="columnaActiva() === 'Produccion' ? (ordenAscendente() ? 'bi bi-arrow-up' : 'bi bi-arrow-down') : 'bi bi-arrow-down-up'" class="ms-1 small text-muted"></i>
+                        <th class="text-end" (click)="ordenarPor('Pendiente')" style="cursor: pointer;">
+                            Pendiente
+                            <i [class]="columnaActiva() === 'Pendiente' ? (ordenAscendente() ? 'bi bi-arrow-up' : 'bi bi-arrow-down') : 'bi bi-arrow-down-up'" class="ms-1 small text-muted"></i>
                         </th>
-                        <th class="text-center" (click)="ordenarPor('FechaEntrega')" style="cursor: pointer;">
-                            Fecha Entrega
-                            <i [class]="columnaActiva() === 'FechaEntrega' ? (ordenAscendente() ? 'bi bi-arrow-up' : 'bi bi-arrow-down') : 'bi bi-arrow-down-up'" class="ms-1 small text-muted"></i>
+                        <th class="text-center" (click)="ordenarPor('Vencimiento')" style="cursor: pointer;">
+                            Vencimiento
+                            <i [class]="columnaActiva() === 'Vencimiento' ? (ordenAscendente() ? 'bi bi-arrow-up' : 'bi bi-arrow-down') : 'bi bi-arrow-down-up'" class="ms-1 small text-muted"></i>
+                        </th>
+                        <th class="text-center" (click)="ordenarPor('Estatus')" style="cursor: pointer;">
+                            Estatus
+                            <i [class]="columnaActiva() === 'Estatus' ? (ordenAscendente() ? 'bi bi-arrow-up' : 'bi bi-arrow-down') : 'bi bi-arrow-down-up'" class="ms-1 small text-muted"></i>
                         </th>
                         <th class="text-center">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @for (p of pedidosPaginados(); track $index) {
+                    @for (c of clientesPaginados(); track $index) {
                     <tr>
-                        <td class="text-muted small">{{ p.Pedido }}</td>
-                        <td>{{ p.Nombre || '—' }}</td>
+                        <td class="text-muted small">{{ c.Pedido }}</td>
+                        <td>{{ c.Nombre }}</td>
+                        <td class="text-center">{{ c.Pagos }}</td>
+                        <td class="text-end">Q {{ c.Pendiente | number:'1.2-2' }}</td>
+                        <td class="text-center" [class.text-danger]="c.Estatus === 'PENDIENTE'"
+                            [class.fw-bold]="c.Estatus === 'PENDIENTE'">
+                            {{ c.Vencimiento | date:'dd/MM/yyyy':'UTC' }}
+                        </td>
                         <td class="text-center">
-                            <span class="estado-badge" [class]="claseEstado(p.Estado)">
-                                {{ etiquetaEstado(p.Estado) }}
+                            <span class="estado-badge" [class]="claseEstatus(c.Estatus)">
+                                {{ etiquetaEstatus(c.Estatus) }}
                             </span>
                         </td>
-                        <td class="text-center fw-semibold" [class]="claseProduccion(p.Produccion)">
-                            {{ etiquetaProduccion(p.Produccion) }}
-                        </td>
-                        <td class="text-center">{{ (p.FechaEntrega | date:'dd/MM/yyyy':'UTC') || '—' }}</td>
                         <td class="acciones-cell">
-                            <div class="d-flex align-items-center justify-content-center gap-2">
-                                <button class="btn btn-abono" (click)="abrirAbono(p)" title="Abonos / Pagos realizados">
-                                    <i class="bi bi-cash-coin"></i>
-                                </button>
-                                @if (puedeEntregar(p)) {
-                                <button class="btn btn-entregar" [style.background-color]="colorSistema"
-                                    (click)="entregar(p)">
-                                    Entregar
-                                </button>
-                                }
-                            </div>
+                            <button class="btn btn-sm btn-comprobante" (click)="abrirAbono(c)"
+                                title="Ver pagos realizados">
+                                <i class="bi bi-receipt"></i>
+                            </button>
                         </td>
                     </tr>
                     } @empty {
                     <tr>
-                        <td colspan="6" class="text-center py-5 text-muted">
+                        <td colspan="7" class="text-center py-5 text-muted">
                             <i class="bi bi-clipboard-x d-block fs-3 mb-2 opacity-50"></i>
-                            No se encontraron pedidos.
+                            No se encontraron registros.
                         </td>
                     </tr>
                     }
@@ -162,7 +160,7 @@
     </div>
 </div>
 
-<!-- Modal Abonar / Pagos realizados (diseño, sin integrar) -->
+<!-- Modal Pagos realizados (diseño, sin integrar) -->
 <app-abono-pedido-modal
     [visible]="mostrarAbono()"
     [colorSistema]="colorSistema"

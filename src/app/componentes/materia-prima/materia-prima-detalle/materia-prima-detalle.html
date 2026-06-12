@@ -121,12 +121,18 @@
                     <div class="d-flex justify-content-end mt-5">
                         @if (modoEdicion()) {
                         <div class="d-flex gap-3">
-                            <button type="button" class="btn btn-cancelar-main" (click)="cancelar()">
+                            <button type="button" class="btn btn-cancelar-main" (click)="cancelar()"
+                                [disabled]="guardando()">
                                 Cancelar
                             </button>
                             <button type="button" class="btn btn-actualizar-main" [style.background-color]="colorSistema"
-                                (click)="actualizar()">
+                                (click)="actualizar()" [disabled]="guardando()">
+                                @if (guardando()) {
+                                <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                                Actualizando...
+                                } @else {
                                 <i class="bi bi-arrow-repeat"></i> Actualizar
+                                }
                             </button>
                         </div>
                         } @else {
@@ -203,12 +209,17 @@
                         </div>
 
                         <div class="d-flex justify-content-end gap-3">
-                            <button class="btn btn-cancelar-main" (click)="cancelar()">
+                            <button class="btn btn-cancelar-main" (click)="cancelar()" [disabled]="guardando()">
                                 Cancelar
                             </button>
                             <button class="btn btn-guardar-main" [style.background-color]="colorSistema"
-                                (click)="guardarTodo()">
+                                (click)="guardarTodo()" [disabled]="guardando()">
+                                @if (guardando()) {
+                                <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                                Guardando...
+                                } @else {
                                 <i class="bi bi-download"></i> Guardar
+                                }
                             </button>
                         </div>
                     </div>
@@ -220,8 +231,8 @@
 </div>
 
 <!-- Modales Auxiliares -->
-<app-categoria-modal [visible]="mostrarCategoriaModal()" (alCerrar)="mostrarCategoriaModal.set(false)"
-    (alGuardar)="cargarCatalogos()">
+<app-categoria-modal [visible]="mostrarCategoriaModal()" tipoProducto="INSUMO"
+    (alCerrar)="mostrarCategoriaModal.set(false)" (alGuardar)="cargarCatalogos()">
 </app-categoria-modal>
 
 <app-presentacion-modal [visible]="mostrarPresentacionModal()" (alCerrar)="mostrarPresentacionModal.set(false)"

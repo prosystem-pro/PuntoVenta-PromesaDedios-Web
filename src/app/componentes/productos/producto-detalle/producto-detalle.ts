@@ -103,14 +103,15 @@ export class ProductoDetalle implements OnInit {
     constructor() {
         // Validadores de formato
         const dosDecimales = Validators.pattern(/^\d+(\.\d{1,2})?$/);
-        const soloDigitos8 = Validators.pattern(/^\d{0,8}$/);
+        // Código de barra opcional: hasta 13 dígitos (EAN-13 / UPC-A 12 / EAN-8 8)
+        const codigoBarraDigitos = Validators.pattern(/^\d{0,13}$/);
 
         this.productoForm = this.fb.group({
             NombreProducto: ['', [Validators.required]],
             CodigoCategoriaProducto: [null, [Validators.required]],
             CodigoUnidadMedida: [null, [Validators.required]],
             TipoProducto: [null, [Validators.required]],
-            CodigoBarra: ['', [soloDigitos8]],
+            CodigoBarra: ['', [codigoBarraDigitos]],
             Iva: [0, [Validators.min(0), Validators.max(100), dosDecimales]],
             PrecioVenta: [0, [Validators.required, Validators.min(0.01), dosDecimales]],
             TieneReceta: [false],
@@ -133,7 +134,7 @@ export class ProductoDetalle implements OnInit {
     }
 
     filtrarSoloDigitos(nombreControl: string, input: HTMLInputElement) {
-        const limpio = (input.value || '').replace(/\D+/g, '').slice(0, 8);
+        const limpio = (input.value || '').replace(/\D+/g, '').slice(0, 13);
         if (limpio !== input.value) {
             input.value = limpio;
         }
@@ -155,7 +156,7 @@ export class ProductoDetalle implements OnInit {
     async cargarCatalogos() {
         try {
             const [resCat, resUni, resProd, resProdAll] = await Promise.all([
-                this.servicioProducto.ListarCategorias(),
+                this.servicioProducto.ListarCategorias('VENTANILLA'),
                 this.servicioProducto.ListarUnidades(),
                 this.servicioProducto.ListarInsumos(),
                 this.servicioProducto.Listar()
@@ -503,6 +504,9 @@ export class ProductoDetalle implements OnInit {
     }
 
     async guardar() {
+        // Evita doble envío (doble clic): si ya hay un guardado en curso, ignora
+        if (this.cargando()) return;
+
         // Validar valores negativos antes del mensaje generico de obligatorios
         const v = this.productoForm.value;
         const camposNumericos: { etiqueta: string; valor: any }[] = [

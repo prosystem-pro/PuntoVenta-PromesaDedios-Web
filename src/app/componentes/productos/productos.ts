@@ -131,7 +131,7 @@ export class Productos implements OnInit {
     async cargarCatalogos() {
         try {
             const [resCat, resUni] = await Promise.all([
-                this.servicioProducto.ListarCategorias(),
+                this.servicioProducto.ListarCategorias('VENTANILLA'),
                 this.servicioProducto.ListarUnidades()
             ]);
             if (resCat.success) {

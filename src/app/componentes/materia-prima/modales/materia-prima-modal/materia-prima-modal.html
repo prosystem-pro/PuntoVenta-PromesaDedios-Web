@@ -127,8 +127,8 @@
 </div>
 
 <!-- Modales Auxiliares -->
-<app-categoria-modal [visible]="mostrarCategoriaModal()" (alCerrar)="mostrarCategoriaModal.set(false)"
-    (alGuardar)="guardado.emit()">
+<app-categoria-modal [visible]="mostrarCategoriaModal()" tipoProducto="INSUMO"
+    (alCerrar)="mostrarCategoriaModal.set(false)" (alGuardar)="guardado.emit()">
 </app-categoria-modal>
 
 <app-presentacion-modal [visible]="mostrarPresentacionModal()" (alCerrar)="mostrarPresentacionModal.set(false)"

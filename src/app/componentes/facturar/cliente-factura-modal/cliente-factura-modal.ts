@@ -30,6 +30,12 @@ export class ClienteFacturaModal implements OnChanges {
 
     fechaEntrega = signal<string>('');
 
+    // Hoy en YYYY-MM-DD: la fecha de entrega no puede ser anterior a hoy (solo hoy o futuro)
+    get hoyISO(): string {
+        const d = new Date();
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+
     clientes = signal<Cliente[]>([]);
     cargando = signal(false);
 
@@ -132,6 +138,10 @@ export class ClienteFacturaModal implements OnChanges {
         }
         if (this.pedirFechaEntrega && !this.fechaEntrega()) {
             this.servicioAlerta.MostrarAlerta('Debe indicar la fecha de entrega');
+            return;
+        }
+        if (this.pedirFechaEntrega && this.fechaEntrega() < this.hoyISO) {
+            this.servicioAlerta.MostrarAlerta('La fecha de entrega no puede ser anterior a hoy');
             return;
         }
         this.alConfirmar.emit({

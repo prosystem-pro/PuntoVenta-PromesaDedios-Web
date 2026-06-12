@@ -25,6 +25,11 @@
     margin-bottom: 0.75rem;
 }
 
+.header-spacer {
+    width: 130px;
+    flex: 0 0 auto;
+}
+
 .filters-row {
     flex: 0 0 auto;
     margin-bottom: 0.75rem !important;
@@ -45,11 +50,6 @@
 .footer-row {
     flex: 0 0 auto;
     margin-top: 0.75rem !important;
-}
-
-.header-spacer {
-    width: 170px;
-    flex: 0 0 auto;
 }
 
 .pedidos-titulo {
@@ -147,13 +147,7 @@
     font-size: 0.875rem;
 }
 
-/* Estados de producción (colores del prototipo) */
-.prod-espera { color: #6c757d; }            /* gris  - En espera */
-.prod-proceso { color: #f7941d; }           /* naranja - En proceso */
-.prod-autorizacion { color: #0d6efd; }      /* azul - Pend. autorización */
-.prod-finalizado { color: #2e9e44; }        /* verde - Finalizado */
-
-/* Estado de pago (badge) */
+/* Estatus de pago (badge) */
 .estado-badge {
     display: inline-block;
     padding: 0.25rem 0.75rem;
@@ -163,49 +157,33 @@
     line-height: 1;
 }
 
-.estado-pendiente {
-    color: #b81414;
-    background-color: rgba(184, 20, 20, 0.12);
-}
-
-.estado-cancelado {
+.estado-pagado {
     color: #2e9e44;
     background-color: rgba(46, 158, 68, 0.12);
 }
 
-.estado-neutro {
-    color: #6c757d;
-    background-color: rgba(108, 117, 125, 0.12);
+.estado-pendiente {
+    color: #b81414;
+    background-color: rgba(184, 20, 20, 0.12);
 }
 
 .acciones-cell {
     text-align: center;
 }
 
-.btn-abono {
+.btn-comprobante {
     background: transparent;
     color: #2e9e44;
     border: none;
-    font-size: 1.15rem;
-    padding: 0.25rem 0.5rem;
     transition: all 0.2s;
+    font-size: 1.1rem;
+    padding: 0.25rem 0.5rem;
 }
 
-.btn-abono:hover {
+.btn-comprobante:hover {
     background: rgba(46, 158, 68, 0.1);
     color: #2e9e44;
     transform: scale(1.1);
-}
-
-.btn-entregar {
-    padding: 0.35rem 1rem;
-    border: none;
-    border-radius: 6px;
-    color: #fff;
-    font-weight: 600;
-    font-size: 0.8rem;
-    cursor: pointer;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
 }
 
 .pagination-footer {

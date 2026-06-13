@@ -97,7 +97,7 @@
                         <td class="text-center fw-semibold" [class]="claseProduccion(p.Produccion)">
                             {{ etiquetaProduccion(p.Produccion) }}
                         </td>
-                        <td class="text-center">{{ (p.FechaEntrega | date:'dd/MM/yyyy':'UTC') || '—' }}</td>
+                        <td class="text-center">{{ fechaCorta(p.FechaEntrega) }}</td>
                         <td class="acciones-cell">
                             <div class="d-flex align-items-center justify-content-center gap-2">
                                 <button class="btn btn-abono" (click)="abrirAbono(p)" title="Abonos / Pagos realizados">
@@ -162,11 +162,13 @@
     </div>
 </div>
 
-<!-- Modal Abonar / Pagos realizados (diseño, sin integrar) -->
+<!-- Modal Abonar / Pagos realizados -->
 <app-abono-pedido-modal
     [visible]="mostrarAbono()"
     [colorSistema]="colorSistema"
     [pedido]="pedidoAbono()"
+    [codigoPedidoProduccion]="codigoAbono()"
     [esSuperAdmin]="esSuperAdmin"
-    (cerrar)="cerrarAbono()">
+    (cerrar)="cerrarAbono()"
+    (abonoRegistrado)="cargar()">
 </app-abono-pedido-modal>

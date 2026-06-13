@@ -4,5 +4,5 @@ export const Entorno = {
   NombreEmpresa: 'PanaderiaPromesaDeDios',
   Logo: 'logoPromesaDeDios.png',
   // ColorSistema: '#FF9500'
-  ColorSistema: '#8959eaff'
+  ColorSistema: '#FF9500'
 };

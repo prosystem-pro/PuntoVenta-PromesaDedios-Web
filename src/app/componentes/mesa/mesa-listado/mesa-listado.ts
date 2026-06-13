@@ -53,7 +53,11 @@ export class MesaListado implements OnInit, OnDestroy {
     mostrarComanda = signal(false);
     comandaData = signal<Comanda | null>(null);
 
+    // Tick de 1s para refrescar el cronometro de las tarjetas ocupadas
+    private tick = signal(0);
+
     private intervalId: any;
+    private tickId: any;
 
     constructor() { }
 
@@ -65,11 +69,19 @@ export class MesaListado implements OnInit, OnDestroy {
         this.intervalId = setInterval(() => {
             this.cargarMesas(false);
         }, 10000);
+
+        // Tick de 1 segundo para el cronometro de las tarjetas
+        this.tickId = setInterval(() => {
+            this.tick.update(v => v + 1);
+        }, 1000);
     }
 
     ngOnDestroy() {
         if (this.intervalId) {
             clearInterval(this.intervalId);
+        }
+        if (this.tickId) {
+            clearInterval(this.tickId);
         }
     }
 
@@ -99,22 +111,33 @@ export class MesaListado implements OnInit, OnDestroy {
     }
 
     // ---- Accesores de estado (la respuesta del API trae Estatus + Venta anidada) ----
+    // El API solo deja la mesa en 1 (libre) o 2 (ocupada). Las combinadas tambien son 2.
     estaOcupada(mesa: Mesa): boolean {
-        return mesa.Estatus === 2 || mesa.Estatus === 3;
+        return mesa.Estatus === 2;
     }
 
-    // Estatus 3 = mesa secundaria de una combinacion (sin venta propia => "OCUPADO")
-    esSecundaria(mesa: Mesa): boolean {
-        return mesa.Estatus === 3;
-    }
-
-    // Tarjeta con venta propia gestionable (acciones disponibles)
+    // Tarjeta ocupada con venta: muestra acciones y total
     tieneVentaPropia(mesa: Mesa): boolean {
         return mesa.Estatus === 2;
     }
 
     totalMesa(mesa: Mesa): number {
         return mesa.Venta?.Total ?? 0;
+    }
+
+    // Cronometro: tiempo transcurrido desde la apertura del pedido (HH:MM:SS)
+    tiempoMesa(mesa: Mesa): string {
+        this.tick(); // dependencia para refrescar cada segundo
+        const inicio = mesa.Venta?.FechaApertura;
+        if (!inicio) return '00:00:00';
+        const ms = Date.now() - new Date(inicio).getTime();
+        if (isNaN(ms) || ms < 0) return '00:00:00';
+        const totalSeg = Math.floor(ms / 1000);
+        const h = Math.floor(totalSeg / 3600);
+        const m = Math.floor((totalSeg % 3600) / 60);
+        const s = totalSeg % 60;
+        const dos = (n: number) => n.toString().padStart(2, '0');
+        return `${dos(h)}:${dos(m)}:${dos(s)}`;
     }
 
     clienteMesa(mesa: Mesa): string | null {
@@ -130,11 +153,6 @@ export class MesaListado implements OnInit, OnDestroy {
 
     // Navegacion: abrir mesa libre o gestionar la venta de una ocupada
     irAVenta(mesa: Mesa) {
-        // Una mesa secundaria (combinada) no tiene venta propia que gestionar
-        if (this.esSecundaria(mesa)) {
-            this.servicioAlerta.MostrarInfo('Esta mesa está combinada con otra. Gestione la venta desde la mesa principal.');
-            return;
-        }
         this.router.navigate(['/ventas/mesa', mesa.CodigoMesa]);
     }
 

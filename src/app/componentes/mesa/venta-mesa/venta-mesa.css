@@ -29,40 +29,115 @@
 }
 
 .btn-category.active {
-    background: orange;
+    background: var(--color-sistema, orange);
     color: white;
-    border-color: orange;
-    box-shadow: 0 4px 8px rgba(255, 165, 0, 0.3);
+    border-color: var(--color-sistema, orange);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .product-card {
     cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-    border-bottom: 4px solid orange !important;
+    transition: transform 0.2s;
+    /* El card es solo contenedor/contexto de posición: sin borde ni fondo propio */
+    border: none !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    overflow: visible !important;
 }
 
 .product-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1) !important;
 }
 
-.card-img-top {
-    height: 100px;
+/* Imagen del producto: el borde del color del sistema rodea SOLO la imagen */
+.prod-img {
+    width: 100%;
+    height: 170px;
     object-fit: cover;
+    border: 3px solid var(--color-sistema, #f7941d);
+    border-radius: 16px;
+    display: block;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
 }
 
-.bg-price {
-    background: rgba(0, 0, 0, 0.7);
-    color: white;
-    font-size: 0.8rem;
-    padding: 2px 6px;
-    border-radius: 4px;
+.prod-img-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f1f3f5;
+    color: #adb5bd;
+}
+
+/* Badge de precio (pildora verde, centrada arriba sobre la imagen) */
+.price-badge-wrap {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+}
+
+.price-badge {
+    display: inline-block;
+    white-space: nowrap;
+    background: #2e9e44;
+    color: #fff;
+    font-size: 0.95rem;
+    font-weight: 800;
+    padding: 0.3rem 0.85rem;
+    border-radius: 999px;
+    letter-spacing: 0.4px;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+/* Badge de cantidad en el carrito (circulo rojo, esquina superior derecha) */
+.qty-badge {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #e30613;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    font-weight: 700;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
+}
+
+/* Banda con el nombre del producto (pegada debajo de la imagen, color del sistema) */
+.name-band {
+    background: var(--color-sistema, #f7941d);
+    border-radius: 9px;
+    margin-top: 0.5px;
+    padding: 0.45rem 0.5rem;
+    text-align: center;
+    min-height: 2.3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12);
 }
 
 .product-title {
-    font-size: 0.8rem;
-    font-weight: 600;
+    font-size: 1rem;
+    font-weight: 700;
     line-height: 1.2;
+    white-space: normal;
+    margin: 0;
+}
+
+/* Aviso de stock bajo, fuera de la tarjeta */
+.stock-bajo-wrap {
+    text-align: center;
+}
+
+.product-stock-bajo {
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: #e30613;
+    letter-spacing: 0.2px;
 }
 
 .order-header {
@@ -88,10 +163,43 @@
     align-items: center;
     justify-content: center;
     border-radius: 6px;
-    background: orange;
+    background: var(--color-sistema, orange);
     color: white;
     border: none;
     font-weight: bold;
+    flex-shrink: 0;
+}
+
+.btn-qty:hover {
+    filter: brightness(0.92);
+    color: white;
+}
+
+.qty-input {
+    width: 48px;
+    padding: 2px 4px;
+    font-weight: 700;
+    -moz-appearance: textfield;
+}
+
+.qty-input:focus {
+    border-color: var(--color-sistema, orange);
+    box-shadow: 0 0 0 0.15rem rgba(0, 0, 0, 0.08);
+}
+
+.qty-input::-webkit-outer-spin-button,
+.qty-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.comentario-input {
+    resize: none;
+}
+
+.comentario-input:focus {
+    border-color: var(--color-sistema, orange);
+    box-shadow: 0 0 0 0.15rem rgba(0, 0, 0, 0.08);
 }
 
 .bg-price-light {

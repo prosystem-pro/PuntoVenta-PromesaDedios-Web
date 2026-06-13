@@ -30,8 +30,8 @@ export class MesaServicio {
     }
 
     async eliminarPedido(codigoMesa: number): Promise<RespuestaAPI<any>> {
-        // Enviar CodigoMesa en el body con delete
-        const res = await axiosInstance.delete('/mesa/eliminar', { data: { CodigoMesa: codigoMesa } });
+        // El API expone /mesa/eliminar como POST (no DELETE)
+        const res = await axiosInstance.post('/mesa/eliminar', { CodigoMesa: codigoMesa });
         return res.data;
     }
 

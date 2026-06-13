@@ -1,0 +1,206 @@
+.mp-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1045;
+    backdrop-filter: blur(2px);
+}
+
+.mp-content {
+    position: relative;
+    background-color: #fff;
+    width: 92%;
+    max-width: 460px;
+    max-height: 92vh;
+    overflow-y: auto;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    padding: 2rem 2.5rem 2.5rem;
+    animation: mp-appear 0.25s ease-out;
+}
+
+@keyframes mp-appear {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.mp-close {
+    position: absolute;
+    right: 1rem;
+    top: 1rem;
+    width: 34px;
+    height: 34px;
+    border: none;
+    border-radius: 50%;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.mp-logo {
+    height: 56px;
+    object-fit: contain;
+}
+
+.mp-total {
+    font-size: 2.4rem;
+    color: #2ecc71;
+}
+
+.mp-label {
+    font-size: 1.1rem;
+    color: #333;
+}
+
+/* Propina */
+.propina-switch {
+    width: 46px;
+    height: 24px;
+    border: none;
+    border-radius: 999px;
+    position: relative;
+    cursor: pointer;
+    padding: 0;
+    transition: background-color 0.2s;
+}
+
+.propina-knob {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    transition: transform 0.2s;
+}
+
+.propina-switch.activo .propina-knob {
+    transform: translateX(22px);
+}
+
+.propina-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.4rem;
+}
+
+.propina-opcion {
+    border: 1px solid #dee2e6;
+    background: #fff;
+    border-radius: 8px;
+    padding: 0.35rem 0;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #495057;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.propina-opcion:hover {
+    background: #f1f3f5;
+}
+
+.propina-opcion.activo {
+    border-color: transparent;
+}
+
+/* Select */
+.mp-select-wrapper {
+    position: relative;
+}
+
+.mp-select {
+    width: 100%;
+    appearance: none;
+    -webkit-appearance: none;
+    text-align: center;
+    font-weight: 600;
+    font-size: 1.05rem;
+    border: 2px solid #222;
+    border-radius: 12px;
+    padding: 0.7rem 2rem;
+    background: #fff;
+    cursor: pointer;
+    outline: none;
+}
+
+.mp-caret {
+    position: absolute;
+    right: 1.1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: #222;
+}
+
+.mp-input {
+    width: 100%;
+    border: 1px solid #cfcfcf;
+    border-radius: 12px;
+    padding: 0.7rem 1rem;
+    font-size: 1rem;
+    text-align: center;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.mp-input:focus {
+    border-color: #ff9500;
+    box-shadow: 0 0 0 3px rgba(255, 149, 0, 0.15);
+}
+
+.mp-cambio {
+    background-color: #cfcfcf;
+    border-radius: 12px;
+    padding: 0.6rem 1rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.mp-btn-imprimir {
+    border: none;
+    border-radius: 14px;
+    color: #fff;
+    font-weight: 600;
+    font-size: 1.1rem;
+    padding: 0.7rem 2.5rem;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+}
+
+.mp-btn-imprimir:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.mp-descargar {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 1.25rem;
+}
+
+.mp-btn-descargar {
+    width: 46px;
+    height: 46px;
+    border: 2px solid;
+    background: #fff;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.mp-btn-descargar:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

@@ -42,6 +42,28 @@
                     <input type="number" id="CantidadMesas" formControlName="CantidadMesas"
                         [class.invalid]="mesaForm.get('CantidadMesas')?.invalid && mesaForm.get('CantidadMesas')?.touched">
                 </div>
+
+                <!-- Icono de mesas -->
+                <div class="form-group icono-group">
+                    <label>Icono de mesas</label>
+                    <button type="button" class="form-select icono-select d-flex align-items-center"
+                        (click)="toggleIconos()">
+                        <app-mesa-icono [iconoId]="iconoSeleccionado" class="icono-actual"></app-mesa-icono>
+                    </button>
+
+                    @if (mostrarIconos()) {
+                    <div class="icono-panel">
+                        @for (ic of iconos; track ic.id) {
+                        <button type="button" class="icono-opcion"
+                            [class.activo]="iconoSeleccionado === ic.id"
+                            [style.border-color]="iconoSeleccionado === ic.id ? colorSistema : ''"
+                            (click)="seleccionarIcono(ic.id)" [title]="ic.nombre">
+                            <app-mesa-icono [iconoId]="ic.id"></app-mesa-icono>
+                        </button>
+                        }
+                    </div>
+                    }
+                </div>
             </div>
 
             <div class="status-container mt-3">

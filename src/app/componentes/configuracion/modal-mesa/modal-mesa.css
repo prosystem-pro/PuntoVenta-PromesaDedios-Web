@@ -111,6 +111,62 @@
     justify-content: center;
 }
 
+/* Selector de icono de mesa */
+.icono-group {
+    position: relative;
+}
+
+.icono-select {
+    background: #fff;
+    cursor: pointer;
+    justify-content: space-between;
+    min-height: 46px;
+}
+
+.icono-select .icono-actual {
+    font-size: 1.6rem;
+    color: #1a1a1a;
+}
+
+.icono-panel {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: 4px;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    padding: 0.6rem;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+    z-index: 5;
+}
+
+.icono-opcion {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: #1a1a1a;
+    background: #f8f9fa;
+    border: 2px solid transparent;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.icono-opcion:hover {
+    background: #eef0f2;
+}
+
+.icono-opcion.activo {
+    background: #fff;
+}
+
 /* Switch Status */
 .switch-label {
     display: flex;

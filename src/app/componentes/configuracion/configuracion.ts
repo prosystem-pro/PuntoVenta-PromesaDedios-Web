@@ -171,7 +171,7 @@ export class Configuracion implements OnInit {
                 ApodoAnterior: this.mesaAEditar()!.NombreMesa,
                 ApodoNuevo: datos.NombreMesa,
                 Cantidad: datos.CantidadMesas,
-                IconoUrl: 'Mesa.png' // Default o del formulario si se agrega
+                IconoUrl: datos.IconoUrl || 'mesa'
             };
             res = await this.servicioConfig.editarMesa(payload);
         } else {
@@ -179,7 +179,7 @@ export class Configuracion implements OnInit {
                 CodigoClasificacionMesa: datos.CodigoClasificacionMesa,
                 NombreMesa: datos.NombreMesa,
                 Cantidad: datos.CantidadMesas,
-                IconoUrl: 'Mesa.png' // Default
+                IconoUrl: datos.IconoUrl || 'mesa'
             };
             res = await this.servicioConfig.crearMesa(payload);
         }

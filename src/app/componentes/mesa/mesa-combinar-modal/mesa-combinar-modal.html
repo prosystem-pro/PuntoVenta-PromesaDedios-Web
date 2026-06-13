@@ -1,0 +1,46 @@
+@if (visible) {
+<div class="cm-overlay">
+    <div class="cm-content">
+        <div class="cm-header">
+            <h3 class="cm-titulo">Combinar mesas</h3>
+            <button class="cm-close" [style.background-color]="colorSistema" (click)="cerrar()" [disabled]="procesando">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+
+        <div class="cm-body">
+            <div class="cm-grid">
+                @for (m of mesas; track m.CodigoMesa) {
+                <div class="cm-card" [class.actual]="esOrigen(m)" [class.ocupada]="estaOcupada(m)"
+                    [class.seleccionada]="estaSeleccionada(m)"
+                    [style.border-color]="(esOrigen(m) || estaSeleccionada(m)) ? colorSistema : ''"
+                    (click)="toggle(m)">
+                    <div class="cm-estado"
+                        [class.txt-actual]="esOrigen(m)" [class.txt-ocupado]="estaOcupada(m)"
+                        [class.txt-disponible]="disponible(m)">
+                        {{ estado(m) }}
+                    </div>
+                    <div class="cm-nombre">{{ m.NombreMesa }}</div>
+                    <app-mesa-icono [iconoId]="m.ImagenUrl" class="cm-icono"></app-mesa-icono>
+                    @if (estaSeleccionada(m)) {
+                    <i class="bi bi-check-circle-fill cm-check" [style.color]="colorSistema"></i>
+                    }
+                </div>
+                }
+            </div>
+        </div>
+
+        <div class="cm-footer">
+            <button class="cm-btn-combinar" [style.background-color]="colorSistema"
+                [disabled]="procesando || seleccionadas().length === 0" (click)="confirmar()">
+                @if (procesando) {
+                <span class="spinner-border spinner-border-sm me-2"></span> Procesando...
+                } @else {
+                <i class="bi bi-arrows-collapse-vertical me-2"></i>
+                Combinar @if (seleccionadas().length > 0) { ({{ seleccionadas().length }}) }
+                }
+            </button>
+        </div>
+    </div>
+</div>
+}

@@ -1,0 +1,86 @@
+@if (visible) {
+<div class="cv-overlay d-flex align-items-start justify-content-center">
+    <div class="cv-modal shadow-lg rounded-4 bg-white overflow-hidden">
+        <!-- Barra de acciones (no se imprime) -->
+        <div class="cv-bar d-flex justify-content-between align-items-center px-3 py-2 border-bottom no-print">
+            <h6 class="m-0 fw-bold">Comanda</h6>
+            <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-outline-secondary" (click)="imprimir()" [disabled]="!data">
+                    <i class="bi bi-printer"></i> Imprimir
+                </button>
+                <button class="btn btn-sm btn-outline-secondary" (click)="descargarPdf()"
+                    [disabled]="!data || generandoPdf()">
+                    @if (generandoPdf()) {
+                    <span class="spinner-border spinner-border-sm"></span>
+                    } @else {
+                    <i class="bi bi-download"></i> PDF
+                    }
+                </button>
+                <button class="btn btn-sm btn-link text-decoration-none" (click)="onCerrar()">
+                    <i class="bi bi-x-circle-fill fs-4" [style.color]="colorSistema"></i>
+                </button>
+            </div>
+        </div>
+
+        @if (data) {
+        <div class="cv-ticket px-4 py-4" #ticket>
+            <!-- Logo + titulo -->
+            <div class="text-center mb-2">
+                <img [src]="logoUrl" alt="Logo" class="cv-logo mb-2">
+                <h2 class="fw-bold m-0 cv-empresa">COMANDA</h2>
+            </div>
+
+            <div class="cv-divider"></div>
+
+            <!-- Datos de la comanda -->
+            <h6 class="fw-bold text-center my-2">{{ data.Mesa || 'Mesa' }}</h6>
+            <div class="row g-1 small">
+                <div class="col-7">Fecha: {{ data.Fecha | date:'dd/MM/yyyy HH:mm' }} Horas</div>
+                <div class="col-5">Documento: {{ data.Documento || '-' }}</div>
+                <div class="col-12">Responsable: {{ data.Responsable || '-' }}</div>
+            </div>
+
+            <div class="cv-divider"></div>
+
+            <!-- Productos -->
+            <h6 class="fw-bold text-center my-2">Producto</h6>
+            <table class="table table-sm cv-table mb-2">
+                <thead>
+                    <tr>
+                        <th class="border-0">Cant</th>
+                        <th class="border-0">Producto</th>
+                        <th class="border-0 text-end">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (p of data.Productos; track $index) {
+                    <tr>
+                        <td class="border-0">{{ p.Cantidad }}</td>
+                        <td class="border-0">{{ p.Producto }}</td>
+                        <td class="border-0 text-end">Q {{ p.Total | number:'1.2-2' }}</td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+
+            <div class="cv-divider"></div>
+
+            <!-- Totales -->
+            <div class="row g-1 small">
+                @if (data.Totales?.Iva) {
+                <div class="col-7 text-end">Subtotal:</div>
+                <div class="col-5 text-end">Q {{ data.Totales?.Subtotal | number:'1.2-2' }}</div>
+                <div class="col-7 text-end">IVA:</div>
+                <div class="col-5 text-end">Q {{ data.Totales?.Iva | number:'1.2-2' }}</div>
+                }
+                <div class="col-7 text-end fw-bold">Total:</div>
+                <div class="col-5 text-end fw-bold">Q {{ data.Totales?.Total | number:'1.2-2' }}</div>
+            </div>
+
+            <div class="cv-divider mt-3"></div>
+            <div class="text-center small mt-2">Comanda de cocina</div>
+        </div>
+        }
+    </div>
+</div>
+}

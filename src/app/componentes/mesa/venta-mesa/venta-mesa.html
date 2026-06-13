@@ -1,13 +1,19 @@
-<div class="venta-container bg-light h-100 d-flex flex-column overflow-hidden">
+<div class="venta-container bg-light h-100 d-flex flex-column overflow-hidden" [style.--color-sistema]="colorSistema">
     <!-- Header Superior -->
-    <header class="bg-white shadow-sm p-2 d-flex align-items-center gap-3">
+    <header class="bg-white shadow-sm p-2 d-flex align-items-center gap-3 flex-wrap">
         <button class="btn btn-outline-secondary d-flex align-items-center gap-2" routerLink="/ventas">
             <i class="bi bi-chevron-left"></i> Regresar a mesas
         </button>
 
-        <div class="input-group d-none d-md-flex" style="max-width: 400px;">
+        @if (nombreMesa()) {
+        <span class="fw-bold text-muted d-none d-lg-inline">{{ nombreMesa() }}</span>
+        }
+
+        <div class="input-group" style="max-width: 280px;">
             <span class="input-group-text bg-white border-end-0"><i class="bi bi-upc-scan"></i></span>
-            <input type="text" class="form-control border-start-0" placeholder="Código de producto">
+            <input type="text" class="form-control border-start-0" placeholder="Código de producto"
+                [ngModel]="codigoBarra()" (ngModelChange)="codigoBarra.set($event)"
+                (keyup.enter)="buscarPorCodigoBarra()">
         </div>
 
         <div class="input-group flex-grow-1" style="max-width: 500px;">
@@ -21,9 +27,7 @@
         <!-- Panel Izquierdo: Productos -->
         <div class="col-md-7 col-lg-8 d-flex flex-column h-100 p-2">
             <!-- Categorías -->
-            <div class="categories-scroll d-flex gap-2 pb-3 mb-2 overflow-auto">
-                <button class="btn btn-category" [class.active]="categoriaSeleccionada() === null"
-                    (click)="seleccionarCategoria(null)">Todos</button>
+            <div class="categories-scroll d-flex gap-2 pb-3 mb-2 overflow-auto flex-wrap">
                 @for (cat of categorias(); track cat.CodigoCategoriaProducto) {
                 <button class="btn btn-category"
                     [class.active]="categoriaSeleccionada() === cat.CodigoCategoriaProducto"
@@ -35,27 +39,59 @@
 
             <!-- Grid de Productos -->
             <div class="flex-grow-1 overflow-auto pe-2">
-                <div class="row row-cols-2 row-cols-sm-3 row-cols-lg-4 row-cols-xl-5 g-3">
+                @if (cargando()) {
+                <div class="text-center py-5 text-muted">
+                    <div class="spinner-border" role="status"></div>
+                    <div class="mt-2">Cargando productos...</div>
+                </div>
+                } @else {
+                <div class="row row-cols-2 row-cols-sm-3 row-cols-lg-4 g-3">
                     @for (prod of productosFiltrados(); track prod.CodigoProducto) {
                     <div class="col">
-                        <div class="card product-card border-0 shadow-sm h-100 rounded-4 overflow-hidden"
-                            (click)="agregarAlCarrito(prod)">
-                            <div class="position-absolute top-0 end-0 p-2">
-                                <span class="badge bg-price shadow-sm">Q {{ prod.PrecioVenta | number:'1.2-2' }}</span>
+                        <div class="card product-card position-relative" (click)="agregarAlCarrito(prod)">
+                            <!-- Badge de precio (pildora verde, centrada arriba) -->
+                            <div class="price-badge-wrap">
+                                <span class="price-badge">Q {{ prod.PrecioUnitario | number:'1.2-2' }}</span>
                             </div>
 
-                            <img [src]="prod.ImagenUrl || 'assets/no-image.png'" class="card-img-top" alt="producto">
+                            <!-- Badge de cantidad (circulo rojo, esquina superior derecha) -->
+                            @if (cantidadEnCarrito(prod.CodigoProducto) > 0) {
+                            <div class="position-absolute top-0 end-0 p-2">
+                                <span class="qty-badge">{{ cantidadEnCarrito(prod.CodigoProducto) }}</span>
+                            </div>
+                            }
 
-                            <div class="card-body p-2 text-center">
-                                <h6 class="product-title m-0 text-truncate">{{ prod.NombreProducto }}</h6>
-                                @if(prod.Stock && prod.Stock < 5) { <small class="text-danger fw-bold">¡Stock
-                                    bajo!</small>
-                                    }
+                            @if (prod.ImagenUrl) {
+                            <img [src]="prod.ImagenUrl" class="prod-img" alt="producto">
+                            } @else {
+                            <div class="prod-img prod-img-placeholder">
+                                <i class="bi bi-image fs-2"></i>
+                            </div>
+                            }
+
+                            <!-- Banda con el nombre del producto -->
+                            <div class="name-band">
+                                <h6 class="product-title" [style.color]="colorTextoBanda">{{ prod.NombreProducto }}</h6>
                             </div>
                         </div>
+
+                        <!-- Aviso de stock bajo: fuera de la tarjeta -->
+                        @if (esStockBajo(prod)) {
+                        <div class="stock-bajo-wrap">
+                            <span class="product-stock-bajo">Stock bajo {{ prod.Stock }} Unidades!</span>
+                        </div>
+                        }
                     </div>
                     }
                 </div>
+
+                @if (productosFiltrados().length === 0) {
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-box-seam display-4 d-block mb-3 opacity-25"></i>
+                    No hay productos para mostrar
+                </div>
+                }
+                }
             </div>
         </div>
 
@@ -71,30 +107,44 @@
                         <tr>
                             <th class="border-0 small text-muted">Producto</th>
                             <th class="border-0 small text-muted">Precio</th>
-                            <th class="border-0 small text-muted text-center">Cant.</th>
+                            <th class="border-0 small text-muted text-center">Cantidad</th>
                             <th class="border-0"></th>
                         </tr>
                     </thead>
                     <tbody>
-                        @for (item of carrito(); track item.CodigoProducto; let i = $index) {
+                        @for (item of carrito(); track item.CodigoProducto) {
                         <tr>
                             <td class="small fw-bold">{{ item.NombreProducto }}</td>
                             <td class="small">Q {{ item.PrecioUnitario | number:'1.2-2' }}</td>
                             <td>
-                                <div class="d-flex align-items-center gap-1">
+                                <div class="d-flex align-items-center justify-content-center gap-1">
                                     <button class="btn btn-qty"
                                         (click)="actualizarCantidad(item.CodigoProducto, item.Cantidad - 1)">-</button>
-                                    <span class="fw-bold small px-1">{{ item.Cantidad }}</span>
+                                    <input type="number" min="1"
+                                        class="form-control form-control-sm qty-input text-center"
+                                        [ngModel]="item.Cantidad"
+                                        (ngModelChange)="cambiarCantidad(item.CodigoProducto, $event)">
                                     <button class="btn btn-qty"
                                         (click)="actualizarCantidad(item.CodigoProducto, item.Cantidad + 1)">+</button>
                                 </div>
                             </td>
                             <td>
-                                <button class="btn btn-link btn-sm p-0 text-muted">
-                                    <i class="bi bi-chat-left-dots"></i>
+                                <button class="btn btn-link btn-sm p-0" title="Agregar comentario"
+                                    [style.color]="item.Nota ? colorSistema : '#212529'"
+                                    (click)="toggleComentario(item.CodigoProducto)">
+                                    <i class="bi bi-chat-left-text-fill"></i>
                                 </button>
                             </td>
                         </tr>
+                        @if (comentarioAbierto() === item.CodigoProducto) {
+                        <tr class="comentario-row">
+                            <td colspan="4" class="pt-0 pb-3">
+                                <textarea class="form-control form-control-sm comentario-input" rows="2"
+                                    placeholder="Ingrese comentario ..." [ngModel]="item.Nota"
+                                    (ngModelChange)="cambiarNota(item.CodigoProducto, $event)"></textarea>
+                            </td>
+                        </tr>
+                        }
                         }
                     </tbody>
                 </table>
@@ -110,8 +160,7 @@
             <div class="order-footer p-3 bg-light border-top">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h5 class="m-0 fw-bold">Total a pagar</h5>
-                    <div class="total-bubble bg-price-light px-4 py-2 rounded-3 fs-4 fw-bold"
-                        [style.color]="colorSistema">
+                    <div class="total-bubble bg-price-light px-4 py-2 rounded-3 fs-4 fw-bold text-success">
                         Q {{ total() | number:'1.2-2' }}
                     </div>
                 </div>
@@ -120,25 +169,49 @@
                     <div class="col-4">
                         <button
                             class="btn btn-outline-secondary w-100 h-100 py-2 d-flex flex-column gap-1 align-items-center"
-                            (click)="limpiar()">
+                            [disabled]="guardando()" (click)="limpiar()">
                             <i class="bi bi-trash"></i> <small>Limpiar</small>
                         </button>
                     </div>
                     <div class="col-4">
                         <button
                             class="btn btn-outline-primary w-100 h-100 py-2 d-flex flex-column gap-1 align-items-center"
-                            (click)="facturar()">
+                            [disabled]="guardando()" (click)="abrirPago()">
                             <i class="bi bi-receipt"></i> <small>Facturar</small>
                         </button>
                     </div>
                     <div class="col-4">
                         <button class="btn w-100 h-100 py-2 d-flex flex-column gap-1 align-items-center text-white"
-                            [style.background-color]="colorSistema" (click)="guardarOrden()">
-                            <i class="bi bi-save"></i> <small>Actualizar</small>
+                            [style.background-color]="colorSistema" [disabled]="guardando()" (click)="guardarOrden()">
+                            @if (guardando()) {
+                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                            <small>Guardando...</small>
+                            } @else {
+                            <i class="bi bi-save"></i> <small>{{ tieneVentaActiva() ? 'Actualizar' : 'Guardar' }}</small>
+                            }
                         </button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Modal de cobro (con propina) -->
+    <app-mesa-cobro-modal
+        [visible]="mostrarPago()"
+        [colorSistema]="colorSistema"
+        [total]="total()"
+        [procesando]="guardando()"
+        (alCerrar)="cerrarPago()"
+        (alProcesar)="procesarPago($event)">
+    </app-mesa-cobro-modal>
+
+    <!-- Comprobante -->
+    <app-comprobante-venta-modal
+        [visible]="mostrarComprobante()"
+        [data]="comprobante()"
+        [colorSistema]="colorSistema"
+        [accionAuto]="accionComprobante()"
+        (cerrar)="cerrarComprobante()">
+    </app-comprobante-venta-modal>
 </div>

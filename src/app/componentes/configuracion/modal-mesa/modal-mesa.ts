@@ -5,11 +5,13 @@ import { Entorno } from '../../../Entorno/Entorno';
 import { Mesa } from '../../../Modelos/mesa.modelo';
 import { ClasificacionMesa } from '../../../Modelos/clasificacion-mesa.modelo';
 import { ModalClasificacion } from '../modal-clasificacion/modal-clasificacion';
+import { MesaIconoComponent } from '../../mesa/mesa-icono/mesa-icono';
+import { MESA_ICONOS, MESA_ICONO_DEFECTO, buscarMesaIcono, MesaIcono } from '../../mesa/mesa-iconos';
 
 @Component({
     selector: 'app-modal-mesa',
     standalone: true,
-    imports: [CommonModule, FormsModule, ReactiveFormsModule, ModalClasificacion],
+    imports: [CommonModule, FormsModule, ReactiveFormsModule, ModalClasificacion, MesaIconoComponent],
     templateUrl: './modal-mesa.html',
     styleUrl: './modal-mesa.css'
 })
@@ -26,16 +28,16 @@ export class ModalMesa implements OnChanges {
     mostrarModalClasificacion = signal(false);
     modoEdicion = signal(false);
 
-    iconos = [
-        { id: 1, html: '<i class="bi bi-grid-3x3-gap"></i>' },
-        { id: 2, html: '<i class="bi bi-border-all"></i>' }
-    ];
+    // 8 iconos quemados; el propietario elige el que mejor se adapte a la clasificacion
+    iconos: MesaIcono[] = MESA_ICONOS;
+    mostrarIconos = signal(false);
 
     constructor(private fb: FormBuilder) {
         this.mesaForm = this.fb.group({
             CodigoClasificacionMesa: [null, [Validators.required]],
             NombreMesa: ['Mesa', [Validators.required]],
             CantidadMesas: [1, [Validators.required, Validators.min(1)]],
+            IconoUrl: [MESA_ICONO_DEFECTO, [Validators.required]],
             Estatus: [true]
         });
     }
@@ -47,17 +49,33 @@ export class ModalMesa implements OnChanges {
                 CodigoClasificacionMesa: this.mesaAEditar.CodigoClasificacionMesa,
                 NombreMesa: this.mesaAEditar.NombreMesa,
                 CantidadMesas: this.mesaAEditar.CantidadMesas || 1,
+                IconoUrl: buscarMesaIcono(this.mesaAEditar.ImagenUrl).id,
                 Estatus: this.mesaAEditar.Estatus === 1
             });
         } else if (changes['visible'] && this.visible && !this.mesaAEditar) {
             this.modoEdicion.set(false);
-            this.mesaForm.reset({ NombreMesa: 'Mesa', CantidadMesas: 1, Estatus: true });
+            this.mesaForm.reset({ NombreMesa: 'Mesa', CantidadMesas: 1, IconoUrl: MESA_ICONO_DEFECTO, Estatus: true });
         }
+    }
+
+    // Icono actualmente seleccionado (para mostrarlo en el selector)
+    get iconoSeleccionado(): string {
+        return this.mesaForm.get('IconoUrl')?.value || MESA_ICONO_DEFECTO;
+    }
+
+    seleccionarIcono(id: string) {
+        this.mesaForm.get('IconoUrl')?.setValue(id);
+        this.mostrarIconos.set(false);
+    }
+
+    toggleIconos() {
+        this.mostrarIconos.update(v => !v);
     }
 
     cerrar() {
         this.alCerrar.emit();
-        this.mesaForm.reset({ NombreMesa: 'Mesa', CantidadMesas: 1, Estatus: true });
+        this.mostrarIconos.set(false);
+        this.mesaForm.reset({ NombreMesa: 'Mesa', CantidadMesas: 1, IconoUrl: MESA_ICONO_DEFECTO, Estatus: true });
     }
 
     guardar() {

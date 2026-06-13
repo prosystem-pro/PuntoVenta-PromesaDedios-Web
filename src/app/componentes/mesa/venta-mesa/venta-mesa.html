@@ -129,11 +129,17 @@
                                 </div>
                             </td>
                             <td>
-                                <button class="btn btn-link btn-sm p-0" title="Agregar comentario"
-                                    [style.color]="item.Nota ? colorSistema : '#212529'"
-                                    (click)="toggleComentario(item.CodigoProducto)">
-                                    <i class="bi bi-chat-left-text-fill"></i>
-                                </button>
+                                <div class="d-flex align-items-center justify-content-end gap-2">
+                                    <button class="btn btn-link btn-sm p-0" title="Agregar comentario"
+                                        [style.color]="item.Nota ? colorSistema : '#212529'"
+                                        (click)="toggleComentario(item.CodigoProducto)">
+                                        <i class="bi bi-chat-left-text-fill"></i>
+                                    </button>
+                                    <button class="btn btn-link btn-sm p-0 text-danger" title="Eliminar producto"
+                                        (click)="eliminarDelCarrito(item.CodigoProducto)">
+                                        <i class="bi bi-trash3-fill"></i>
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                         @if (comentarioAbierto() === item.CodigoProducto) {

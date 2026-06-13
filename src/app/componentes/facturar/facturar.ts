@@ -219,6 +219,12 @@ export class Facturar implements OnInit {
         ));
     }
 
+    // Quita por completo un producto de la orden
+    eliminarDelCarrito(codigo: number) {
+        this.carrito.update(items => items.filter(it => it.CodigoProducto !== codigo));
+        if (this.comentarioAbierto() === codigo) this.comentarioAbierto.set(null);
+    }
+
     // Buscar producto por código de barras (en todo el catálogo) y agregarlo
     buscarPorCodigoBarra() {
         const codigo = this.codigoBarra().trim();

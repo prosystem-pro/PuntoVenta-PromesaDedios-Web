@@ -39,9 +39,10 @@ export class EstadoPedidos implements OnInit {
     columnaActiva = signal<string | null>(null);
     ordenAscendente = signal(true);
 
-    // Modal de abono (diseño; sin endpoint todavía)
+    // Modal de abono
     mostrarAbono = signal(false);
     pedidoAbono = signal<PedidoAbono | null>(null);
+    codigoAbono = signal<number | null>(null);
     // TODO: debe venir del rol del usuario logueado cuando se integre
     esSuperAdmin = true;
 
@@ -52,6 +53,22 @@ export class EstadoPedidos implements OnInit {
         this.fechaFinalInput.set(fin);
         this.filtrosAplicados.set({ inicio, fin });
         await this.cargar();
+    }
+
+    // El API devuelve las fechas ya formateadas como "dd/MM/yyyy HH:mm" (hora Guatemala).
+    // Las convertimos a "yyyy-MM-dd" solo para comparar con los inputs de fecha (type=date).
+    private aComparable(fecha: string | null): string | null {
+        if (!fecha) return null;
+        const f = fecha.trim();
+        const m = f.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+        if (m) return `${m[3]}-${m[2]}-${m[1]}`;
+        return f.substring(0, 10); // por si llegara en ISO
+    }
+
+    // Muestra solo la parte de fecha (dd/MM/yyyy) tal cual la manda el API.
+    fechaCorta(fecha: string | null): string {
+        if (!fecha) return '—';
+        return fecha.trim().substring(0, 10);
     }
 
     // Fecha de hoy en formato YYYY-MM-DD
@@ -175,8 +192,8 @@ export class EstadoPedidos implements OnInit {
             // Filtro por fecha de entrega (el API no filtra). inicio y fin son
             // independientes: con fin vacío no hay tope superior (hoy en adelante).
             let coincideFecha = true;
-            if (p.FechaEntrega) {
-                const fecha = p.FechaEntrega.substring(0, 10);
+            const fecha = this.aComparable(p.FechaEntrega);
+            if (fecha) {
                 if (inicio && fecha < inicio) coincideFecha = false;
                 if (fin && fecha > fin) coincideFecha = false;
             }
@@ -233,23 +250,22 @@ export class EstadoPedidos implements OnInit {
         this.router.navigate(['/estado-pagos']);
     }
 
-    // Doble clic en una fila: abre el modal de Pagos realizados del pedido.
-    // (Diseño: el saldo y los pagos vendrán del API cuando exista el endpoint.)
+    // Abre el modal de Pagos realizados del pedido. El saldo, teléfono y los abonos
+    // se cargan dentro del modal a partir del CodigoPedidoProduccion.
     abrirAbono(pedido: EstadoPedido) {
         this.pedidoAbono.set({
             Fecha: pedido.FechaEntrega,
             Documento: pedido.Pedido,
-            Cliente: pedido.Nombre,
-            Telefono: '—',
-            // Saldo de ejemplo mientras el API no lo devuelva
-            SaldoPendiente: 3000
+            Cliente: pedido.Nombre
         });
+        this.codigoAbono.set(pedido.CodigoPedidoProduccion);
         this.mostrarAbono.set(true);
     }
 
     cerrarAbono() {
         this.mostrarAbono.set(false);
         this.pedidoAbono.set(null);
+        this.codigoAbono.set(null);
     }
     entregar(pedido: EstadoPedido) {
         this.servicioAlerta.MostrarInfo(`La entrega del pedido ${pedido.Pedido} estará disponible cuando el API tenga el endpoint correspondiente.`, 'Pendiente');

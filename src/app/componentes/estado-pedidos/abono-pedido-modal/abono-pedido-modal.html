@@ -15,7 +15,7 @@
                 <div class="col-md-6 mb-3">
                     <label class="small fw-bold text-muted mb-1">Fecha</label>
                     <div class="info-box p-2 border rounded-3 small">
-                        {{ (pedido?.Fecha | date:'dd/MM/yyyy HH:mm') || '—' }}
+                        {{ pedido?.Fecha || '—' }}
                     </div>
                 </div>
                 <div class="col-md-6 mb-3">
@@ -30,7 +30,7 @@
                 </div>
                 <div class="col-md-6">
                     <label class="small fw-bold text-muted mb-1">Telefono</label>
-                    <div class="info-box p-2 border rounded-3 small">{{ pedido?.Telefono || '—' }}</div>
+                    <div class="info-box p-2 border rounded-3 small">{{ telefono() || '—' }}</div>
                 </div>
             </div>
 
@@ -75,8 +75,12 @@
                         <button
                             class="btn text-white w-100 py-2 shadow-sm d-flex align-items-center justify-content-center gap-2 fw-bold"
                             [style.background-color]="colorSistema" (click)="agregarAbono()"
-                            [disabled]="saldoPendiente() <= 0">
+                            [disabled]="saldoPendiente() <= 0 || guardando() || cargando()">
+                            @if (guardando()) {
+                            <span class="spinner-border spinner-border-sm"></span> Guardando...
+                            } @else {
                             <i class="bi bi-plus-lg"></i> Agregar
+                            }
                         </button>
                     </div>
                 </div>
@@ -98,7 +102,7 @@
                         <tbody>
                             @for (p of pagos(); track $index) {
                             <tr>
-                                <td class="small">{{ p.FechaPago | date:'dd/MM/yyyy HH:mm' }}</td>
+                                <td class="small">{{ p.FechaPago }}</td>
                                 <td class="small">{{ p.MedioPago }}</td>
                                 <td class="small fw-bold text-end">Q {{ p.Valor | number:'1.2-2' }}</td>
                                 <td class="text-center">

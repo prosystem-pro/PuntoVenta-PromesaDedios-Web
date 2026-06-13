@@ -9,7 +9,8 @@ import { Mesa } from '../Modelos/mesa.modelo';
 export class MesaServicio {
 
     async listarEstado(clasificacionId?: number): Promise<RespuestaAPI<Mesa[]>> {
-        const url = clasificacionId ? `/mesa/listado/estado?CodigoClasificacionMesa=${clasificacionId}` : '/mesa/listado/estado';
+        // El controlador del API lee el query param como CodigoClasificacion
+        const url = clasificacionId ? `/mesa/listado/estado?CodigoClasificacion=${clasificacionId}` : '/mesa/listado/estado';
         const res = await axiosInstance.get(url);
         return res.data;
     }

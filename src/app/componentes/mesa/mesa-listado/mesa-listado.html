@@ -102,24 +102,22 @@
                     <app-mesa-icono [iconoId]="mesa.ImagenUrl" class="mesa-icono-glyph"></app-mesa-icono>
                     }
 
-                    @if (esSecundaria(mesa)) {
-                    <div class="mesa-total text-danger fw-bold">OCUPADO</div>
-                    } @else {
                     <div class="mesa-total" [style.color]="estaOcupada(mesa) ? colorSistema : '#adb5bd'">
                         Q {{ totalMesa(mesa) | number:'1.2-2' }}
                     </div>
-                    }
 
                     @if (clienteMesa(mesa)) {
                     <div class="mesa-cliente text-muted small text-truncate">{{ clienteMesa(mesa) }}</div>
                     }
                 </div>
 
-                <!-- Timer (sin funcion por ahora: el API no envia FechaApertura) -->
+                <!-- Timer: tiempo transcurrido desde la apertura del pedido -->
+                @if (estaOcupada(mesa)) {
                 <div class="mesa-timer d-flex align-items-center justify-content-center gap-2">
                     <i class="bi bi-stopwatch"></i>
-                    <span class="fw-mono">00:00:00</span>
+                    <span class="fw-mono">{{ tiempoMesa(mesa) }}</span>
                 </div>
+                }
             </div>
         </div>
         }

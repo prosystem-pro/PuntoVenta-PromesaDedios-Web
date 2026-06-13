@@ -1,4 +1,4 @@
-<div class="container-fluid bg-light h-100 d-flex flex-column">
+<div class="container-fluid bg-light h-100 d-flex flex-column" [style.--color-sistema]="colorSistema">
     <!-- Header y Filtros -->
     <div class="row mb-4">
         <div class="col-md-4">
@@ -18,72 +18,107 @@
     <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-4 flex-grow-1 overflow-auto">
         @for (mesa of mesas(); track mesa.CodigoMesa) {
         <div class="col">
-            <div class="card h-100 border-0 shadow-sm transition-hover rounded-4 overflow-hidden"
-                [class.occupied-card]="mesa.Ocupada">
+            <!-- Toda la tarjeta es clickeable (no hay boton en el prototipo) -->
+            <div class="card mesa-card h-100 border-0 shadow-sm rounded-4 p-3"
+                [class.occupied-card]="estaOcupada(mesa)" (click)="irAVenta(mesa)">
 
-                <!-- Top Actions Overlay (Sólo si está ocupada) -->
-                @if (mesa.Ocupada) {
-                <div class="card-overlay-actions d-flex justify-content-between p-2">
-                    <div class="d-flex gap-1">
-                        <button class="btn btn-icon-sm" title="Imprimir Comanda">
-                            <i class="bi bi-printer"></i>
-                        </button>
-                    </div>
-                    <div class="d-flex gap-1">
-                        <button class="btn btn-icon-sm" title="Agregar Cliente">
-                            <i class="bi bi-person-plus"></i>
-                        </button>
-                        <button class="btn btn-icon-sm" title="Mover Mesa">
-                            <i class="bi bi-arrow-left-right"></i>
-                        </button>
-                    </div>
+                <!-- Acciones en las esquinas (solo ocupada con venta propia) -->
+                @if (tieneVentaPropia(mesa)) {
+                <button class="acc acc-print" title="Imprimir comanda"
+                    (click)="$event.stopPropagation(); imprimirComanda(mesa)">
+                    <i class="bi bi-printer"></i>
+                </button>
+                <div class="acc-top-right">
+                    <button class="acc" title="Agregar cliente"
+                        (click)="$event.stopPropagation(); abrirAgregarCliente(mesa)">
+                        <i class="bi bi-person-plus"></i>
+                    </button>
+                    <button class="acc acc-tr-last" title="Cobrar / Facturar"
+                        (click)="$event.stopPropagation(); abrirCobro(mesa)">
+                        <i class="bi bi-cash-coin"></i>
+                    </button>
                 </div>
+                <button class="acc acc-combine" title="Combinar mesas"
+                    (click)="$event.stopPropagation(); abrirCombinar(mesa)">
+                    <!-- Mesa con flechas de union (->|<-) -->
+                    <svg class="acc-svg" viewBox="0 0 110 116" fill="none" xmlns="http://www.w3.org/2000/svg"
+                        aria-hidden="true">
+                        <g stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M10 26 H42" />
+                            <path d="M34 16 L44 26 L34 36" />
+                            <path d="M100 26 H68" />
+                            <path d="M76 16 L66 26 L76 36" />
+                            <path d="M55 8 V44" />
+                            <path d="M16 64 V108" />
+                            <path d="M16 90 H34" />
+                            <path d="M34 90 V108" />
+                            <path d="M42 80 H68" />
+                            <path d="M46 80 V108" />
+                            <path d="M64 80 V108" />
+                            <path d="M94 64 V108" />
+                            <path d="M76 90 H94" />
+                            <path d="M76 90 V108" />
+                        </g>
+                    </svg>
+                </button>
+                <button class="acc acc-mover" title="Mover pedido"
+                    (click)="$event.stopPropagation(); abrirMover(mesa)">
+                    <!-- Mesa con flechas circulares (mover) -->
+                    <svg class="acc-svg" viewBox="0 0 120 116" fill="none" xmlns="http://www.w3.org/2000/svg"
+                        aria-hidden="true">
+                        <g stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 64 A48 48 0 0 1 92 26" />
+                            <path d="M80 18 L94 26 L84 40" />
+                            <path d="M108 52 A48 48 0 0 1 28 90" />
+                            <path d="M40 98 L26 90 L36 76" />
+                            <path d="M30 48 V86" />
+                            <path d="M30 70 H46" />
+                            <path d="M46 70 V86" />
+                            <path d="M54 40 H78" />
+                            <path d="M58 40 V86" />
+                            <path d="M74 40 V86" />
+                            <path d="M98 48 V86" />
+                            <path d="M82 70 H98" />
+                            <path d="M82 70 V86" />
+                        </g>
+                    </svg>
+                </button>
+                <button class="acc acc-trash" title="Eliminar pedido"
+                    (click)="$event.stopPropagation(); eliminarPedido(mesa)">
+                    <i class="bi bi-trash3"></i>
+                </button>
                 }
 
-                <div class="card-body text-center p-4">
-                    <div class="text-start mb-2">
-                        <span class="badge bg-light text-muted fw-normal">{{ mesa.NombreClasificacion }}</span>
-                        <h5 class="card-title mt-1 fw-bold">{{ mesa.NombreMesa }}</h5>
-                    </div>
+                <!-- Encabezado: clasificacion + nombre de la mesa -->
+                <div class="mesa-clasif fw-bold">{{ mesa.NombreClasificacion }}</div>
+                <div class="mesa-nombre">{{ mesa.NombreMesa }}</div>
 
-                    <!-- Icono Principal -->
-                    <div class="table-icon-container my-3">
-                        <i class="bi bi-table display-4" [style.color]="mesa.Ocupada ? '#ff8c00' : '#dee2e6'"></i>
-                        @if (mesa.TotalVenta && mesa.TotalVenta > 0) {
-                        <div class="price-bubble" [style.color]="colorSistema">
-                            Q {{ mesa.TotalVenta | number:'1.2-2' }}
-                        </div>
-                        }
-                    </div>
+                <!-- Icono de la mesa + total -->
+                <div class="mesa-icono-wrap flex-grow-1 d-flex flex-column align-items-center justify-content-center">
+                    @if (iconoUrlValido(mesa)) {
+                    <img [src]="mesa.ImagenUrl" class="mesa-icono" alt="mesa">
+                    } @else {
+                    <!-- Icono elegido al crear la mesa (uno de los 8 quemados) -->
+                    <app-mesa-icono [iconoId]="mesa.ImagenUrl" class="mesa-icono-glyph"></app-mesa-icono>
+                    }
 
-                    <!-- Info Cliente -->
-                    @if (mesa.NombreCliente) {
-                    <div class="client-name text-muted small mb-3 text-truncate">
-                        {{ mesa.NombreCliente }}
+                    @if (esSecundaria(mesa)) {
+                    <div class="mesa-total text-danger fw-bold">OCUPADO</div>
+                    } @else {
+                    <div class="mesa-total" [style.color]="estaOcupada(mesa) ? colorSistema : '#adb5bd'">
+                        Q {{ totalMesa(mesa) | number:'1.2-2' }}
                     </div>
                     }
 
-                    <!-- Timer y Status Bar -->
-                    <div
-                        class="status-bar d-flex align-items-center justify-content-center gap-2 p-2 rounded-pill bg-light">
-                        <i class="bi bi-clock"></i>
-                        <span class="fw-bold fw-mono">{{ mesa.TiempoOcupada || '00:00:00' }}</span>
-                        @if (mesa.Ocupada) {
-                        <button class="btn btn-delete-order ms-2"
-                            (click)="$event.stopPropagation(); eliminarPedido(mesa)">
-                            <i class="bi bi-trash3-fill"></i>
-                        </button>
-                        }
-                    </div>
+                    @if (clienteMesa(mesa)) {
+                    <div class="mesa-cliente text-muted small text-truncate">{{ clienteMesa(mesa) }}</div>
+                    }
                 </div>
 
-                <!-- Bottom Action Bar (Cambiante según estado) -->
-                <div class="card-footer border-0 p-0">
-                    <button class="btn w-100 py-3 fw-bold btn-action-main"
-                        [style.background-color]="mesa.Ocupada ? colorSistema : '#fff'"
-                        [class.text-white]="mesa.Ocupada" [class.text-muted]="!mesa.Ocupada" (click)="irAVenta(mesa)">
-                        {{ mesa.Ocupada ? 'Gestionar Venta' : 'Abrir Mesa' }}
-                    </button>
+                <!-- Timer (sin funcion por ahora: el API no envia FechaApertura) -->
+                <div class="mesa-timer d-flex align-items-center justify-content-center gap-2">
+                    <i class="bi bi-stopwatch"></i>
+                    <span class="fw-mono">00:00:00</span>
                 </div>
             </div>
         </div>
@@ -93,7 +128,67 @@
     <!-- Spinner -->
     @if (cargando()) {
     <div class="loader-overlay">
-        <div class="spinner-border text-primary" role="status"></div>
+        <div class="spinner-border" [style.color]="colorSistema" role="status"></div>
     </div>
     }
+
+    <!-- Modal: agregar cliente a la mesa -->
+    <app-cliente-factura-modal
+        [visible]="mostrarCliente()"
+        [colorSistema]="colorSistema"
+        textoConfirmar="Agregar cliente"
+        [requiereCliente]="true"
+        [pedirFechaEntrega]="false"
+        (alCerrar)="cerrarCliente()"
+        (alConfirmar)="clienteConfirmado($event)">
+    </app-cliente-factura-modal>
+
+    <!-- Modal: cobro de la mesa (con propina) -->
+    <app-mesa-cobro-modal
+        [visible]="mostrarPago()"
+        [colorSistema]="colorSistema"
+        [total]="montoCobro()"
+        [procesando]="procesando()"
+        (alCerrar)="cerrarCobro()"
+        (alProcesar)="procesarCobro($event)">
+    </app-mesa-cobro-modal>
+
+    <!-- Comprobante -->
+    <app-comprobante-venta-modal
+        [visible]="mostrarComprobante()"
+        [data]="comprobante()"
+        [colorSistema]="colorSistema"
+        [accionAuto]="accionComprobante()"
+        (cerrar)="cerrarComprobante()">
+    </app-comprobante-venta-modal>
+
+    <!-- Modal: combinar mesas -->
+    <app-mesa-combinar-modal
+        [visible]="mostrarCombinar()"
+        [colorSistema]="colorSistema"
+        [procesando]="procesando()"
+        [mesaOrigen]="mesaAccion()"
+        [mesas]="mesas()"
+        (alCerrar)="cerrarCombinar()"
+        (alCombinar)="combinarConfirmado($event)">
+    </app-mesa-combinar-modal>
+
+    <!-- Modal: mover pedido -->
+    <app-mesa-mover-modal
+        [visible]="mostrarMover()"
+        [colorSistema]="colorSistema"
+        [procesando]="procesando()"
+        [mesaOrigen]="mesaAccion()"
+        [mesas]="mesas()"
+        (alCerrar)="cerrarMover()"
+        (alMover)="moverConfirmado($event)">
+    </app-mesa-mover-modal>
+
+    <!-- Modal: comanda (mismo ticket que comprobantes) -->
+    <app-comanda-modal
+        [visible]="mostrarComanda()"
+        [data]="comandaData()"
+        [colorSistema]="colorSistema"
+        (cerrar)="cerrarComanda()">
+    </app-comanda-modal>
 </div>

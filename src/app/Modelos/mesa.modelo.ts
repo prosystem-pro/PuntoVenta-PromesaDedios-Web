@@ -1,19 +1,28 @@
+export interface MesaClienteInfo {
+    CodigoCliente: number;
+    NombreCliente: string;
+}
+
+export interface MesaVentaInfo {
+    CodigoVenta: number;
+    Total: number;
+    SaldoPendiente: number;
+    Cliente: MesaClienteInfo | null;
+}
+
 export interface Mesa {
     CodigoMesa: number;
-    CodigoClasificacionMesa: number;
     NombreMesa: string;
-    Descripcion: string;
     ImagenUrl: string;
+    // 1 = libre, 2 = ocupada (venta propia), 3 = ocupada secundaria (mesa combinada)
     Estatus: number;
-    // Campos adicionales para la vista
     NombreClasificacion?: string;
-    CantidadMesas?: number; // Para el modal de creación masiva
+    // Solo viene cuando la mesa esta ocupada (Estatus 2)
+    Venta?: MesaVentaInfo | null;
 
-    // Campos operativos
-    TotalVenta?: number;
-    TiempoOcupada?: string;
-    NombreCliente?: string;
-    Ocupada?: boolean;
-    CodigoCliente?: number;
+    // Campos usados en creacion/edicion masiva (modulo configuracion)
+    CodigoClasificacionMesa?: number;
+    Descripcion?: string;
+    CantidadMesas?: number;
     Nota?: string;
 }

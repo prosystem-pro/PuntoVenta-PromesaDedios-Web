@@ -10,12 +10,13 @@ export interface PagoVenta {
 
 export interface GuardarProductosMesaRequest {
     CodigoMesa: number;
+    CodigoCliente?: number | null;
     TipoAtencion: 'MESA' | 'VENTANILLA' | 'DOMICILIO';
     Productos: {
         CodigoProducto: number;
         Cantidad: number;
         PrecioUnitario: number;
-        Nota?: string;
+        Observaciones?: string | null;
     }[];
 }
 

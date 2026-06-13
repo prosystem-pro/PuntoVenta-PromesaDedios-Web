@@ -235,6 +235,12 @@ export class VentaMesa implements OnInit {
         ));
     }
 
+    // Quita por completo un producto de la orden
+    eliminarDelCarrito(codigo: number) {
+        this.carrito.update(items => items.filter(it => it.CodigoProducto !== codigo));
+        if (this.comentarioAbierto() === codigo) this.comentarioAbierto.set(null);
+    }
+
     // Comentario por producto (inline, mismo patron que /facturar)
     toggleComentario(codigo: number) {
         this.comentarioAbierto.update(actual => actual === codigo ? null : codigo);
@@ -295,6 +301,8 @@ export class VentaMesa implements OnInit {
             } else {
                 this.servicioAlerta.MostrarError(res.message);
             }
+        } catch (error: any) {
+            this.servicioAlerta.MostrarError(error, 'No se pudo guardar la orden de la mesa');
         } finally {
             this.guardando.set(false);
         }
@@ -338,6 +346,8 @@ export class VentaMesa implements OnInit {
             } else {
                 this.servicioAlerta.MostrarError(res.message);
             }
+        } catch (error: any) {
+            this.servicioAlerta.MostrarError(error, 'No se pudo facturar la mesa');
         } finally {
             this.guardando.set(false);
         }

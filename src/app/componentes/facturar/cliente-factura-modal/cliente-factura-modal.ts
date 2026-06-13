@@ -29,6 +29,8 @@ export class ClienteFacturaModal implements OnChanges {
     @Output() alConfirmar = new EventEmitter<{ cliente: Cliente | null; fechaEntrega: string | null }>();
 
     fechaEntrega = signal<string>('');
+    // Hora de entrega opcional (HH:mm). Si queda vacía se envía solo la fecha.
+    horaEntrega = signal<string>('');
 
     // Hoy en YYYY-MM-DD: la fecha de entrega no puede ser anterior a hoy (solo hoy o futuro)
     get hoyISO(): string {
@@ -63,6 +65,7 @@ export class ClienteFacturaModal implements OnChanges {
         this.textoBusqueda.set('');
         this.mostrarSugerencias.set(false);
         this.fechaEntrega.set('');
+        this.horaEntrega.set('');
     }
 
     async cargarClientes() {
@@ -144,9 +147,15 @@ export class ClienteFacturaModal implements OnChanges {
             this.servicioAlerta.MostrarAlerta('La fecha de entrega no puede ser anterior a hoy');
             return;
         }
+        // Si hay hora se manda "YYYY-MM-DDTHH:mm"; si no, solo la fecha.
+        // NOTA: el huso horario del envío queda por confirmar con el dev del API.
+        const fecha = this.fechaEntrega();
+        const hora = this.horaEntrega();
+        const fechaEntrega = fecha ? (hora ? `${fecha}T${hora}` : fecha) : null;
+
         this.alConfirmar.emit({
             cliente: this.clienteSeleccionado(),
-            fechaEntrega: this.fechaEntrega() || null
+            fechaEntrega
         });
     }
 

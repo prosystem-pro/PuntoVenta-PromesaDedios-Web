@@ -65,10 +65,15 @@ export class EstadoPedidos implements OnInit {
         return f.substring(0, 10); // por si llegara en ISO
     }
 
-    // Muestra solo la parte de fecha (dd/MM/yyyy) tal cual la manda el API.
+    // Muestra la fecha (dd/MM/yyyy) y agrega la hora solo si existe y no es 00:00.
+    // El API manda "dd/MM/yyyy HH:mm" (o solo "dd/MM/yyyy" si no se capturó hora).
     fechaCorta(fecha: string | null): string {
         if (!fecha) return '—';
-        return fecha.trim().substring(0, 10);
+        const f = fecha.trim();
+        const fechaParte = f.substring(0, 10);
+        const horaParte = f.substring(11, 16); // "HH:mm"
+        if (horaParte && horaParte !== '00:00') return `${fechaParte} ${horaParte}`;
+        return fechaParte;
     }
 
     // Fecha de hoy en formato YYYY-MM-DD
@@ -254,7 +259,7 @@ export class EstadoPedidos implements OnInit {
     // se cargan dentro del modal a partir del CodigoPedidoProduccion.
     abrirAbono(pedido: EstadoPedido) {
         this.pedidoAbono.set({
-            Fecha: pedido.FechaEntrega,
+            Fecha: this.fechaCorta(pedido.FechaEntrega),
             Documento: pedido.Pedido,
             Cliente: pedido.Nombre
         });

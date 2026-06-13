@@ -78,6 +78,11 @@
                     <input type="date" class="cf-input" [min]="hoyISO"
                         [ngModel]="fechaEntrega()" (ngModelChange)="fechaEntrega.set($event)">
                 </div>
+                <div class="col-md-6">
+                    <label class="cf-label">Hora de entrega: <span class="cf-opcional">(opcional)</span></label>
+                    <input type="time" class="cf-input"
+                        [ngModel]="horaEntrega()" (ngModelChange)="horaEntrega.set($event)">
+                </div>
                 }
             </div>
         </div>

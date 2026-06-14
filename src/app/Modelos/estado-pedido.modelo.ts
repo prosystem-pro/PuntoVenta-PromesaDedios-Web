@@ -21,10 +21,54 @@ export interface DetallePedido {
 
 // Un abono ya registrado (GET /estadopedido/listar-pagos-por-ventas/:CodigoVenta)
 export interface PagoPedido {
+    CodigoPagoVenta: number;        // Necesario para eliminar / imprimir el comprobante del pago
     NumeroPago: string;
     FechaPago: string;
     MetodoPago: string;             // EFECTIVO | TARJETA | TRANSFERENCIA | CHEQUE
     Monto: number;
+}
+
+// Fila del listado "Pagos de clientes" (GET /estadopedido/listado-estado-pago-cliente)
+export interface EstadoPagoCliente {
+    CodigoPedidoProduccion: number | null;
+    Pedido: string;
+    Nombre: string | null;
+    Pagos: string;                  // cantidad de abonos (texto)
+    Pendiente: string;              // saldo formateado por el API: "Q3000.00"
+    Vencimiento: string | null;     // "dd/MM/yyyy HH:mm"
+    FechaCreacion: string | null;
+    Estado: string | null;          // PENDIENTE | CANCELADO | FACTURADO | CERRADO
+}
+
+// Comprobante de un abono/pago (GET /estadopedido/impresion-pago/:CodigoPagoVenta)
+export interface ComprobantePago {
+    Empresa: {
+        Nombre?: string | null;
+        Nit?: string | null;
+        Direccion?: string | null;
+        Telefono?: string | null;
+    };
+    DatosComprobante: {
+        FechaPago?: string | null;
+        DocumentoPago?: string | null;
+        DocumentoVenta?: string | null;
+        Cliente?: string | null;
+        Direccion?: string | null;
+        Nit?: string | null;
+        Celular?: string | null;
+    };
+    DetalleMovimiento: {
+        SaldoAnterior?: number | null;
+        MontoAbonado?: number | null;
+        SaldoPendiente?: number | null;
+    };
+    FormaPago: {
+        MetodoPago?: string | null;
+        Monto?: number | null;
+        MontoRecibido?: number | null;
+        Cambio?: number | null;
+        Referencia?: string | null;
+    };
 }
 
 // Registrar abono (POST /estadopedido/registrar-abono)

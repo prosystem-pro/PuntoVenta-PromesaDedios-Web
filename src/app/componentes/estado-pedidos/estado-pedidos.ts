@@ -47,22 +47,12 @@ export class EstadoPedidos implements OnInit {
     esSuperAdmin = true;
 
     async ngOnInit() {
-        // Por defecto: entregas de hoy en adelante (sin tope superior)
+        // Por defecto: mes actual (del día 1 a hoy). El API exige ambas fechas.
         const { inicio, fin } = this.rangoDefecto();
         this.fechaInicioInput.set(inicio);
         this.fechaFinalInput.set(fin);
         this.filtrosAplicados.set({ inicio, fin });
         await this.cargar();
-    }
-
-    // El API devuelve las fechas ya formateadas como "dd/MM/yyyy HH:mm" (hora Guatemala).
-    // Las convertimos a "yyyy-MM-dd" solo para comparar con los inputs de fecha (type=date).
-    private aComparable(fecha: string | null): string | null {
-        if (!fecha) return null;
-        const f = fecha.trim();
-        const m = f.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
-        if (m) return `${m[3]}-${m[2]}-${m[1]}`;
-        return f.substring(0, 10); // por si llegara en ISO
     }
 
     // Muestra la fecha (dd/MM/yyyy) y agrega la hora solo si existe y no es 00:00.
@@ -82,15 +72,19 @@ export class EstadoPedidos implements OnInit {
         return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     }
 
-    // Rango por defecto: desde hoy en adelante (fin vacío = sin límite superior)
+    // Rango por defecto: mes actual (del día 1 a hoy). El API exige ambas fechas.
     private rangoDefecto(): { inicio: string; fin: string } {
-        return { inicio: this.hoyISO(), fin: '' };
+        const d = new Date();
+        const inicio = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
+        return { inicio, fin: this.hoyISO() };
     }
 
     async cargar() {
         this.cargando.set(true);
         try {
-            const res = await this.servicio.listar();
+            // El API filtra por FechaCreacion y exige el rango aplicado.
+            const { inicio, fin } = this.filtrosAplicados();
+            const res = await this.servicio.listar(inicio, fin);
             this.pedidos.set(res.success ? (res.data || []) : []);
         } catch (error: any) {
             // El API responde 404 cuando no hay pedidos: lo tratamos como lista vacía
@@ -105,18 +99,20 @@ export class EstadoPedidos implements OnInit {
         }
     }
 
-    aplicarFiltros() {
+    async aplicarFiltros() {
         this.filtrosAplicados.set({ inicio: this.fechaInicioInput(), fin: this.fechaFinalInput() });
         this.paginaActual.set(1);
+        await this.cargar();
     }
 
-    limpiarFiltros() {
+    async limpiarFiltros() {
         const { inicio, fin } = this.rangoDefecto();
         this.fechaInicioInput.set(inicio);
         this.fechaFinalInput.set(fin);
         this.filtrosAplicados.set({ inicio, fin });
         this.busqueda.set('');
         this.paginaActual.set(1);
+        await this.cargar();
     }
 
     // El botón cambia a "Cancelar" solo cuando el rango aplicado es distinto al de por defecto
@@ -182,27 +178,17 @@ export class EstadoPedidos implements OnInit {
         }
     }
 
-    // Listado filtrado (texto + rango de fecha de entrega) y ordenado
+    // Listado filtrado por texto y ordenado. El rango de fechas (por FechaCreacion)
+    // ya lo aplica el API del lado del servidor.
     listadoFiltrado = computed(() => {
         const texto = this.busqueda().toLowerCase().trim();
-        const { inicio, fin } = this.filtrosAplicados();
         const col = this.columnaActiva();
         const asc = this.ordenAscendente();
 
         let lista = this.pedidos().filter(p => {
-            const coincideTexto = !texto
+            return !texto
                 || (p.Nombre?.toLowerCase() || '').includes(texto)
                 || (p.Pedido?.toLowerCase() || '').includes(texto);
-
-            // Filtro por fecha de entrega (el API no filtra). inicio y fin son
-            // independientes: con fin vacío no hay tope superior (hoy en adelante).
-            let coincideFecha = true;
-            const fecha = this.aComparable(p.FechaEntrega);
-            if (fecha) {
-                if (inicio && fecha < inicio) coincideFecha = false;
-                if (fin && fecha > fin) coincideFecha = false;
-            }
-            return coincideTexto && coincideFecha;
         });
 
         if (col) {
@@ -272,7 +258,31 @@ export class EstadoPedidos implements OnInit {
         this.pedidoAbono.set(null);
         this.codigoAbono.set(null);
     }
-    entregar(pedido: EstadoPedido) {
-        this.servicioAlerta.MostrarInfo(`La entrega del pedido ${pedido.Pedido} estará disponible cuando el API tenga el endpoint correspondiente.`, 'Pendiente');
+    entregando = signal<number | null>(null); // CodigoPedidoProduccion en proceso
+
+    async entregar(pedido: EstadoPedido) {
+        if (!pedido.CodigoPedidoProduccion || this.entregando() !== null) return;
+
+        const confirmado = await this.servicioAlerta.Confirmacion(
+            'Entregar pedido',
+            `¿Confirma la entrega del pedido ${pedido.Pedido}? Esta acción lo marca como facturado y no se podrá modificar.`,
+            'Entregar'
+        );
+        if (!confirmado) return;
+
+        this.entregando.set(pedido.CodigoPedidoProduccion);
+        try {
+            const res = await this.servicio.entregarPedido(pedido.CodigoPedidoProduccion);
+            if (res.success) {
+                this.servicioAlerta.MostrarToast(res.message || 'Pedido entregado correctamente', 'success');
+                await this.cargar();
+            } else {
+                this.servicioAlerta.MostrarError(res.message, 'No se pudo entregar el pedido');
+            }
+        } catch (error: any) {
+            this.servicioAlerta.MostrarError(error, 'No se pudo entregar el pedido');
+        } finally {
+            this.entregando.set(null);
+        }
     }
 }

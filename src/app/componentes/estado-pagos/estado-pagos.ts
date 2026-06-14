@@ -4,18 +4,20 @@ import { FormsModule } from '@angular/forms';
 import { Location } from '@angular/common';
 import { Entorno } from '../../Entorno/Entorno';
 import { AbonoPedidoModal, PedidoAbono } from '../estado-pedidos/abono-pedido-modal/abono-pedido-modal';
+import { EstadoPedidoServicio } from '../../Servicios/estado-pedido.service';
+import { EstadoPagoCliente } from '../../Modelos/estado-pedido.modelo';
+import { AlertaServicio } from '../../Servicios/alerta.service';
 
-// Fila de la pantalla "Pagos de clientes" (diseño; vendrá del API cuando exista el endpoint)
+// Fila de la pantalla "Pagos de clientes" (GET /estadopedido/listado-estado-pago-cliente)
 interface PagoCliente {
+    CodigoPedidoProduccion: number | null;
     Pedido: string;
     Nombre: string;
-    Telefono: string;
-    Documento: string;
-    Fecha: string;        // fecha del pedido (ISO)
-    Pagos: number;        // cantidad de abonos realizados
-    Pendiente: number;    // saldo pendiente
-    Vencimiento: string;  // fecha de vencimiento (ISO)
-    Estatus: 'PAGADO' | 'PENDIENTE';
+    Pagos: string;        // cantidad de abonos realizados (texto del API)
+    Pendiente: number;    // saldo pendiente (parseado de "Q0.00")
+    Vencimiento: string | null;  // "dd/MM/yyyy HH:mm"
+    FechaCreacion: string | null;
+    Estatus: 'PAGADO' | 'PENDIENTE'; // derivado del Estado de la venta
 }
 
 @Component({
@@ -27,6 +29,8 @@ interface PagoCliente {
 })
 export class EstadoPagos implements OnInit {
     private location = inject(Location);
+    private servicio = inject(EstadoPedidoServicio);
+    private servicioAlerta = inject(AlertaServicio);
 
     colorSistema = Entorno.ColorSistema;
 
@@ -47,19 +51,33 @@ export class EstadoPagos implements OnInit {
     columnaActiva = signal<string | null>(null);
     ordenAscendente = signal(true);
 
-    // Modal de Pagos realizados (diseño; sin endpoint todavía)
+    // Modal de Pagos realizados
     mostrarAbono = signal(false);
     pedidoAbono = signal<PedidoAbono | null>(null);
+    codigoAbono = signal<number | null>(null);
     // TODO: debe venir del rol del usuario logueado cuando se integre
     esSuperAdmin = true;
 
-    ngOnInit() {
+    async ngOnInit() {
         // Por defecto: del día 1 del mes actual a hoy (regla 02 del PO)
         const { inicio, fin } = this.rangoMesActual();
         this.fechaInicioInput.set(inicio);
         this.fechaFinalInput.set(fin);
         this.filtrosAplicados.set({ inicio, fin });
-        this.cargar();
+        await this.cargar();
+    }
+
+    // Muestra dd/MM/yyyy a partir de "dd/MM/yyyy HH:mm" (o lo que llegue).
+    fechaCorta(fecha: string | null): string {
+        if (!fecha) return '—';
+        return fecha.trim().substring(0, 10);
+    }
+
+    // El API formatea el saldo como "Q3000.00"; extraemos el número para la columna.
+    private parsearMonto(valor: string | null): number {
+        if (!valor) return 0;
+        const n = Number(String(valor).replace(/[^0-9.-]/g, ''));
+        return isNaN(n) ? 0 : n;
     }
 
     // Fecha en formato YYYY-MM-DD
@@ -74,45 +92,54 @@ export class EstadoPagos implements OnInit {
         return { inicio: this.fmt(primero), fin: this.fmt(hoy) };
     }
 
-    // Datos de ejemplo (diseño). Con API: GET del listado de pagos de clientes.
-    cargar() {
+    // Listado real de pagos de clientes. El API filtra por FechaCreacion y exige el rango.
+    async cargar() {
         this.cargando.set(true);
-        const hoy = new Date();
-        const diaDelMes = (dia: number) =>
-            new Date(hoy.getFullYear(), hoy.getMonth(), dia).toISOString();
-
-        const ejemplo: PagoCliente[] = [
-            { Pedido: '450923456', Nombre: 'Carlos Merida de Leon', Telefono: '3098-2343', Documento: '9872619211', Fecha: diaDelMes(1), Pagos: 1, Pendiente: 0, Vencimiento: diaDelMes(10), Estatus: 'PAGADO' },
-            { Pedido: '450923457', Nombre: 'Maria de Leon', Telefono: '5544-1122', Documento: '9872619212', Fecha: diaDelMes(2), Pagos: 3, Pendiente: 3000, Vencimiento: diaDelMes(10), Estatus: 'PENDIENTE' },
-            { Pedido: '450923458', Nombre: 'Karla Maria castro de soto', Telefono: '5544-3344', Documento: '9872619213', Fecha: diaDelMes(3), Pagos: 4, Pendiente: 5000, Vencimiento: diaDelMes(10), Estatus: 'PENDIENTE' },
-            { Pedido: '450923459', Nombre: 'Erickson Ricardo de Leon Castro', Telefono: '5544-5566', Documento: '9872619214', Fecha: diaDelMes(4), Pagos: 2, Pendiente: 2000, Vencimiento: diaDelMes(10), Estatus: 'PENDIENTE' },
-            { Pedido: '450923460', Nombre: 'Maria Juana Yoxon', Telefono: '5544-7788', Documento: '9872619215', Fecha: diaDelMes(5), Pagos: 3, Pendiente: 1000, Vencimiento: diaDelMes(10), Estatus: 'PENDIENTE' },
-            { Pedido: '450923461', Nombre: 'Isabel Castro Soto', Telefono: '5544-9900', Documento: '9872619216', Fecha: diaDelMes(6), Pagos: 2, Pendiente: 0, Vencimiento: diaDelMes(20), Estatus: 'PAGADO' },
-            { Pedido: '450923462', Nombre: 'Angel Vicente Mejia Castro', Telefono: '5544-1212', Documento: '9872619217', Fecha: diaDelMes(7), Pagos: 1, Pendiente: 0, Vencimiento: diaDelMes(20), Estatus: 'PAGADO' },
-            { Pedido: '450923463', Nombre: 'Karla Soto de Leon', Telefono: '5544-3434', Documento: '9872619218', Fecha: diaDelMes(8), Pagos: 4, Pendiente: 0, Vencimiento: diaDelMes(20), Estatus: 'PAGADO' },
-            { Pedido: '450923464', Nombre: 'Douglas Claveri Castro Soto', Telefono: '5544-5656', Documento: '9872619219', Fecha: diaDelMes(9), Pagos: 5, Pendiente: 3000, Vencimiento: diaDelMes(10), Estatus: 'PENDIENTE' },
-            { Pedido: '450923465', Nombre: 'Maria Sosa', Telefono: '5544-7878', Documento: '9872619220', Fecha: diaDelMes(10), Pagos: 3, Pendiente: 0, Vencimiento: diaDelMes(20), Estatus: 'PAGADO' }
-        ];
-        this.clientes.set(ejemplo);
-        this.cargando.set(false);
+        try {
+            const { inicio, fin } = this.filtrosAplicados();
+            const res = await this.servicio.listarPagosCliente(inicio, fin);
+            const lista: EstadoPagoCliente[] = res.success ? (res.data || []) : [];
+            this.clientes.set(lista.map(c => ({
+                CodigoPedidoProduccion: c.CodigoPedidoProduccion,
+                Pedido: c.Pedido,
+                Nombre: c.Nombre || '—',
+                Pagos: c.Pagos,
+                Pendiente: this.parsearMonto(c.Pendiente),
+                Vencimiento: c.Vencimiento,
+                FechaCreacion: c.FechaCreacion,
+                Estatus: c.Estado === 'PENDIENTE' ? 'PENDIENTE' : 'PAGADO'
+            })));
+        } catch (error: any) {
+            // El API responde 404 cuando no hay registros: lista vacía.
+            if (error?.response?.status === 404) {
+                this.clientes.set([]);
+            } else {
+                this.servicioAlerta.MostrarError(error, 'No se pudo cargar el listado de pagos');
+                this.clientes.set([]);
+            }
+        } finally {
+            this.cargando.set(false);
+        }
     }
 
     regresar() {
         this.location.back();
     }
 
-    aplicarFiltros() {
+    async aplicarFiltros() {
         this.filtrosAplicados.set({ inicio: this.fechaInicioInput(), fin: this.fechaFinalInput() });
         this.paginaActual.set(1);
+        await this.cargar();
     }
 
-    limpiarFiltros() {
+    async limpiarFiltros() {
         const { inicio, fin } = this.rangoMesActual();
         this.fechaInicioInput.set(inicio);
         this.fechaFinalInput.set(fin);
         this.filtrosAplicados.set({ inicio, fin });
         this.busqueda.set('');
         this.paginaActual.set(1);
+        await this.cargar();
     }
 
     estaFiltrado = computed(() => {
@@ -145,23 +172,15 @@ export class EstadoPagos implements OnInit {
 
     listadoFiltrado = computed(() => {
         const texto = this.busqueda().toLowerCase().trim();
-        const { inicio, fin } = this.filtrosAplicados();
         const col = this.columnaActiva();
         const asc = this.ordenAscendente();
 
-        let lista = this.clientes().filter(c => {
-            const coincideTexto = !texto
-                || c.Nombre.toLowerCase().includes(texto)
-                || c.Pedido.toLowerCase().includes(texto);
-
-            // Filtro por fecha de vencimiento dentro del rango
-            let coincideFecha = true;
-            if (inicio && fin && c.Vencimiento) {
-                const fecha = c.Vencimiento.substring(0, 10);
-                coincideFecha = fecha >= inicio && fecha <= fin;
-            }
-            return coincideTexto && coincideFecha;
-        });
+        // El rango de fechas (por FechaCreacion) ya lo aplica el API. Aquí solo texto.
+        let lista = this.clientes().filter(c =>
+            !texto
+            || c.Nombre.toLowerCase().includes(texto)
+            || c.Pedido.toLowerCase().includes(texto)
+        );
 
         if (col) {
             lista = [...lista].sort((a: any, b: any) => {
@@ -208,20 +227,22 @@ export class EstadoPagos implements OnInit {
         if (this.paginaActual() < this.totalPaginas()) this.paginaActual.update(p => p + 1);
     }
 
-    // Abre el modal de Pagos realizados del cliente seleccionado
+    // Abre el modal de Pagos realizados del cliente seleccionado.
+    // El saldo, teléfono y abonos se cargan dentro del modal vía CodigoPedidoProduccion.
     abrirAbono(cliente: PagoCliente) {
         this.pedidoAbono.set({
-            Fecha: cliente.Fecha,
-            Documento: cliente.Documento,
+            Fecha: this.fechaCorta(cliente.FechaCreacion),
+            Documento: cliente.Pedido,
             Cliente: cliente.Nombre,
-            Telefono: cliente.Telefono,
             SaldoPendiente: cliente.Pendiente
         });
+        this.codigoAbono.set(cliente.CodigoPedidoProduccion);
         this.mostrarAbono.set(true);
     }
 
     cerrarAbono() {
         this.mostrarAbono.set(false);
         this.pedidoAbono.set(null);
+        this.codigoAbono.set(null);
     }
 }

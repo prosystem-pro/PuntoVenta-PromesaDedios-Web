@@ -24,7 +24,10 @@ export class MontoPagoModal implements OnChanges {
     @Input() total = 0;
     @Input() procesando = false;
     /** 'contado' = venta directa (muestra "Su cambio"); 'pedido' = abono (muestra "Saldo pendiente"). */
-    @Input() modo: 'contado' | 'pedido' = 'contado';
+    // Se respalda en una señal para que los computed (esPedido) reaccionen al cambiar el @Input.
+    private modoSig = signal<'contado' | 'pedido'>('contado');
+    @Input() set modo(valor: 'contado' | 'pedido') { this.modoSig.set(valor ?? 'contado'); }
+    get modo(): 'contado' | 'pedido' { return this.modoSig(); }
 
     @Output() alCerrar = new EventEmitter<void>();
     @Output() alProcesar = new EventEmitter<ResultadoPago>();
@@ -42,7 +45,7 @@ export class MontoPagoModal implements OnChanges {
     referencia = signal<string>('');
 
     esEfectivo = computed(() => this.metodoPago() === 1);
-    esPedido = computed(() => this.modo === 'pedido');
+    esPedido = computed(() => this.modoSig() === 'pedido');
 
     // Contado: cambio = recibido - total. Pedido: no aplica.
     cambio = computed(() => {

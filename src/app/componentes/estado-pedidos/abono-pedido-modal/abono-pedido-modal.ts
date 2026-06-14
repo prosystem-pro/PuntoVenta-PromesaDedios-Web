@@ -4,7 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { Entorno } from '../../../Entorno/Entorno';
 import { AlertaServicio } from '../../../Servicios/alerta.service';
 import { EstadoPedidoServicio } from '../../../Servicios/estado-pedido.service';
-import { PagoPedido } from '../../../Modelos/estado-pedido.modelo';
+import { PagoPedido, ComprobantePago } from '../../../Modelos/estado-pedido.modelo';
+import { ComprobantePagoModal } from '../comprobante-pago-modal/comprobante-pago-modal';
 
 // Datos del pedido a abonar que ya conoce el padre (fila del listado).
 // El saldo/teléfono/CodigoVenta se obtienen del detalle del API al abrir.
@@ -17,6 +18,7 @@ export interface PedidoAbono {
 }
 
 interface PagoRealizado {
+    CodigoPagoVenta: number;
     FechaPago: string;
     MedioPago: string;
     Valor: number;
@@ -26,7 +28,7 @@ interface PagoRealizado {
 @Component({
     selector: 'app-abono-pedido-modal',
     standalone: true,
-    imports: [CommonModule, FormsModule],
+    imports: [CommonModule, FormsModule, ComprobantePagoModal],
     templateUrl: './abono-pedido-modal.html',
     styleUrl: './abono-pedido-modal.css'
 })
@@ -66,9 +68,15 @@ export class AbonoPedidoModal implements OnChanges {
     valor = signal<number | null>(null);
     referencia = signal<string>('');
 
-    // Saldo y pagos (diseño local; sin API todavía)
+    // Saldo y pagos (cargados del API al abrir)
     saldoPendiente = signal<number>(0);
     pagos = signal<PagoRealizado[]>([]);
+    eliminandoPago = signal<number | null>(null); // CodigoPagoVenta en proceso de borrado
+
+    // Comprobante de pago
+    mostrarComprobante = signal(false);
+    comprobantePago = signal<ComprobantePago | null>(null);
+    cargandoComprobante = signal(false);
 
     ngOnChanges(changes: SimpleChanges): void {
         if (changes['visible']?.currentValue) {
@@ -111,6 +119,7 @@ export class AbonoPedidoModal implements OnChanges {
             const res = await this.servicio.listarPagos(codigoVenta);
             const lista: PagoPedido[] = res.success ? (res.data || []) : [];
             this.pagos.set(lista.map(p => ({
+                CodigoPagoVenta: p.CodigoPagoVenta,
                 FechaPago: p.FechaPago,
                 MedioPago: p.MetodoPago,
                 Valor: Number(p.Monto),
@@ -227,14 +236,57 @@ export class AbonoPedidoModal implements OnChanges {
         }
     }
 
-    async eliminarPago(_index: number) {
+    async eliminarPago(index: number) {
         if (!this.esSuperAdmin) return;
-        // El API aún no expone un endpoint para eliminar abonos.
-        this.servicioAlerta.MostrarInfo('La eliminación de pagos estará disponible cuando el API tenga el endpoint correspondiente.', 'Pendiente');
+        const pago = this.pagos()[index];
+        if (!pago?.CodigoPagoVenta || this.eliminandoPago() !== null) return;
+
+        const confirmado = await this.servicioAlerta.Confirmacion(
+            'Eliminar pago',
+            `Se devolverá Q${pago.Valor.toFixed(2)} al saldo pendiente. ¿Desea continuar?`,
+            'Eliminar'
+        );
+        if (!confirmado) return;
+
+        this.eliminandoPago.set(pago.CodigoPagoVenta);
+        try {
+            const res = await this.servicio.eliminarPago(pago.CodigoPagoVenta);
+            if (res.success) {
+                this.servicioAlerta.MostrarToast(res.message || 'Pago eliminado correctamente', 'success');
+                // Recarga saldo + pagos desde el API y avisa al padre (el estado pudo cambiar)
+                await this.cargarDatos();
+                this.abonoRegistrado.emit();
+            } else {
+                this.servicioAlerta.MostrarError(res.message, 'No se pudo eliminar el pago');
+            }
+        } catch (error: any) {
+            this.servicioAlerta.MostrarError(error, 'No se pudo eliminar el pago');
+        } finally {
+            this.eliminandoPago.set(null);
+        }
     }
 
-    verComprobante(_pago: PagoRealizado) {
-        this.servicioAlerta.MostrarInfo('La visualización del comprobante estará disponible cuando el API tenga el endpoint correspondiente.', 'Pendiente');
+    async verComprobante(pago: PagoRealizado) {
+        if (!pago?.CodigoPagoVenta || this.cargandoComprobante()) return;
+        this.cargandoComprobante.set(true);
+        try {
+            const res = await this.servicio.impresionPago(pago.CodigoPagoVenta);
+            if (res.success && res.data) {
+                this.comprobantePago.set(res.data);
+                this.mostrarComprobante.set(true);
+            } else {
+                this.servicioAlerta.MostrarError(res.message, 'No se pudo obtener el comprobante');
+            }
+        } catch (error: any) {
+            this.servicioAlerta.MostrarError(error, 'No se pudo obtener el comprobante');
+        } finally {
+            this.cargandoComprobante.set(false);
+        }
+    }
+
+    cerrarComprobante() {
+        this.mostrarComprobante.set(false);
+        this.comprobantePago.set(null);
     }
 
     onCerrar() {

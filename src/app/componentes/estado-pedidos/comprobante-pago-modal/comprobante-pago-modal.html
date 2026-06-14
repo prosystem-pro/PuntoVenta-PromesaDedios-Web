@@ -1,0 +1,84 @@
+@if (visible) {
+<div class="cv-overlay d-flex align-items-start justify-content-center">
+    <div class="cv-modal shadow-lg rounded-4 bg-white overflow-hidden">
+        <!-- Barra de acciones (no se imprime) -->
+        <div class="cv-bar d-flex justify-content-between align-items-center px-3 py-2 border-bottom no-print">
+            <h6 class="m-0 fw-bold">Comprobante de pago</h6>
+            <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-outline-secondary" (click)="imprimir()" [disabled]="!data">
+                    <i class="bi bi-printer"></i> Imprimir
+                </button>
+                <button class="btn btn-sm btn-outline-secondary" (click)="descargarPdf()"
+                    [disabled]="!data || generandoPdf()">
+                    @if (generandoPdf()) {
+                    <span class="spinner-border spinner-border-sm"></span>
+                    } @else {
+                    <i class="bi bi-download"></i> PDF
+                    }
+                </button>
+                <button class="btn btn-sm btn-link text-decoration-none" (click)="onCerrar()">
+                    <i class="bi bi-x-circle-fill fs-4" [style.color]="colorSistema"></i>
+                </button>
+            </div>
+        </div>
+
+        @if (data) {
+        <div class="cv-ticket px-4 py-4" #ticket>
+            <!-- Logo + Empresa -->
+            <div class="text-center mb-2">
+                <img [src]="logoUrl" alt="Logo" class="cv-logo mb-2">
+                <h2 class="fw-bold m-0 cv-empresa">{{ data.Empresa.Nombre || 'Promesa de Dios' }}</h2>
+                @if (data.Empresa.Nit) { <div class="small mt-2 fw-semibold">{{ data.Empresa.Nit }}</div> }
+                @if (data.Empresa.Direccion) { <div class="small">{{ data.Empresa.Direccion }}</div> }
+                @if (data.Empresa.Telefono) { <div class="small">{{ data.Empresa.Telefono }}</div> }
+            </div>
+
+            <div class="cv-divider"></div>
+
+            <!-- Datos del comprobante -->
+            <h6 class="fw-bold text-center my-2">Comprobante de pago</h6>
+            <div class="row g-1 small">
+                <div class="col-12">Fecha: {{ data.DatosComprobante.FechaPago | date:'dd/MM/yyyy HH:mm' }} Horas</div>
+                <div class="col-7">No. Pago: {{ data.DatosComprobante.DocumentoPago || '-' }}</div>
+                <div class="col-5">Pedido: {{ data.DatosComprobante.DocumentoVenta || '-' }}</div>
+                <div class="col-7">Cliente: {{ data.DatosComprobante.Cliente || 'C/F' }}</div>
+                <div class="col-5">Nit: {{ data.DatosComprobante.Nit || 'C/F' }}</div>
+                <div class="col-7">Dirección: {{ data.DatosComprobante.Direccion || '-' }}</div>
+                <div class="col-5">Celular: {{ data.DatosComprobante.Celular || '-' }}</div>
+            </div>
+
+            <div class="cv-divider"></div>
+
+            <!-- Forma de pago -->
+            <h6 class="fw-bold text-center my-2">Forma de pago</h6>
+            <div class="row g-1 small">
+                @if (data.FormaPago.Referencia) {
+                <div class="col-12">Referencia: {{ data.FormaPago.Referencia }}</div>
+                }
+                <div class="col-7 text-end text-capitalize">{{ (data.FormaPago.MetodoPago || '') | titlecase }}:</div>
+                <div class="col-5 text-end">Q {{ data.FormaPago.Monto | number:'1.2-2' }}</div>
+                <div class="col-7 text-end">Recibido:</div>
+                <div class="col-5 text-end">Q {{ data.FormaPago.MontoRecibido | number:'1.2-2' }}</div>
+                <div class="col-7 text-end">Cambio:</div>
+                <div class="col-5 text-end">Q {{ data.FormaPago.Cambio | number:'1.2-2' }}</div>
+            </div>
+
+            <div class="cv-divider"></div>
+
+            <!-- Detalle del movimiento -->
+            <div class="row g-1 small">
+                <div class="col-7 text-end">Saldo anterior:</div>
+                <div class="col-5 text-end">Q {{ data.DetalleMovimiento.SaldoAnterior | number:'1.2-2' }}</div>
+                <div class="col-7 text-end fw-bold">Monto abonado:</div>
+                <div class="col-5 text-end fw-bold">Q {{ data.DetalleMovimiento.MontoAbonado | number:'1.2-2' }}</div>
+                <div class="col-7 text-end fw-bold">Saldo pendiente:</div>
+                <div class="col-5 text-end fw-bold">Q {{ data.DetalleMovimiento.SaldoPendiente | number:'1.2-2' }}</div>
+            </div>
+
+            <div class="cv-divider mt-3"></div>
+            <div class="text-center small mt-2">¡Gracias por su pago!</div>
+        </div>
+        }
+    </div>
+</div>
+}

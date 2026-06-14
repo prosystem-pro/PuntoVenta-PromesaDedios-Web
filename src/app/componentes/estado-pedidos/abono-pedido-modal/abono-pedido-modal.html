@@ -108,13 +108,19 @@
                                 <td class="text-center">
                                     <div class="d-flex justify-content-center gap-2">
                                         <button class="btn btn-sm btn-outline-dark border-0 shadow-none"
-                                            (click)="verComprobante(p)" title="Ver comprobante">
+                                            (click)="verComprobante(p)" title="Ver comprobante"
+                                            [disabled]="cargandoComprobante()">
                                             <i class="bi bi-file-earmark-text fs-5"></i>
                                         </button>
                                         @if (esSuperAdmin) {
                                         <button class="btn btn-sm btn-delete border-0 shadow-none"
-                                            (click)="eliminarPago($index)" title="Eliminar pago">
+                                            (click)="eliminarPago($index)" title="Eliminar pago"
+                                            [disabled]="eliminandoPago() !== null">
+                                            @if (eliminandoPago() === p.CodigoPagoVenta) {
+                                            <span class="spinner-border spinner-border-sm"></span>
+                                            } @else {
                                             <i class="bi bi-trash fs-5"></i>
+                                            }
                                         </button>
                                         }
                                     </div>
@@ -134,4 +140,12 @@
         </div>
     </div>
 </div>
+
+<!-- Comprobante del pago/abono -->
+<app-comprobante-pago-modal
+    [visible]="mostrarComprobante()"
+    [data]="comprobantePago()"
+    [colorSistema]="colorSistema"
+    (cerrar)="cerrarComprobante()">
+</app-comprobante-pago-modal>
 }

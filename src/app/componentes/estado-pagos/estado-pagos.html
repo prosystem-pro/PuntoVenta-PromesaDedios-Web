@@ -96,7 +96,7 @@
                         <td class="text-end">Q {{ c.Pendiente | number:'1.2-2' }}</td>
                         <td class="text-center" [class.text-danger]="c.Estatus === 'PENDIENTE'"
                             [class.fw-bold]="c.Estatus === 'PENDIENTE'">
-                            {{ c.Vencimiento | date:'dd/MM/yyyy':'UTC' }}
+                            {{ fechaCorta(c.Vencimiento) }}
                         </td>
                         <td class="text-center">
                             <span class="estado-badge" [class]="claseEstatus(c.Estatus)">
@@ -160,11 +160,13 @@
     </div>
 </div>
 
-<!-- Modal Pagos realizados (diseño, sin integrar) -->
+<!-- Modal Pagos realizados -->
 <app-abono-pedido-modal
     [visible]="mostrarAbono()"
     [colorSistema]="colorSistema"
     [pedido]="pedidoAbono()"
+    [codigoPedidoProduccion]="codigoAbono()"
     [esSuperAdmin]="esSuperAdmin"
-    (cerrar)="cerrarAbono()">
+    (cerrar)="cerrarAbono()"
+    (abonoRegistrado)="cargar()">
 </app-abono-pedido-modal>

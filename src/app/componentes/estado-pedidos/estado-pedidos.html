@@ -105,8 +105,12 @@
                                 </button>
                                 @if (puedeEntregar(p)) {
                                 <button class="btn btn-entregar" [style.background-color]="colorSistema"
-                                    (click)="entregar(p)">
+                                    (click)="entregar(p)" [disabled]="entregando() !== null">
+                                    @if (entregando() === p.CodigoPedidoProduccion) {
+                                    <span class="spinner-border spinner-border-sm"></span>
+                                    } @else {
                                     Entregar
+                                    }
                                 </button>
                                 }
                             </div>

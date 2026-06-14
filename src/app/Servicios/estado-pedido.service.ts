@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import axiosInstance from './axios.config';
 import { RespuestaAPI } from '../Modelos/producto.modelo';
-import { EstadoPedido, DetallePedido, PagoPedido, AbonoRequest, AbonoResponse } from '../Modelos/estado-pedido.modelo';
+import { EstadoPedido, DetallePedido, PagoPedido, AbonoRequest, AbonoResponse, EstadoPagoCliente, ComprobantePago } from '../Modelos/estado-pedido.modelo';
 
 @Injectable({
     providedIn: 'root'
@@ -10,10 +10,13 @@ export class EstadoPedidoServicio {
 
     constructor() { }
 
-    // El API no soporta filtros (fecha/búsqueda/paginación); devuelve todo el listado.
-    // Si no hay pedidos responde 404, lo maneja el componente como lista vacía.
-    async listar(): Promise<RespuestaAPI<EstadoPedido[]>> {
-        const res = await axiosInstance.get('estadopedido/listado');
+    // El API filtra del lado del servidor por FechaCreacion del pedido y EXIGE el rango
+    // (fechaInicio/fechaFin en formato YYYY-MM-DD). Si no hay pedidos responde 404,
+    // lo maneja el componente como lista vacía.
+    async listar(fechaInicio: string, fechaFin: string): Promise<RespuestaAPI<EstadoPedido[]>> {
+        const res = await axiosInstance.get('estadopedido/listado', {
+            params: { fechaInicio, fechaFin }
+        });
         return res.data;
     }
 
@@ -32,6 +35,33 @@ export class EstadoPedidoServicio {
     // Registra un abono al pedido.
     async registrarAbono(datos: AbonoRequest): Promise<RespuestaAPI<AbonoResponse>> {
         const res = await axiosInstance.post('estadopedido/registrar-abono', datos);
+        return res.data;
+    }
+
+    // Listado "Pagos de clientes". Filtra server-side por FechaCreacion; exige el rango
+    // (YYYY-MM-DD). Responde 404 cuando no hay registros (se trata como lista vacía).
+    async listarPagosCliente(fechaInicio: string, fechaFin: string): Promise<RespuestaAPI<EstadoPagoCliente[]>> {
+        const res = await axiosInstance.get('estadopedido/listado-estado-pago-cliente', {
+            params: { fechaInicio, fechaFin }
+        });
+        return res.data;
+    }
+
+    // Elimina un abono (solo super admin; el API valida el rol vía token).
+    async eliminarPago(codigoPagoVenta: number): Promise<RespuestaAPI<null>> {
+        const res = await axiosInstance.delete(`estadopedido/eliminar-pago/${codigoPagoVenta}`);
+        return res.data;
+    }
+
+    // Marca el pedido como entregado/facturado (solo super admin; el API valida el rol).
+    async entregarPedido(codigoPedidoProduccion: number): Promise<RespuestaAPI<null>> {
+        const res = await axiosInstance.put(`estadopedido/entregar-pedido/${codigoPedidoProduccion}`, {});
+        return res.data;
+    }
+
+    // Datos para imprimir el comprobante de un abono/pago.
+    async impresionPago(codigoPagoVenta: number): Promise<RespuestaAPI<ComprobantePago>> {
+        const res = await axiosInstance.get(`estadopedido/impresion-pago/${codigoPagoVenta}`);
         return res.data;
     }
 }

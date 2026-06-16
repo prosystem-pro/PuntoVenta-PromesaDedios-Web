@@ -22,7 +22,12 @@ export class MesaCobroModal implements OnChanges {
 
     @Input() visible = false;
     @Input() colorSistema = '#ff9500';
-    @Input() total = 0; // total de productos (sin propina)
+    // total de productos (sin propina). Se respalda en una señal para que los
+    // computed (propinaMonto/totalCobrar/cambio) reaccionen al cambiar el @Input;
+    // un computed sobre un @Input plano se queda con el valor cacheado de la 1ra mesa.
+    private totalSig = signal(0);
+    @Input() set total(valor: number) { this.totalSig.set(Number(valor) || 0); }
+    get total(): number { return this.totalSig(); }
     @Input() procesando = false;
 
     @Output() alCerrar = new EventEmitter<void>();

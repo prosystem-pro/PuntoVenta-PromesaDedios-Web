@@ -4,6 +4,7 @@ import { Empresa } from '../Modelos/empresa.modelo';
 import { Mesa } from '../Modelos/mesa.modelo';
 import { ClasificacionMesa } from '../Modelos/clasificacion-mesa.modelo';
 import { RespuestaAPI } from '../Modelos/producto.modelo';
+import { DatosInicialesCaja, EstadoCaja, AperturaCajaPayload, AperturaCajaResultado } from '../Modelos/caja.modelo';
 
 @Injectable({
     providedIn: 'root'
@@ -107,9 +108,28 @@ export class ServicioConfiguracion {
     }
 
     // --- CAJA ---
-    async obtenerCajaActual(): Promise<RespuestaAPI<any>> {
+    async obtenerCajaActual(): Promise<RespuestaAPI<EstadoCaja>> {
         try {
-            const respuesta = await api.get<RespuestaAPI<any>>('caja/actual');
+            const respuesta = await api.get<RespuestaAPI<EstadoCaja>>('caja/actual');
+            return respuesta.data;
+        } catch (error: any) {
+            return this.manejarError(error);
+        }
+    }
+
+    // Datos para armar la apertura: caja configurada, turno y denominaciones.
+    async obtenerDatosInicialesCaja(): Promise<RespuestaAPI<DatosInicialesCaja>> {
+        try {
+            const respuesta = await api.get<RespuestaAPI<DatosInicialesCaja>>('caja/obtener-datos-iniciales');
+            return respuesta.data;
+        } catch (error: any) {
+            return this.manejarError(error);
+        }
+    }
+
+    async abrirCaja(payload: AperturaCajaPayload): Promise<RespuestaAPI<AperturaCajaResultado>> {
+        try {
+            const respuesta = await api.post<RespuestaAPI<AperturaCajaResultado>>('caja/abrir-caja', payload);
             return respuesta.data;
         } catch (error: any) {
             return this.manejarError(error);

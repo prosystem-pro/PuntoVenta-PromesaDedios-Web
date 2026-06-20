@@ -29,6 +29,7 @@ export const routes: Routes = [
       { path: 'materia-prima/editar/:id', loadComponent: () => import('./componentes/materia-prima/materia-prima-detalle/materia-prima-detalle').then(m => m.MateriaPrimaDetalle) },
       { path: 'productos/nuevo', loadComponent: () => import('./componentes/productos/producto-detalle/producto-detalle').then(m => m.ProductoDetalle) },
       { path: 'productos/editar/:id', loadComponent: () => import('./componentes/productos/producto-detalle/producto-detalle').then(m => m.ProductoDetalle) },
+      { path: 'caja', loadComponent: () => import('./componentes/caja/caja').then(m => m.Caja) },
       { path: 'compras', loadComponent: () => import('./componentes/compras/compras').then(m => m.Compras) },
       { path: 'facturar', loadComponent: () => import('./componentes/facturar/facturar').then(m => m.Facturar) },
       { path: 'pedidos', loadComponent: () => import('./componentes/estado-pedidos/estado-pedidos').then(m => m.EstadoPedidos) },

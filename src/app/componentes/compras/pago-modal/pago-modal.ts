@@ -33,7 +33,8 @@ export class PagoModal implements OnChanges {
     nuevoValor = 0;
     nuevoNumeroReferencia = '';
     nuevoBanco = '';
-    nuevoCodigoAperturaCaja = 1;
+    // Apertura de caja activa del usuario. null = no hay caja abierta (bloquea el abono).
+    nuevoCodigoAperturaCaja: number | null = null;
 
     abonosTemporales = signal<any[]>([]);
 
@@ -79,7 +80,8 @@ export class PagoModal implements OnChanges {
             // Cargar Caja Actual
             const resCaja = await this.servicioConfig.obtenerCajaActual();
             if (resCaja.success && resCaja.data) {
-                this.nuevoCodigoAperturaCaja = resCaja.data.CodigoAperturaCaja || 1;
+                // El API devuelve el código anidado bajo CajaAbierta (null si no hay caja abierta).
+                this.nuevoCodigoAperturaCaja = resCaja.data.CajaAbierta?.CodigoAperturaCaja ?? null;
             }
         } finally {
             this.cargando.set(false);
@@ -98,6 +100,12 @@ export class PagoModal implements OnChanges {
 
     agregarPago() {
         if (!this.compraId) return;
+
+        // Sin caja abierta no se puede registrar el abono.
+        if (!this.nuevoCodigoAperturaCaja) {
+            this.servicioAlerta.MostrarAlerta('Debe abrir una caja antes de registrar el abono.');
+            return;
+        }
 
         if (Number(this.nuevoValor) <= 0) {
             this.servicioAlerta.MostrarAlerta('El Valor debe ser mayor a 0.');

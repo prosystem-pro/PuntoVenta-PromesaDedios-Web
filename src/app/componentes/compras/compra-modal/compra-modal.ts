@@ -33,7 +33,8 @@ export class CompraModal implements OnInit {
     form: FormGroup;
     itemForm: FormGroup; // Formulario para la fila superior de "edición"
     cargando = signal(false);
-    nuevoCodigoAperturaCaja = 1;
+    // Apertura de caja activa del usuario. null = no hay caja abierta (bloquea el registro).
+    nuevoCodigoAperturaCaja: number | null = null;
 
     // Listados reales
     listadoProveedores = signal<any[]>([]);
@@ -183,7 +184,8 @@ export class CompraModal implements OnInit {
             // Cargar Caja Actual
             this.servicioConfig.obtenerCajaActual().then(res => {
                 if (res.success && res.data) {
-                    this.nuevoCodigoAperturaCaja = res.data.CodigoAperturaCaja || 1;
+                    // El API devuelve el código anidado bajo CajaAbierta (null si no hay caja abierta).
+                    this.nuevoCodigoAperturaCaja = res.data.CajaAbierta?.CodigoAperturaCaja ?? null;
                 }
             }).catch(e => console.error('Error cargando caja actual:', e));
 
@@ -380,6 +382,12 @@ export class CompraModal implements OnInit {
                 this.servicioAlerta.MostrarAlerta('Por favor complete todos los campos obligatorios');
                 this.form.markAllAsTouched();
             }
+            return;
+        }
+
+        // Sin caja abierta no se puede registrar la compra (evita mandar una apertura inventada).
+        if (!this.nuevoCodigoAperturaCaja) {
+            this.servicioAlerta.MostrarAlerta('Debe abrir una caja antes de registrar la compra.');
             return;
         }
 

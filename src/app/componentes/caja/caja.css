@@ -1,0 +1,94 @@
+.caja-wrapper {
+    background-color: #f6f7f9;
+    min-height: 100%;
+}
+
+/* Tarjetas de método de pago */
+.card-metodo {
+    background-color: color-mix(in srgb, var(--color-sistema) 12%, #fff);
+    border: 1px solid color-mix(in srgb, var(--color-sistema) 30%, #fff);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, .06);
+}
+
+/* Panel resumen (izquierda) */
+.panel-resumen {
+    background-color: color-mix(in srgb, var(--color-sistema) 12%, #fff);
+    border: 1px solid color-mix(in srgb, var(--color-sistema) 30%, #fff);
+}
+
+.bloque-lista {
+    background-color: #fff;
+    border: 1px solid #eee;
+    border-radius: .5rem;
+    padding: .5rem .75rem;
+}
+
+.disponible {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    min-width: 120px;
+    text-align: right;
+}
+
+/* Panel apertura (derecha) */
+.panel-apertura {
+    background-color: #fff;
+    border: 1px solid #eee;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, .05);
+}
+
+.apertura-header {
+    height: 14px;
+    width: 100%;
+}
+
+.campo-bloqueado {
+    background-color: #e9ecef;
+    font-weight: 500;
+}
+
+/* Grilla de denominaciones: dos columnas en pantallas medianas+ */
+.denominaciones-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .5rem;
+}
+
+@media (max-width: 575.98px) {
+    .denominaciones-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.denom-valor {
+    min-width: 84px;
+    background-color: color-mix(in srgb, var(--color-sistema) 12%, #fff);
+    font-weight: 600;
+}
+
+.total-contado {
+    background-color: color-mix(in srgb, var(--color-sistema) 12%, #fff);
+    border: 1px solid color-mix(in srgb, var(--color-sistema) 30%, #fff);
+    min-width: 120px;
+    text-align: right;
+}
+
+/* Tabla de movimientos */
+.tabla-movimientos thead th {
+    background-color: var(--color-sistema);
+    color: #fff;
+    white-space: nowrap;
+    font-size: .85rem;
+    user-select: none;
+}
+
+.tabla-movimientos tbody td {
+    font-size: .85rem;
+}
+
+/* Fila de movimiento anulado: tachada y atenuada */
+.fila-anulada td {
+    text-decoration: line-through;
+    color: #c0392b;
+    opacity: .75;
+}

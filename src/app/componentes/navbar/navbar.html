@@ -3,15 +3,16 @@
     <div></div>
     <div class="d-flex align-items-center justify-content-center">
       <div class="text-center me-4">
-        <h4 class="mb-0 fw-bold d-inline-block" [style.color]="colorPrincipal">Caja 1 |</h4>
-        <div class="fw-bold" style="margin-top: -5px; font-size: 0.75rem">
-          Abierta
+        <h4 class="mb-0 fw-bold d-inline-block" [style.color]="colorPrincipal">{{ cajaEstado.nombreCaja() }} |</h4>
+        <div class="fw-bold" style="margin-top: -5px; font-size: 0.75rem"
+          [class.text-success]="cajaEstado.abierta()" [class.text-secondary]="!cajaEstado.abierta()">
+          {{ cajaEstado.abierta() ? 'Abierta' : 'Cerrada' }}
         </div>
       </div>
       <div class="border-start ps-4 text-start" style="line-height: 1.1">
         <div class="fw-bold text-dark">Usuario: {{ servicioAutenticacion.usuarioActual()?.NombreUsuario || 'Visitante'
           }}</div>
-        <div class="text-muted">Turno: AM</div>
+        <div class="text-muted">Turno: {{ cajaEstado.abierta() ? (cajaEstado.turno() | date:'dd/MM/yyyy HH:mm') : '—' }}</div>
       </div>
     </div>
 

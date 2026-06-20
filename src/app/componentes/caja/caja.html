@@ -1,0 +1,209 @@
+<div class="caja-wrapper p-3" [style.--color-sistema]="colorSistema">
+
+    <!-- Cabecera -->
+    <div class="d-flex align-items-center mb-3">
+        <h4 class="m-0 fw-bold">
+            {{ estado() === 'abierto' ? nombreCaja() : 'Caja' }}
+            <span class="fw-normal text-muted">|
+                @if (estado() === 'abierto') { <span class="text-success fw-semibold">Abierta</span> }
+                @else { <span class="text-secondary fw-semibold">Cerrada</span> }
+            </span>
+        </h4>
+    </div>
+
+    <!-- Tarjetas de totales por método (maqueta, pendiente de endpoint) -->
+    <div class="row g-3 mb-3">
+        @for (m of ['Efectivo', 'Tarjeta', 'Transferencia', 'Cheque']; track m) {
+        <div class="col-6 col-lg-3">
+            <div class="card-metodo text-center p-3 rounded-3 h-100">
+                <div class="fw-bold">{{ m }}</div>
+                <div class="fs-5 text-muted">Q 0.00</div>
+            </div>
+        </div>
+        }
+    </div>
+
+    <div class="row g-3">
+
+        <!-- Panel izquierdo: resumen (maqueta) -->
+        <div class="col-12 col-lg-5">
+            <div class="panel-resumen p-3 rounded-3 h-100 d-flex flex-column">
+
+                <div class="text-center fw-bold mb-2">INGRESOS</div>
+                <div class="bloque-lista mb-3">
+                    @for (i of ['Apertura de Caja', 'Ventas', 'Abono de pedido', 'Propinas', 'Iva']; track i) {
+                    <div class="d-flex justify-content-between py-1">
+                        <span>{{ i }}</span><span class="text-muted">Q 0.00</span>
+                    </div>
+                    }
+                    <div class="d-flex justify-content-between py-1 border-top mt-1 fw-bold">
+                        <span>Total</span><span>Q 0.00</span>
+                    </div>
+                </div>
+
+                <div class="text-center fw-bold mb-2">EGRESOS</div>
+                <div class="bloque-lista mb-3">
+                    @for (e of ['Compra insumos', 'Pago Proveedores', 'Anulados']; track e) {
+                    <div class="d-flex justify-content-between py-1">
+                        <span>{{ e }}</span><span class="text-muted">Q 0.00</span>
+                    </div>
+                    }
+                    <div class="d-flex justify-content-between py-1 border-top mt-1 fw-bold">
+                        <span>Total</span><span>Q 0.00</span>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mt-auto pt-2 border-top">
+                    <span class="fw-bold">Disponible en caja</span>
+                    <span class="disponible fw-bold px-3 py-1 rounded">Q 0.00</span>
+                </div>
+
+                @if (estado() === 'abierto') {
+                <button class="btn text-white fw-bold mt-3" [style.background-color]="colorSistema" disabled
+                    title="Pendiente de endpoint de cierre">
+                    <i class="bi bi-door-closed me-2"></i> Cerrar caja
+                </button>
+                }
+
+                <div class="text-center small text-muted mt-2 fst-italic">
+                    Resumen y cierre pendientes de endpoints del API.
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel derecho: apertura / estado -->
+        <div class="col-12 col-lg-7">
+            <div class="panel-apertura rounded-3 h-100 d-flex flex-column overflow-hidden">
+                <div class="apertura-header" [style.background-color]="colorSistema"></div>
+
+                <div class="p-3 flex-grow-1 d-flex flex-column">
+
+                    @if (estado() === 'cargando') {
+                    <div class="d-flex justify-content-center align-items-center flex-grow-1 text-muted">
+                        <span class="spinner-border spinner-border-sm me-2"></span> Cargando...
+                    </div>
+                    }
+
+                    @else if (estado() === 'abierto') {
+                    <div class="d-flex flex-column flex-grow-1">
+                        <h6 class="text-center fw-bold mb-3">MOVIMIENTOS DE CAJA</h6>
+
+                        <!-- Buscar -->
+                        <div class="input-group input-group-sm mb-3">
+                            <input type="text" class="form-control" placeholder="Buscar"
+                                [ngModel]="busqueda()" (ngModelChange)="actualizarBusqueda($event)">
+                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        </div>
+
+                        <!-- Tabla -->
+                        <div class="table-responsive flex-grow-1">
+                            <table class="table table-sm align-middle mb-0 tabla-movimientos">
+                                <thead>
+                                    <tr>
+                                        <th role="button" (click)="ordenarPor('Documento')">Documento <i class="bi bi-arrow-down-up small"></i></th>
+                                        <th role="button" (click)="ordenarPor('TipoOperacion')">Tipo de operación <i class="bi bi-arrow-down-up small"></i></th>
+                                        <th role="button" (click)="ordenarPor('MetodoPago')">Método de pago <i class="bi bi-arrow-down-up small"></i></th>
+                                        <th role="button" (click)="ordenarPor('Nombre')">Nombre <i class="bi bi-arrow-down-up small"></i></th>
+                                        <th class="text-end" role="button" (click)="ordenarPor('Monto')">Monto <i class="bi bi-arrow-down-up small"></i></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @for (m of movimientosPagina(); track $index) {
+                                    <tr [class.fila-anulada]="m.Anulado">
+                                        <td>{{ m.Documento }}</td>
+                                        <td>{{ m.TipoOperacion }}</td>
+                                        <td>{{ nombreMetodo(m.MetodoPago) }}</td>
+                                        <td>{{ m.Nombre }}</td>
+                                        <td class="text-end">Q {{ m.Monto | number:'1.2-2' }}</td>
+                                    </tr>
+                                    } @empty {
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted py-4 fst-italic">
+                                            Movimientos pendientes de endpoint del API.
+                                        </td>
+                                    </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Paginación -->
+                        <div class="d-flex justify-content-between align-items-center mt-2 small">
+                            <span class="text-muted">
+                                Mostrando {{ movimientosFiltrados().length === 0 ? 0 : (paginaActual() - 1) * itemsPorPagina + 1 }}
+                                al {{ (paginaActual() - 1) * itemsPorPagina + movimientosPagina().length }}
+                                de {{ movimientosFiltrados().length }} registros
+                            </span>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-secondary" (click)="irPagina(paginaActual() - 1)"
+                                    [disabled]="paginaActual() === 1"><i class="bi bi-chevron-left"></i></button>
+                                <button class="btn" disabled [style.background-color]="colorSistema" [style.color]="'#fff'">
+                                    {{ paginaActual() }}
+                                </button>
+                                <button class="btn btn-outline-secondary" (click)="irPagina(paginaActual() + 1)"
+                                    [disabled]="paginaActual() >= totalPaginas()"><i class="bi bi-chevron-right"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    }
+
+                    @else {
+                    <!-- Responsable / Caja / Turno -->
+                    <label class="form-label fw-semibold mb-1">Responsable</label>
+                    <input type="text" class="form-control campo-bloqueado mb-3" [value]="nombreUsuario()" disabled>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-semibold mb-1">Caja</label>
+                            <input type="text" class="form-control campo-bloqueado" [value]="nombreCaja()" disabled>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold mb-1">Turno</label>
+                            <input type="text" class="form-control campo-bloqueado" [value]="turno()" disabled>
+                        </div>
+                    </div>
+
+                    <!-- Monto inicial (obligatorio) -->
+                    <label class="form-label fw-semibold mb-1">Monto Inicial <span class="text-danger">*</span></label>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text">Q</span>
+                        <input type="number" class="form-control" placeholder="Ingrese monto inicial" min="0" step="0.01"
+                            [ngModel]="montoInicial()" (ngModelChange)="montoInicial.set($event)"
+                            (keydown)="bloquearTeclasInvalidas($event)" [disabled]="abriendo()">
+                    </div>
+
+                    <!-- Herramienta de conteo de efectivo -->
+                    <label class="form-label fw-semibold mb-2">Denominación de Efectivo</label>
+                    <div class="denominaciones-grid mb-2">
+                        @for (d of denominaciones(); track d.CodigoDenominacion) {
+                        <div class="input-group input-group-sm denom-item">
+                            <span class="input-group-text denom-valor">Q {{ d.Valor | number:'1.2-2' }}</span>
+                            <input type="number" class="form-control" placeholder="0" min="0" step="1"
+                                [ngModel]="d.Cantidad"
+                                (ngModelChange)="actualizarCantidad(d.CodigoDenominacion, $event)"
+                                (keydown)="bloquearTeclasInvalidas($event)" [disabled]="abriendo()">
+                        </div>
+                        }
+                    </div>
+
+                    <div class="d-flex justify-content-end align-items-center gap-2 mb-3">
+                        <span class="text-muted small">Total contado:</span>
+                        <span class="total-contado fw-bold px-3 py-1 rounded">Q {{ totalDenominaciones() | number:'1.2-2' }}</span>
+                    </div>
+
+                    <div class="mt-auto text-end">
+                        <button class="btn text-white fw-bold px-4" [style.background-color]="colorSistema"
+                            (click)="aperturarCaja()" [disabled]="abriendo()">
+                            @if (abriendo()) {
+                            <span class="spinner-border spinner-border-sm me-2"></span> Aperturando...
+                            } @else {
+                            <i class="bi bi-unlock-fill me-2"></i> Aperturar caja
+                            }
+                        </button>
+                    </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

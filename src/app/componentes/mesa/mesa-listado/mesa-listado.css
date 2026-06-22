@@ -19,7 +19,7 @@
 
 .occupied-card {
     border: 2px solid var(--color-sistema, orange) !important;
-    padding: 3.2rem 0.6rem 0.6rem !important;
+    padding: 2.6rem 0.5rem 2.6rem !important;
 }
 
 /* En mesa ocupada el titulo va centrado (como el prototipo) */
@@ -29,13 +29,13 @@
 }
 
 .mesa-clasif {
-    font-size: 1.05rem;
+    font-size: 0.9rem;
     color: #212529;
     line-height: 1.2;
 }
 
 .mesa-nombre {
-    font-size: 1rem;
+    font-size: 0.85rem;
     color: #495057;
     margin-bottom: 0.25rem;
 }
@@ -45,18 +45,18 @@
 }
 
 .mesa-icono {
-    width: 72px;
-    height: 72px;
+    width: 56px;
+    height: 56px;
     object-fit: contain;
 }
 
 .mesa-icono-glyph {
-    font-size: 3.5rem;
+    font-size: 2.75rem;
     color: #1a1a1a;
 }
 
 .mesa-total {
-    font-size: 1rem;
+    font-size: 0.95rem;
     font-weight: 700;
     margin-top: 0.35rem;
 }
@@ -68,8 +68,8 @@
 
 .mesa-timer {
     color: #adb5bd;
-    font-size: 0.95rem;
-    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    margin-top: 0.4rem;
 }
 
 .fw-mono {
@@ -79,17 +79,17 @@
 /* Botones de accion en las esquinas (abrazan la tarjeta, como el prototipo) */
 .acc {
     position: absolute;
-    width: 48px;
-    height: 46px;
+    width: 38px;
+    height: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
     border: none;
     /* base; cada posicion redondea fuerte su esquina interna (hacia el centro) */
-    border-radius: 12px;
+    border-radius: 10px;
     background: var(--color-sistema, orange);
     color: #fff;
-    font-size: 1.2rem;
+    font-size: 1rem;
     cursor: pointer;
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.18);
     transition: filter 0.15s;
@@ -134,7 +134,7 @@
 }
 
 .acc-combine {
-    top: 52px;
+    top: 40px;
     right: 0;
     border-radius: 0px 0px 0px 14px;
 }

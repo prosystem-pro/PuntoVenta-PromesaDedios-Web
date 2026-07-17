@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import axiosInstance from './axios.config';
 import { RespuestaAPI } from '../Modelos/producto.modelo';
-import { EstadoPedido, DetallePedido, PagoPedido, AbonoRequest, AbonoResponse, EstadoPagoCliente, ComprobantePago } from '../Modelos/estado-pedido.modelo';
+import { EstadoPedido, DetallePedido, PagoPedido, AbonoRequest, AbonoResponse, EstadoPagoCliente, ComprobantePago, DetalleProductoPedido } from '../Modelos/estado-pedido.modelo';
 
 @Injectable({
     providedIn: 'root'
@@ -62,6 +62,30 @@ export class EstadoPedidoServicio {
     // Datos para imprimir el comprobante de un abono/pago.
     async impresionPago(codigoPagoVenta: number): Promise<RespuestaAPI<ComprobantePago>> {
         const res = await axiosInstance.get(`estadopedido/impresion-pago/${codigoPagoVenta}`);
+        return res.data;
+    }
+
+    // Anula la venta/pedido completo de ventanilla (devuelve inventario, anula pagos y producción).
+    async anularVentaPedido(CodigoVenta: number, MotivoAnulacion: string): Promise<RespuestaAPI<any>> {
+        const res = await axiosInstance.post('venta/anular-ventapedido-completa', { CodigoVenta, MotivoAnulacion });
+        return res.data;
+    }
+
+    // Elimina un pedido de producción sin venta (solo si está pendiente).
+    async eliminarPedido(CodigoPedidoProduccion: number, MotivoEliminacion: string): Promise<RespuestaAPI<any>> {
+        const res = await axiosInstance.post('venta/eliminar-pedido', { CodigoPedidoProduccion, MotivoEliminacion });
+        return res.data;
+    }
+
+    // Anula (soft-delete contable) un pago del pedido: deja motivo, revierte caja y recalcula saldo.
+    async anularPago(CodigoPagoVenta: number, MotivoAnulacion: string): Promise<RespuestaAPI<any>> {
+        const res = await axiosInstance.post('venta/anular-pago', { CodigoPagoVenta, MotivoAnulacion });
+        return res.data;
+    }
+
+    // Contenido de un pedido: productos con cantidad solicitada y stock actual/sugerido.
+    async obtenerDetalleProductos(codigoPedidoProduccion: number): Promise<RespuestaAPI<DetalleProductoPedido[]>> {
+        const res = await axiosInstance.get(`estadopedido/detalle-productos/${codigoPedidoProduccion}`);
         return res.data;
     }
 }

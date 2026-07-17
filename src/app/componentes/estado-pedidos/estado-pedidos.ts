@@ -7,11 +7,13 @@ import { EstadoPedidoServicio } from '../../Servicios/estado-pedido.service';
 import { AlertaServicio } from '../../Servicios/alerta.service';
 import { Entorno } from '../../Entorno/Entorno';
 import { AbonoPedidoModal, PedidoAbono } from './abono-pedido-modal/abono-pedido-modal';
+import { DetallePedidoModal } from './detalle-pedido-modal/detalle-pedido-modal';
+import { MotivoModal } from '../compartidos/motivo-modal/motivo-modal';
 
 @Component({
     selector: 'app-estado-pedidos',
     standalone: true,
-    imports: [CommonModule, FormsModule, AbonoPedidoModal],
+    imports: [CommonModule, FormsModule, AbonoPedidoModal, DetallePedidoModal, MotivoModal],
     templateUrl: './estado-pedidos.html',
     styleUrl: './estado-pedidos.css'
 })
@@ -46,6 +48,21 @@ export class EstadoPedidos implements OnInit {
     // TODO: debe venir del rol del usuario logueado cuando se integre
     esSuperAdmin = true;
 
+    // Modal de detalle de productos
+    mostrarDetalle = signal(false);
+    detalleCodigo = signal<number | null>(null);
+    detalleDocumento = signal<string | null>(null);
+
+    // Anular venta/pedido (fila CON_VENTA)
+    mostrarAnular = signal(false);
+    anularCodigoVenta = signal<number | null>(null);
+    anulando = signal(false);
+
+    // Eliminar pedido de producción (fila SOLO_PRODUCCION)
+    mostrarEliminar = signal(false);
+    eliminarCodigoPedido = signal<number | null>(null);
+    eliminando = signal(false);
+
     async ngOnInit() {
         // Por defecto: mes actual (del día 1 a hoy). El API exige ambas fechas.
         const { inicio, fin } = this.rangoDefecto();
@@ -66,17 +83,16 @@ export class EstadoPedidos implements OnInit {
         return fechaParte;
     }
 
-    // Fecha de hoy en formato YYYY-MM-DD
-    private hoyISO(): string {
-        const d = new Date();
-        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    }
-
-    // Rango por defecto: mes actual (del día 1 a hoy). El API exige ambas fechas.
+    // Rango por defecto: mes actual COMPLETO (del día 1 al último día del mes).
+    // Así se incluyen los pedidos con entrega/creación en días futuros del mes.
+    // El API exige ambas fechas.
     private rangoDefecto(): { inicio: string; fin: string } {
         const d = new Date();
-        const inicio = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
-        return { inicio, fin: this.hoyISO() };
+        const primero = new Date(d.getFullYear(), d.getMonth(), 1);
+        const ultimo = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+        const fmt = (x: Date) =>
+            `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`;
+        return { inicio: fmt(primero), fin: fmt(ultimo) };
     }
 
     async cargar() {
@@ -188,7 +204,7 @@ export class EstadoPedidos implements OnInit {
         let lista = this.pedidos().filter(p => {
             return !texto
                 || (p.Nombre?.toLowerCase() || '').includes(texto)
-                || (p.Pedido?.toLowerCase() || '').includes(texto);
+                || (p.NumeroDocumento?.toLowerCase() || '').includes(texto);
         });
 
         if (col) {
@@ -246,7 +262,7 @@ export class EstadoPedidos implements OnInit {
     abrirAbono(pedido: EstadoPedido) {
         this.pedidoAbono.set({
             Fecha: this.fechaCorta(pedido.FechaEntrega),
-            Documento: pedido.Pedido,
+            Documento: pedido.NumeroDocumento,
             Cliente: pedido.Nombre
         });
         this.codigoAbono.set(pedido.CodigoPedidoProduccion);
@@ -258,6 +274,87 @@ export class EstadoPedidos implements OnInit {
         this.pedidoAbono.set(null);
         this.codigoAbono.set(null);
     }
+
+    // --- Ver detalle de productos ---
+    abrirDetalle(pedido: EstadoPedido) {
+        this.detalleCodigo.set(pedido.CodigoPedidoProduccion);
+        this.detalleDocumento.set(pedido.NumeroDocumento);
+        this.mostrarDetalle.set(true);
+    }
+    cerrarDetalle() {
+        this.mostrarDetalle.set(false);
+        this.detalleCodigo.set(null);
+        this.detalleDocumento.set(null);
+    }
+
+    // --- Anular venta/pedido (fila CON_VENTA) ---
+    // Se muestra solo en pedidos con venta que no estén ya anulados.
+    puedeAnular(pedido: EstadoPedido): boolean {
+        return pedido.Tipo === 'CON_VENTA' && !!pedido.CodigoVenta && pedido.Estado !== 'ANULADO';
+    }
+    abrirAnular(pedido: EstadoPedido) {
+        this.anularCodigoVenta.set(pedido.CodigoVenta);
+        this.mostrarAnular.set(true);
+    }
+    cerrarAnular() {
+        if (this.anulando()) return;
+        this.mostrarAnular.set(false);
+        this.anularCodigoVenta.set(null);
+    }
+    async confirmarAnular(motivo: string) {
+        const codigo = this.anularCodigoVenta();
+        if (!codigo) return;
+        this.anulando.set(true);
+        try {
+            const res = await this.servicio.anularVentaPedido(codigo, motivo);
+            if (res.success) {
+                this.servicioAlerta.MostrarExito(res.message || 'Pedido anulado correctamente.');
+                this.mostrarAnular.set(false);
+                this.anularCodigoVenta.set(null);
+                await this.cargar();
+            } else {
+                this.servicioAlerta.MostrarError(res);
+            }
+        } catch (error) {
+            this.servicioAlerta.MostrarError(error);
+        } finally {
+            this.anulando.set(false);
+        }
+    }
+
+    // --- Eliminar pedido (fila SOLO_PRODUCCION, solo si está pendiente) ---
+    puedeEliminar(pedido: EstadoPedido): boolean {
+        return pedido.Tipo === 'SOLO_PRODUCCION' && pedido.Produccion === 'PENDIENTE' && !!pedido.CodigoPedidoProduccion;
+    }
+    abrirEliminar(pedido: EstadoPedido) {
+        this.eliminarCodigoPedido.set(pedido.CodigoPedidoProduccion);
+        this.mostrarEliminar.set(true);
+    }
+    cerrarEliminar() {
+        if (this.eliminando()) return;
+        this.mostrarEliminar.set(false);
+        this.eliminarCodigoPedido.set(null);
+    }
+    async confirmarEliminar(motivo: string) {
+        const codigo = this.eliminarCodigoPedido();
+        if (!codigo) return;
+        this.eliminando.set(true);
+        try {
+            const res = await this.servicio.eliminarPedido(codigo, motivo);
+            if (res.success) {
+                this.servicioAlerta.MostrarExito(res.message || 'Pedido eliminado correctamente.');
+                this.mostrarEliminar.set(false);
+                this.eliminarCodigoPedido.set(null);
+                await this.cargar();
+            } else {
+                this.servicioAlerta.MostrarError(res);
+            }
+        } catch (error) {
+            this.servicioAlerta.MostrarError(error);
+        } finally {
+            this.eliminando.set(false);
+        }
+    }
     entregando = signal<number | null>(null); // CodigoPedidoProduccion en proceso
 
     async entregar(pedido: EstadoPedido) {
@@ -265,7 +362,7 @@ export class EstadoPedidos implements OnInit {
 
         const confirmado = await this.servicioAlerta.Confirmacion(
             'Entregar pedido',
-            `¿Confirma la entrega del pedido ${pedido.Pedido}? Esta acción lo marca como facturado y no se podrá modificar.`,
+            `¿Confirma la entrega del pedido ${pedido.NumeroDocumento}? Esta acción lo marca como facturado y no se podrá modificar.`,
             'Entregar'
         );
         if (!confirmado) return;

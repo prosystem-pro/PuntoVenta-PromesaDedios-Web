@@ -101,9 +101,14 @@
                         </thead>
                         <tbody>
                             @for (p of pagos(); track $index) {
-                            <tr>
+                            <tr [class.pago-anulado]="p.Estatus === 'ANULADO'">
                                 <td class="small">{{ p.FechaPago }}</td>
-                                <td class="small">{{ p.MedioPago }}</td>
+                                <td class="small">
+                                    {{ p.MedioPago }}
+                                    @if (p.Estatus === 'ANULADO') {
+                                    <span class="badge bg-danger-subtle text-danger ms-1">Anulado</span>
+                                    }
+                                </td>
                                 <td class="small fw-bold text-end">Q {{ p.Valor | number:'1.2-2' }}</td>
                                 <td class="text-center">
                                     <div class="d-flex justify-content-center gap-2">
@@ -112,15 +117,10 @@
                                             [disabled]="cargandoComprobante()">
                                             <i class="bi bi-file-earmark-text fs-5"></i>
                                         </button>
-                                        @if (esSuperAdmin) {
+                                        @if (esSuperAdmin && p.Estatus !== 'ANULADO') {
                                         <button class="btn btn-sm btn-delete border-0 shadow-none"
-                                            (click)="eliminarPago($index)" title="Eliminar pago"
-                                            [disabled]="eliminandoPago() !== null">
-                                            @if (eliminandoPago() === p.CodigoPagoVenta) {
-                                            <span class="spinner-border spinner-border-sm"></span>
-                                            } @else {
-                                            <i class="bi bi-trash fs-5"></i>
-                                            }
+                                            (click)="abrirAnularPago(p)" title="Anular pago">
+                                            <i class="bi bi-x-octagon fs-5"></i>
                                         </button>
                                         }
                                     </div>
@@ -148,4 +148,17 @@
     [colorSistema]="colorSistema"
     (cerrar)="cerrarComprobante()">
 </app-comprobante-pago-modal>
+
+<!-- Anular pago (captura de motivo) -->
+<app-motivo-modal
+    [visible]="mostrarAnularPago()"
+    [colorSistema]="colorSistema"
+    [procesando]="anulandoPago()"
+    titulo="Anular pago"
+    mensaje="Se anulará el pago, se revertirá el movimiento de caja y aumentará el saldo pendiente."
+    etiquetaMotivo="Motivo de anulación"
+    etiquetaConfirmar="Anular pago"
+    (alCerrar)="cerrarAnularPago()"
+    (alConfirmar)="confirmarAnularPago($event)">
+</app-motivo-modal>
 }

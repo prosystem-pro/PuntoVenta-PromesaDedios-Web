@@ -1,0 +1,59 @@
+@if (visible) {
+<div class="dp-overlay">
+    <div class="dp-content">
+        <!-- Cabecera -->
+        <div class="dp-header d-flex align-items-center justify-content-between" [style.background-color]="colorSistema">
+            <h5 class="m-0 fw-bold text-white">
+                Contenido del pedido
+                @if (documento) { <span class="fw-normal"> · {{ documento }}</span> }
+            </h5>
+            <button class="dp-close" (click)="onCerrar()" title="Cerrar">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+
+        <div class="dp-body">
+            @if (cargando()) {
+            <div class="d-flex justify-content-center py-5">
+                <div class="spinner-border" [style.color]="colorSistema" role="status"></div>
+            </div>
+            } @else {
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0 dp-table">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th class="text-center">Unidad</th>
+                            <th class="text-end">Cantidad solicitada</th>
+                            <th class="text-end">Stock actual</th>
+                            <th class="text-end">Stock sugerido</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (p of productos(); track p.CodigoDetalle) {
+                        <tr>
+                            <td>{{ p.NombreProducto }}</td>
+                            <td class="text-center">{{ p.AbreviaturaUnidad || p.NombreUnidadMedida }}</td>
+                            <td class="text-end fw-semibold">{{ p.CantidadSolicitada | number:'1.0-2' }}</td>
+                            <td class="text-end">{{ p.StockActual | number:'1.0-2' }}</td>
+                            <td class="text-end">{{ p.StockSugerido | number:'1.0-2' }}</td>
+                        </tr>
+                        } @empty {
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4 fst-italic">
+                                Este pedido no tiene productos registrados.
+                            </td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            }
+        </div>
+
+        <div class="dp-footer text-end">
+            <button class="btn btn-outline-secondary px-4" (click)="onCerrar()">Cerrar</button>
+        </div>
+    </div>
+</div>
+}

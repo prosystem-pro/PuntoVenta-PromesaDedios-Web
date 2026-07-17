@@ -208,6 +208,38 @@
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
 }
 
+/* Ver detalle (ojo) */
+.btn-detalle {
+    background: transparent;
+    color: #6c757d;
+    border: none;
+    font-size: 1.15rem;
+    padding: 0.25rem 0.5rem;
+    transition: all 0.2s;
+}
+
+.btn-detalle:hover {
+    background: rgba(108, 117, 125, 0.12);
+    color: #495057;
+    transform: scale(1.1);
+}
+
+/* Anular / eliminar pedido */
+.btn-anular {
+    background: transparent;
+    color: #c0392b;
+    border: none;
+    font-size: 1.15rem;
+    padding: 0.25rem 0.5rem;
+    transition: all 0.2s;
+}
+
+.btn-anular:hover {
+    background: rgba(192, 57, 43, 0.1);
+    color: #c0392b;
+    transform: scale(1.1);
+}
+
 .pagination-footer {
     padding: 0.5rem 0;
 }

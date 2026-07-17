@@ -6,6 +6,7 @@ import { AlertaServicio } from '../../../Servicios/alerta.service';
 import { EstadoPedidoServicio } from '../../../Servicios/estado-pedido.service';
 import { PagoPedido, ComprobantePago } from '../../../Modelos/estado-pedido.modelo';
 import { ComprobantePagoModal } from '../comprobante-pago-modal/comprobante-pago-modal';
+import { MotivoModal } from '../../compartidos/motivo-modal/motivo-modal';
 
 // Datos del pedido a abonar que ya conoce el padre (fila del listado).
 // El saldo/teléfono/CodigoVenta se obtienen del detalle del API al abrir.
@@ -23,12 +24,13 @@ interface PagoRealizado {
     MedioPago: string;
     Valor: number;
     Referencia?: string | null;
+    Estatus: string; // 'ACTIVO' | 'ANULADO'
 }
 
 @Component({
     selector: 'app-abono-pedido-modal',
     standalone: true,
-    imports: [CommonModule, FormsModule, ComprobantePagoModal],
+    imports: [CommonModule, FormsModule, ComprobantePagoModal, MotivoModal],
     templateUrl: './abono-pedido-modal.html',
     styleUrl: './abono-pedido-modal.css'
 })
@@ -71,7 +73,11 @@ export class AbonoPedidoModal implements OnChanges {
     // Saldo y pagos (cargados del API al abrir)
     saldoPendiente = signal<number>(0);
     pagos = signal<PagoRealizado[]>([]);
-    eliminandoPago = signal<number | null>(null); // CodigoPagoVenta en proceso de borrado
+
+    // Anular pago (motivo)
+    mostrarAnularPago = signal(false);
+    pagoAnularId = signal<number | null>(null);
+    anulandoPago = signal(false);
 
     // Comprobante de pago
     mostrarComprobante = signal(false);
@@ -123,7 +129,8 @@ export class AbonoPedidoModal implements OnChanges {
                 FechaPago: p.FechaPago,
                 MedioPago: p.MetodoPago,
                 Valor: Number(p.Monto),
-                Referencia: null
+                Referencia: null,
+                Estatus: p.Estatus
             })));
         } catch (error: any) {
             // El API responde 404 cuando no hay abonos: lista vacía.
@@ -236,33 +243,38 @@ export class AbonoPedidoModal implements OnChanges {
         }
     }
 
-    async eliminarPago(index: number) {
-        if (!this.esSuperAdmin) return;
-        const pago = this.pagos()[index];
-        if (!pago?.CodigoPagoVenta || this.eliminandoPago() !== null) return;
+    abrirAnularPago(pago: PagoRealizado) {
+        if (!this.esSuperAdmin || !pago?.CodigoPagoVenta) return;
+        this.pagoAnularId.set(pago.CodigoPagoVenta);
+        this.mostrarAnularPago.set(true);
+    }
 
-        const confirmado = await this.servicioAlerta.Confirmacion(
-            'Eliminar pago',
-            `Se devolverá Q${pago.Valor.toFixed(2)} al saldo pendiente. ¿Desea continuar?`,
-            'Eliminar'
-        );
-        if (!confirmado) return;
+    cerrarAnularPago() {
+        if (this.anulandoPago()) return;
+        this.mostrarAnularPago.set(false);
+        this.pagoAnularId.set(null);
+    }
 
-        this.eliminandoPago.set(pago.CodigoPagoVenta);
+    async confirmarAnularPago(motivo: string) {
+        const id = this.pagoAnularId();
+        if (!id) return;
+        this.anulandoPago.set(true);
         try {
-            const res = await this.servicio.eliminarPago(pago.CodigoPagoVenta);
+            const res = await this.servicio.anularPago(id, motivo);
             if (res.success) {
-                this.servicioAlerta.MostrarToast(res.message || 'Pago eliminado correctamente', 'success');
+                this.servicioAlerta.MostrarToast(res.message || 'Pago anulado correctamente', 'success');
+                this.mostrarAnularPago.set(false);
+                this.pagoAnularId.set(null);
                 // Recarga saldo + pagos desde el API y avisa al padre (el estado pudo cambiar)
                 await this.cargarDatos();
                 this.abonoRegistrado.emit();
             } else {
-                this.servicioAlerta.MostrarError(res.message, 'No se pudo eliminar el pago');
+                this.servicioAlerta.MostrarError(res.message, 'No se pudo anular el pago');
             }
         } catch (error: any) {
-            this.servicioAlerta.MostrarError(error, 'No se pudo eliminar el pago');
+            this.servicioAlerta.MostrarError(error, 'No se pudo anular el pago');
         } finally {
-            this.eliminandoPago.set(null);
+            this.anulandoPago.set(false);
         }
     }
 

@@ -6,17 +6,20 @@ import { CompraServicio } from '../../Servicios/compra.service';
 import { Entorno } from '../../Entorno/Entorno';
 import { CompraModal } from './compra-modal/compra-modal';
 import { PagoModal } from './pago-modal/pago-modal';
+import { MotivoModal } from '../compartidos/motivo-modal/motivo-modal';
+import { AlertaServicio } from '../../Servicios/alerta.service';
 import * as XLSX from 'xlsx';
 
 @Component({
     selector: 'app-compras',
     standalone: true,
-    imports: [CommonModule, FormsModule, CompraModal, PagoModal],
+    imports: [CommonModule, FormsModule, CompraModal, PagoModal, MotivoModal],
     templateUrl: './compras.html',
     styleUrl: './compras.css'
 })
 export class Compras implements OnInit {
     private servicioCompra = inject(CompraServicio);
+    private servicioAlerta = inject(AlertaServicio);
 
     colorSistema = Entorno.ColorSistema;
 
@@ -53,6 +56,11 @@ export class Compras implements OnInit {
     mostrarModalCompra = signal(false);
     mostrarModalPago = signal(false);
     compraSeleccionadaId = signal<number | null>(null);
+
+    // Anular compra (motivo)
+    mostrarAnular = signal(false);
+    compraAnularId = signal<number | null>(null);
+    anulando = signal(false);
 
     // Ordenamiento
     columnaActiva = signal<string | null>(null);
@@ -222,6 +230,38 @@ export class Compras implements OnInit {
         this.mostrarModalPago.set(false);
         this.compraSeleccionadaId.set(null);
         await this.cargarCompras();
+    }
+
+    abrirAnular(id: number) {
+        this.compraAnularId.set(id);
+        this.mostrarAnular.set(true);
+    }
+
+    cerrarAnular() {
+        if (this.anulando()) return;
+        this.mostrarAnular.set(false);
+        this.compraAnularId.set(null);
+    }
+
+    async confirmarAnular(motivo: string) {
+        const id = this.compraAnularId();
+        if (!id) return;
+        this.anulando.set(true);
+        try {
+            const res = await this.servicioCompra.anularCompra(id, motivo);
+            if (res.success) {
+                this.servicioAlerta.MostrarExito(res.message || 'Compra anulada correctamente.');
+                this.mostrarAnular.set(false);
+                this.compraAnularId.set(null);
+                await this.cargarCompras();
+            } else {
+                this.servicioAlerta.MostrarError(res);
+            }
+        } catch (error) {
+            this.servicioAlerta.MostrarError(error);
+        } finally {
+            this.anulando.set(false);
+        }
     }
 
     exportarExcel() {

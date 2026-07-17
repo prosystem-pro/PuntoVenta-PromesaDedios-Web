@@ -7,11 +7,12 @@ import { Entorno } from '../../../Entorno/Entorno';
 import { AlertaServicio } from '../../../Servicios/alerta.service';
 import { ServicioConfiguracion } from '../../../Servicios/configuracion.service';
 import { ComprobanteAbonoModal } from '../comprobante-abono-modal/comprobante-abono-modal';
+import { MotivoModal } from '../../compartidos/motivo-modal/motivo-modal';
 
 @Component({
     selector: 'app-pago-modal',
     standalone: true,
-    imports: [CommonModule, FormsModule, ComprobanteAbonoModal],
+    imports: [CommonModule, FormsModule, ComprobanteAbonoModal, MotivoModal],
     templateUrl: './pago-modal.html',
     styleUrl: './pago-modal.css'
 })
@@ -40,6 +41,11 @@ export class PagoModal implements OnChanges {
 
     mostrarComprobante = signal(false);
     codigoComprobante = signal<number | null>(null);
+
+    // Anular pago (motivo)
+    mostrarAnularPago = signal(false);
+    pagoAnularId = signal<number | null>(null);
+    anulandoPago = signal(false);
 
     mediosPago = ['Efectivo', 'Tarjeta de Crédito', 'Transferencia', 'Cheque'];
 
@@ -212,28 +218,37 @@ export class PagoModal implements OnChanges {
         }
     }
 
-    async eliminarPago(pago: any) {
-        const confirmado = await this.servicioAlerta.Confirmacion(
-            '¿Desea eliminar este pago?',
-            'Esta acción no se puede deshacer y el saldo pendiente aumentará.'
-        );
+    abrirAnularPago(pago: any) {
+        const id = pago.CodigoPagoProveedor || pago.CodigoAbono;
+        if (!id) return;
+        this.pagoAnularId.set(id);
+        this.mostrarAnularPago.set(true);
+    }
 
-        if (confirmado) {
-            this.cargando.set(true);
-            try {
-                // El CodigoPagoProveedor debe venir en el objeto de pagos
-                const res = await this.servicioCompra.eliminarPago(pago.CodigoPagoProveedor || pago.CodigoAbono);
-                if (res.success) {
-                    this.servicioAlerta.MostrarExito(res.message || 'Pago eliminado correctamente');
-                    await this.cargarDetalle();
-                } else {
-                    this.servicioAlerta.MostrarError(res);
-                }
-            } catch (error) {
-                this.servicioAlerta.MostrarError({ error: { message: 'Error al eliminar el pago' } });
-            } finally {
-                this.cargando.set(false);
+    cerrarAnularPago() {
+        if (this.anulandoPago()) return;
+        this.mostrarAnularPago.set(false);
+        this.pagoAnularId.set(null);
+    }
+
+    async confirmarAnularPago(motivo: string) {
+        const id = this.pagoAnularId();
+        if (!id) return;
+        this.anulandoPago.set(true);
+        try {
+            const res = await this.servicioCompra.anularPago(id, motivo);
+            if (res.success) {
+                this.servicioAlerta.MostrarExito(res.message || 'Pago anulado correctamente.');
+                this.mostrarAnularPago.set(false);
+                this.pagoAnularId.set(null);
+                await this.cargarDetalle();
+            } else {
+                this.servicioAlerta.MostrarError(res);
             }
+        } catch (error) {
+            this.servicioAlerta.MostrarError(error);
+        } finally {
+            this.anulandoPago.set(false);
         }
     }
 

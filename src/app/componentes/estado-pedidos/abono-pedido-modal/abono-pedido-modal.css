@@ -79,3 +79,12 @@
     background: #dee2e6;
     border-radius: 10px;
 }
+
+/* Pago anulado: fila tenue y valor tachado */
+.pago-anulado {
+    opacity: 0.6;
+}
+
+.pago-anulado td:nth-child(3) {
+    text-decoration: line-through;
+}

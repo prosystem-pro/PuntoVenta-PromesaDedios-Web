@@ -61,9 +61,9 @@
             <table class="pedidos-table">
                 <thead>
                     <tr>
-                        <th (click)="ordenarPor('Pedido')" style="cursor: pointer;">
+                        <th (click)="ordenarPor('NumeroDocumento')" style="cursor: pointer;">
                             Pedido
-                            <i [class]="columnaActiva() === 'Pedido' ? (ordenAscendente() ? 'bi bi-arrow-up' : 'bi bi-arrow-down') : 'bi bi-arrow-down-up'" class="ms-1 small text-muted"></i>
+                            <i [class]="columnaActiva() === 'NumeroDocumento' ? (ordenAscendente() ? 'bi bi-arrow-up' : 'bi bi-arrow-down') : 'bi bi-arrow-down-up'" class="ms-1 small text-muted"></i>
                         </th>
                         <th (click)="ordenarPor('Nombre')" style="cursor: pointer;">
                             Nombre
@@ -87,7 +87,7 @@
                 <tbody>
                     @for (p of pedidosPaginados(); track $index) {
                     <tr>
-                        <td class="text-muted small">{{ p.Pedido }}</td>
+                        <td class="text-muted small">{{ p.NumeroDocumento }}</td>
                         <td>{{ p.Nombre || '—' }}</td>
                         <td class="text-center">
                             <span class="estado-badge" [class]="claseEstado(p.Estado)">
@@ -100,9 +100,24 @@
                         <td class="text-center">{{ fechaCorta(p.FechaEntrega) }}</td>
                         <td class="acciones-cell">
                             <div class="d-flex align-items-center justify-content-center gap-2">
+                                <button class="btn btn-detalle" (click)="abrirDetalle(p)" title="Ver contenido del pedido">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                @if (p.Tipo === 'CON_VENTA') {
                                 <button class="btn btn-abono" (click)="abrirAbono(p)" title="Abonos / Pagos realizados">
                                     <i class="bi bi-cash-coin"></i>
                                 </button>
+                                }
+                                @if (puedeAnular(p)) {
+                                <button class="btn btn-anular" (click)="abrirAnular(p)" title="Anular pedido">
+                                    <i class="bi bi-x-octagon"></i>
+                                </button>
+                                }
+                                @if (puedeEliminar(p)) {
+                                <button class="btn btn-anular" (click)="abrirEliminar(p)" title="Eliminar pedido">
+                                    <i class="bi bi-trash3"></i>
+                                </button>
+                                }
                                 @if (puedeEntregar(p)) {
                                 <button class="btn btn-entregar" [style.background-color]="colorSistema"
                                     (click)="entregar(p)" [disabled]="entregando() !== null">
@@ -176,3 +191,38 @@
     (cerrar)="cerrarAbono()"
     (abonoRegistrado)="cargar()">
 </app-abono-pedido-modal>
+
+<!-- Modal detalle de productos del pedido -->
+<app-detalle-pedido-modal
+    [visible]="mostrarDetalle()"
+    [colorSistema]="colorSistema"
+    [codigoPedidoProduccion]="detalleCodigo()"
+    [documento]="detalleDocumento()"
+    (cerrar)="cerrarDetalle()">
+</app-detalle-pedido-modal>
+
+<!-- Anular venta/pedido (fila CON_VENTA) -->
+<app-motivo-modal
+    [visible]="mostrarAnular()"
+    [colorSistema]="colorSistema"
+    [procesando]="anulando()"
+    titulo="Anular pedido"
+    mensaje="Se anulará la venta con sus pagos, se devolverá el inventario y se anularán los pedidos de producción asociados."
+    etiquetaMotivo="Motivo de anulación"
+    etiquetaConfirmar="Anular pedido"
+    (alCerrar)="cerrarAnular()"
+    (alConfirmar)="confirmarAnular($event)">
+</app-motivo-modal>
+
+<!-- Eliminar pedido de producción (fila SOLO_PRODUCCION) -->
+<app-motivo-modal
+    [visible]="mostrarEliminar()"
+    [colorSistema]="colorSistema"
+    [procesando]="eliminando()"
+    titulo="Eliminar pedido"
+    mensaje="Se eliminará el pedido de producción y su detalle. Esta acción no se puede deshacer."
+    etiquetaMotivo="Motivo de eliminación"
+    etiquetaConfirmar="Eliminar pedido"
+    (alCerrar)="cerrarEliminar()"
+    (alConfirmar)="confirmarEliminar($event)">
+</app-motivo-modal>

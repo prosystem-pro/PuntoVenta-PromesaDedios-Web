@@ -1,12 +1,29 @@
 // Listado de Estado de Pedidos (GET /estadopedido/listado)
-// El API devuelve el estado de la venta y de producción como texto.
+// El API mezcla dos tipos de fila (Tipo): pedidos con venta y pedidos solo de producción.
 export interface EstadoPedido {
-    CodigoPedidoProduccion: number | null; // Necesario para el detalle/abono del pedido
-    Pedido: string;                 // NumeroVenta del pedido (ej. "P-1781137594596")
-    Nombre: string | null;          // Nombre del cliente
-    Estado: string | null;          // Estado de la VENTA: PENDIENTE | EN_PROCESO | FINALIZADO
-    Produccion: string | null;      // Estado de PRODUCCIÓN: PENDIENTE | EN_PROCESO | PENDIENTE_AUTORIZACION | FINALIZADO
-    FechaEntrega: string | null;    // Fecha de entrega del pedido
+    CodigoVenta: number | null;      // Solo en filas CON_VENTA; necesario para anular la venta
+    CodigoPedidoProduccion: number | null; // Necesario para detalle/abono/eliminar del pedido
+    NumeroDocumento: string;         // NumeroVenta o NumeroPedido (según el tipo)
+    Nombre: string | null;           // Nombre del cliente (o 'GERENCIA' en solo producción)
+    Estado: string | null;           // Estado de la VENTA: ANULADO | PENDIENTE | PAGADO | ... ('NO APLICA' en solo producción)
+    Produccion: string | null;       // Estado de PRODUCCIÓN: PENDIENTE | EN_PROCESO | PENDIENTE_AUTORIZACION | FINALIZADO
+    FechaEntrega: string | null;     // Fecha de entrega del pedido
+    FechaCreacion: string | null;    // Fecha de creación del pedido
+    Tipo: 'CON_VENTA' | 'SOLO_PRODUCCION'; // Decide qué acción aplica (anular vs eliminar)
+}
+
+// Detalle de productos de un pedido de producción (GET /estadopedido/detalle-productos/:CodigoPedidoProduccion)
+export interface DetalleProductoPedido {
+    CodigoDetalle: number;
+    CodigoPedidoProduccion: number;
+    CodigoProducto: number;
+    NombreProducto: string;
+    CodigoUnidadMedida: number;
+    NombreUnidadMedida: string;
+    AbreviaturaUnidad: string | null;
+    CantidadSolicitada: number;
+    StockActual: number;
+    StockSugerido: number;
 }
 
 // Detalle de un pedido para el modal de abono (GET /estadopedido/detallepedido/:CodigoPedidoProduccion)
@@ -21,11 +38,12 @@ export interface DetallePedido {
 
 // Un abono ya registrado (GET /estadopedido/listar-pagos-por-ventas/:CodigoVenta)
 export interface PagoPedido {
-    CodigoPagoVenta: number;        // Necesario para eliminar / imprimir el comprobante del pago
+    CodigoPagoVenta: number;        // Necesario para anular / imprimir el comprobante del pago
     NumeroPago: string;
     FechaPago: string;
     MetodoPago: string;             // EFECTIVO | TARJETA | TRANSFERENCIA | CHEQUE
     Monto: number;
+    Estatus: string;                // 'ACTIVO' | 'ANULADO'
 }
 
 // Fila del listado "Pagos de clientes" (GET /estadopedido/listado-estado-pago-cliente)

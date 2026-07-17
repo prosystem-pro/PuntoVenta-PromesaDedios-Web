@@ -1,0 +1,43 @@
+@if (visible) {
+<div class="mo-overlay">
+    <div class="mo-content">
+        <!-- Close -->
+        <button class="mo-close" [style.background-color]="colorSistema" (click)="cerrar()" [disabled]="procesando">
+            <i class="bi bi-x-lg"></i>
+        </button>
+
+        <!-- Cabecera -->
+        <div class="mo-header text-center mb-3">
+            <div class="mo-icono mb-2" [style.color]="colorSistema">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+            </div>
+            <h5 class="fw-bold mb-1">{{ titulo }}</h5>
+            @if (mensaje) {
+            <p class="text-muted small mb-0">{{ mensaje }}</p>
+            }
+        </div>
+
+        <!-- Motivo -->
+        <label class="form-label fw-semibold mb-1">
+            {{ etiquetaMotivo }} @if (obligatorio) { <span class="text-danger">*</span> }
+        </label>
+        <textarea class="form-control mb-3" rows="3" [placeholder]="placeholder"
+            [ngModel]="motivo()" (ngModelChange)="motivo.set($event)" [disabled]="procesando"></textarea>
+
+        <!-- Acciones -->
+        <div class="d-flex justify-content-end gap-2">
+            <button class="btn btn-outline-secondary px-3" (click)="cerrar()" [disabled]="procesando">
+                Cancelar
+            </button>
+            <button class="btn text-white fw-semibold px-4" [style.background-color]="colorSistema"
+                (click)="confirmar()" [disabled]="procesando">
+                @if (procesando) {
+                <span class="spinner-border spinner-border-sm me-2"></span> Procesando...
+                } @else {
+                {{ etiquetaConfirmar }}
+                }
+            </button>
+        </div>
+    </div>
+</div>
+}

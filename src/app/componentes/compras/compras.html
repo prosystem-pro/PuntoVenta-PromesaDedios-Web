@@ -108,6 +108,12 @@
                                 (click)="abrirPagos(c.CodigoCompra)">
                                 <i class="bi bi-cash-stack"></i>
                             </button>
+                            @if (c.Estatus !== 'ANULADA') {
+                            <button class="btn-accion text-danger" title="Anular compra"
+                                (click)="abrirAnular(c.CodigoCompra)">
+                                <i class="bi bi-x-octagon"></i>
+                            </button>
+                            }
                         </td>
                     </tr>
                     } @empty {
@@ -164,6 +170,19 @@
     (guardado)="alCerrarModalCompra()"></app-compra-modal>
 <app-pago-modal [visible]="mostrarModalPago()" [compraId]="compraSeleccionadaId()"
     (cerrar)="alCerrarModalPago()"></app-pago-modal>
+
+<!-- Anular compra (captura de motivo) -->
+<app-motivo-modal
+    [visible]="mostrarAnular()"
+    [colorSistema]="colorSistema"
+    [procesando]="anulando()"
+    titulo="Anular compra"
+    mensaje="Se anulará la compra junto con todos sus pagos y se revertirá el inventario."
+    etiquetaMotivo="Motivo de anulación"
+    etiquetaConfirmar="Anular compra"
+    (alCerrar)="cerrarAnular()"
+    (alConfirmar)="confirmarAnular($event)">
+</app-motivo-modal>
 
 <!-- Loader -->
 @if (cargando()) {

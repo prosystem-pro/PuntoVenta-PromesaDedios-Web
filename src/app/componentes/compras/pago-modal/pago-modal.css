@@ -107,3 +107,11 @@
     color: #ced4da;
     cursor: not-allowed;
 }
+/* Pago anulado: fila tenue y monto tachado */
+.pago-anulado {
+    opacity: 0.6;
+}
+
+.pago-anulado td:nth-child(3) {
+    text-decoration: line-through;
+}

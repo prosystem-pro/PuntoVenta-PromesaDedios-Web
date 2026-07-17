@@ -119,9 +119,14 @@
                         <tbody>
                             <!-- Pagos ya registrados en DB -->
                             @for (p of detalle()?.Pagos; track $index) {
-                            <tr>
+                            <tr [class.pago-anulado]="p.Estatus === 'ANULADO'">
                                 <td class="small">{{ p.FechaPago | date:'dd/MM/yyyy HH:mm' }}</td>
-                                <td class="small text-uppercase">{{ p.MetodoPago }}</td>
+                                <td class="small text-uppercase">
+                                    {{ p.MetodoPago }}
+                                    @if (p.Estatus === 'ANULADO') {
+                                    <span class="badge bg-danger-subtle text-danger ms-1">Anulado</span>
+                                    }
+                                </td>
                                 <td class="small fw-bold text-end">Q {{ p.Monto | number:'1.2-2' }}</td>
                                 <td class="text-center">
                                     <div class="d-flex justify-content-center gap-2">
@@ -129,7 +134,12 @@
                                             (click)="imprimirTicket(p)" title="Imprimir Ticket">
                                             <i class="bi bi-file-earmark-pdf fs-5"></i>
                                         </button>
-                                        <!-- No se permite eliminar pagos ya registrados según instrucción -->
+                                        @if (p.Estatus !== 'ANULADO') {
+                                        <button class="btn btn-sm text-danger border-0 shadow-none"
+                                            (click)="abrirAnularPago(p)" title="Anular pago">
+                                            <i class="bi bi-x-octagon fs-5"></i>
+                                        </button>
+                                        }
                                     </div>
                                 </td>
                             </tr>
@@ -184,4 +194,17 @@
     [visible]="mostrarComprobante()"
     [codigoPagoProveedor]="codigoComprobante()"
     (cerrar)="cerrarComprobante()"></app-comprobante-abono-modal>
+
+<!-- Anular pago (captura de motivo) -->
+<app-motivo-modal
+    [visible]="mostrarAnularPago()"
+    [colorSistema]="colorSistema"
+    [procesando]="anulandoPago()"
+    titulo="Anular pago"
+    mensaje="Se anulará el pago, se revertirá el movimiento de caja y aumentará el saldo pendiente."
+    etiquetaMotivo="Motivo de anulación"
+    etiquetaConfirmar="Anular pago"
+    (alCerrar)="cerrarAnularPago()"
+    (alConfirmar)="confirmarAnularPago($event)">
+</app-motivo-modal>
 }

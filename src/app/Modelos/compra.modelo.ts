@@ -11,9 +11,11 @@ export interface Compra {
 }
 
 export interface PagoRealizado {
+    CodigoPagoProveedor: number;
     FechaPago: string;
     MetodoPago: string;
     Monto: number;
+    Estatus: string; // 'ACTIVO' | 'ANULADO'
 }
 
 export interface CompraDetalleCompleto {

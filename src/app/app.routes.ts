@@ -32,6 +32,7 @@ export const routes: Routes = [
       { path: 'caja', loadComponent: () => import('./componentes/caja/caja').then(m => m.Caja) },
       { path: 'compras', loadComponent: () => import('./componentes/compras/compras').then(m => m.Compras) },
       { path: 'facturar', loadComponent: () => import('./componentes/facturar/facturar').then(m => m.Facturar) },
+      { path: 'historial-ventas', loadComponent: () => import('./componentes/historial-ventas/historial-ventas').then(m => m.HistorialVentas) },
       { path: 'pedidos', loadComponent: () => import('./componentes/estado-pedidos/estado-pedidos').then(m => m.EstadoPedidos) },
       { path: 'estado-pagos', loadComponent: () => import('./componentes/estado-pagos/estado-pagos').then(m => m.EstadoPagos) },
       { path: 'ventas', loadComponent: () => import('./componentes/mesa/mesa-listado/mesa-listado').then(m => m.MesaListado) },

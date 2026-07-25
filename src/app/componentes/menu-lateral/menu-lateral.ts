@@ -31,6 +31,7 @@ export class MenuLateral {
     { texto: 'Caja', icono: 'bi bi-inbox-fill', ruta: '/caja' },
     { texto: 'Venta en mesa', icono: 'bi bi-shop', ruta: '/ventas' },
     { texto: 'Facturar', icono: 'bi bi-upc-scan', ruta: '/facturar' },
+    { texto: 'Historial Ventas', icono: 'bi bi-journal-text', ruta: '/historial-ventas' },
     { texto: 'Estado Pedidos', icono: 'bi bi-clipboard-check', ruta: '/pedidos' },
     { texto: 'Compras', icono: 'bi bi-cart4', ruta: '/compras' },
     { texto: 'Materia prima', icono: 'bi bi-truck', ruta: '/materia-prima' },

@@ -1,13 +1,6 @@
 import { Routes } from '@angular/router';
-import { Usuarios } from './componentes/usuarios/usuarios';
-import { Roles } from './componentes/roles/roles';
-import { Terminales } from './componentes/terminales/terminales';
-import { Proveedores } from './componentes/proveedores/proveedores';
-import { Clientes } from './componentes/clientes/clientes';
-import { Configuracion } from './componentes/configuracion/configuracion';
 import { PaginaLogin } from './componentes/login/login';
 import { guardAutenticacion } from './Guards/auth.guard';
-import { Productos } from './componentes/productos/productos';
 
 export const routes: Routes = [
   // Rutas publicas
@@ -18,12 +11,12 @@ export const routes: Routes = [
     path: '',
     canActivate: [guardAutenticacion],
     children: [
-      { path: 'usuario', component: Usuarios },
-      { path: 'rol', component: Roles },
-      { path: 'terminal', component: Terminales },
-      { path: 'proveedor', component: Proveedores },
-      { path: 'cliente', component: Clientes },
-      { path: 'productos', component: Productos },
+      { path: 'usuario', loadComponent: () => import('./componentes/usuarios/usuarios').then(m => m.Usuarios) },
+      { path: 'rol', loadComponent: () => import('./componentes/roles/roles').then(m => m.Roles) },
+      { path: 'terminal', loadComponent: () => import('./componentes/terminales/terminales').then(m => m.Terminales) },
+      { path: 'proveedor', loadComponent: () => import('./componentes/proveedores/proveedores').then(m => m.Proveedores) },
+      { path: 'cliente', loadComponent: () => import('./componentes/clientes/clientes').then(m => m.Clientes) },
+      { path: 'productos', loadComponent: () => import('./componentes/productos/productos').then(m => m.Productos) },
       { path: 'materia-prima', loadComponent: () => import('./componentes/materia-prima/materia-prima').then(m => m.MateriaPrima) },
       { path: 'materia-prima/nuevo', loadComponent: () => import('./componentes/materia-prima/materia-prima-detalle/materia-prima-detalle').then(m => m.MateriaPrimaDetalle) },
       { path: 'materia-prima/editar/:id', loadComponent: () => import('./componentes/materia-prima/materia-prima-detalle/materia-prima-detalle').then(m => m.MateriaPrimaDetalle) },
@@ -40,7 +33,7 @@ export const routes: Routes = [
       { path: 'produccion', loadComponent: () => import('./componentes/produccion/produccion-listado/produccion-listado').then(m => m.ProduccionListado) },
       { path: 'cocina', loadComponent: () => import('./componentes/cocina/cocina').then(m => m.Cocina) },
       { path: 'produccion/ingresar/:id', loadComponent: () => import('./componentes/produccion/produccion-ingresar/produccion-ingresar').then(m => m.ProduccionIngresar) },
-      { path: 'configuracion', component: Configuracion },
+      { path: 'configuracion', loadComponent: () => import('./componentes/configuracion/configuracion').then(m => m.Configuracion) },
       { path: '', redirectTo: 'usuario', pathMatch: 'full' },
     ],
   },

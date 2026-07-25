@@ -9,7 +9,7 @@ import { PagoModal } from './pago-modal/pago-modal';
 import { MotivoModal } from '../compartidos/motivo-modal/motivo-modal';
 import { FacturaCompraModal } from './factura-compra-modal/factura-compra-modal';
 import { AlertaServicio } from '../../Servicios/alerta.service';
-import * as XLSX from 'xlsx';
+// xlsx se carga de forma dinamica dentro de exportarExcel() para no incluirlo en el bundle inicial.
 
 @Component({
     selector: 'app-compras',
@@ -279,7 +279,8 @@ export class Compras implements OnInit {
         }
     }
 
-    exportarExcel() {
+    async exportarExcel() {
+        const XLSX = await import('xlsx');
         const dataParaExportar = this.listadoFiltrado().map(c => ({
             'No. Compra': c.No,
             'Proveedor': c.Nombre,
@@ -289,8 +290,8 @@ export class Compras implements OnInit {
             'Estatus': c.Estatus
         }));
 
-        const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(dataParaExportar);
-        const wb: XLSX.WorkBook = XLSX.utils.book_new();
+        const ws = XLSX.utils.json_to_sheet(dataParaExportar);
+        const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, 'Compras');
 
         XLSX.writeFile(wb, `Listado_Compras_${new Date().getTime()}.xlsx`);

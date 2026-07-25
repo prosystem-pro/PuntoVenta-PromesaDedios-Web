@@ -4,8 +4,8 @@ import { Entorno } from '../../../Entorno/Entorno';
 import { AlertaServicio } from '../../../Servicios/alerta.service';
 import { CompraServicio } from '../../../Servicios/compra.service';
 import { FacturaCompra } from '../../../Modelos/compra.modelo';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+// jspdf y html2canvas se cargan de forma dinamica dentro de descargarPdf()
+// para no incluirlos en el bundle inicial (solo se usan al descargar el PDF).
 
 // Comprobante/factura de una compra. Carga por CodigoCompra y permite imprimir/descargar.
 @Component({
@@ -64,6 +64,10 @@ export class FacturaCompraModal implements OnChanges {
         if (!this.ticket) return;
         this.generandoPdf.set(true);
         try {
+            const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
+                import('html2canvas'),
+                import('jspdf')
+            ]);
             const canvas = await html2canvas(this.ticket.nativeElement, {
                 scale: 2,
                 backgroundColor: '#ffffff',

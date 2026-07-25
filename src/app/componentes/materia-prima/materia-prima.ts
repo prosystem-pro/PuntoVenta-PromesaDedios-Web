@@ -7,7 +7,7 @@ import { Entorno } from '../../Entorno/Entorno';
 import { ProductoServicio } from '../../Servicios/producto.service';
 import { AlertaServicio } from '../../Servicios/alerta.service';
 import { manejarErrorApi } from '../../Utils/error-parser';
-import * as XLSX from 'xlsx';
+// xlsx se carga de forma dinamica dentro de exportarExcel() para no incluirlo en el bundle inicial.
 
 type ViewMode = 'normal' | 'ajustar' | 'abastecer';
 
@@ -366,7 +366,8 @@ export class MateriaPrima implements OnInit {
     paginaAnterior() { if (this.paginaActual() > 1) this.paginaActual.update((v: number) => v - 1); }
     paginaSiguiente() { if (this.paginaActual() < this.totalPaginas()) this.paginaActual.update((v: number) => v + 1); }
 
-    exportarExcel() {
+    async exportarExcel() {
+        const XLSX = await import('xlsx');
         const datos = this.insumosFiltrados().map((p: Producto, i: number) => ({
             'No.': i + 1,
             'Categoria': p.NombreCategoria,

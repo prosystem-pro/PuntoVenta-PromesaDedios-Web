@@ -6,7 +6,7 @@ import { Entorno } from '../../Entorno/Entorno';
 import { ModalRol } from './modal-rol/modal-rol';
 import { ServicioUsuario } from '../../Servicios/usuario.service';
 import { AlertaServicio } from '../../Servicios/alerta.service';
-import * as XLSX from 'xlsx';
+// xlsx se carga de forma dinamica dentro de exportarExcel() para no incluirlo en el bundle inicial.
 
 @Component({
     selector: 'app-roles',
@@ -169,15 +169,16 @@ export class Roles implements OnInit {
         }
     }
 
-    exportarExcel(): void {
+    async exportarExcel(): Promise<void> {
+        const XLSX = await import('xlsx');
         const datosParaExportar = this.rolesFiltrados().map((r, index) => ({
             'No.': index + 1,
             'Nombre': r.NombreRol,
             'Estatus': r.Estatus === 1 ? 'Activo' : 'Inactivo'
         }));
 
-        const hoja: XLSX.WorkSheet = XLSX.utils.json_to_sheet(datosParaExportar);
-        const libro: XLSX.WorkBook = XLSX.utils.book_new();
+        const hoja = XLSX.utils.json_to_sheet(datosParaExportar);
+        const libro = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(libro, hoja, 'Roles');
 
         const fecha = new Date().toISOString().split('T')[0];

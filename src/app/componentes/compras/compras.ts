@@ -7,13 +7,14 @@ import { Entorno } from '../../Entorno/Entorno';
 import { CompraModal } from './compra-modal/compra-modal';
 import { PagoModal } from './pago-modal/pago-modal';
 import { MotivoModal } from '../compartidos/motivo-modal/motivo-modal';
+import { FacturaCompraModal } from './factura-compra-modal/factura-compra-modal';
 import { AlertaServicio } from '../../Servicios/alerta.service';
 import * as XLSX from 'xlsx';
 
 @Component({
     selector: 'app-compras',
     standalone: true,
-    imports: [CommonModule, FormsModule, CompraModal, PagoModal, MotivoModal],
+    imports: [CommonModule, FormsModule, CompraModal, PagoModal, MotivoModal, FacturaCompraModal],
     templateUrl: './compras.html',
     styleUrl: './compras.css'
 })
@@ -61,6 +62,10 @@ export class Compras implements OnInit {
     mostrarAnular = signal(false);
     compraAnularId = signal<number | null>(null);
     anulando = signal(false);
+
+    // Ver factura de la compra
+    mostrarFactura = signal(false);
+    compraFacturaId = signal<number | null>(null);
 
     // Ordenamiento
     columnaActiva = signal<string | null>(null);
@@ -230,6 +235,16 @@ export class Compras implements OnInit {
         this.mostrarModalPago.set(false);
         this.compraSeleccionadaId.set(null);
         await this.cargarCompras();
+    }
+
+    verFactura(id: number) {
+        this.compraFacturaId.set(id);
+        this.mostrarFactura.set(true);
+    }
+
+    cerrarFactura() {
+        this.mostrarFactura.set(false);
+        this.compraFacturaId.set(null);
     }
 
     abrirAnular(id: number) {

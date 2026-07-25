@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import axiosInstance from './axios.config';
-import { Compra, CompraDetalleCompleto } from '../Modelos/compra.modelo';
+import { Compra, CompraDetalleCompleto, FacturaCompra } from '../Modelos/compra.modelo';
 import { RespuestaAPI } from '../Modelos/producto.modelo';
 
 @Injectable({
@@ -57,6 +57,12 @@ export class CompraServicio {
 
     async obtenerFacturaAbono(codigoPagoProveedor: number): Promise<RespuestaAPI<any>> {
         const res = await axiosInstance.get(`compra/factura-abono/${codigoPagoProveedor}`);
+        return res.data;
+    }
+
+    // Comprobante completo de la compra (empresa, proveedor, productos, totales, forma de pago).
+    async obtenerFactura(codigoCompra: number): Promise<RespuestaAPI<FacturaCompra>> {
+        const res = await axiosInstance.get(`compra/factura/${codigoCompra}`);
         return res.data;
     }
 

@@ -104,6 +104,10 @@
                             {{ c.Estatus }}
                         </td>
                         <td class="acciones-cell">
+                            <button class="btn-accion text-secondary" title="Ver factura"
+                                (click)="verFactura(c.CodigoCompra)">
+                                <i class="bi bi-search"></i>
+                            </button>
                             <button class="btn-accion text-success" title="Ver Pagos"
                                 (click)="abrirPagos(c.CodigoCompra)">
                                 <i class="bi bi-cash-stack"></i>
@@ -183,6 +187,14 @@
     (alCerrar)="cerrarAnular()"
     (alConfirmar)="confirmarAnular($event)">
 </app-motivo-modal>
+
+<!-- Factura de la compra (comprobante) -->
+<app-factura-compra-modal
+    [visible]="mostrarFactura()"
+    [codigoCompra]="compraFacturaId()"
+    [colorSistema]="colorSistema"
+    (cerrar)="cerrarFactura()">
+</app-factura-compra-modal>
 
 <!-- Loader -->
 @if (cargando()) {

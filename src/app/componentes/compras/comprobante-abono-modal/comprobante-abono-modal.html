@@ -37,7 +37,8 @@
             <div class="row g-2 small">
                 <div class="col-6">Fecha: {{ d.Proveedor?.Fecha | date:'dd/MM/yyyy HH:mm' }} Horas</div>
                 <div class="col-6">Documento: {{ d.Proveedor?.Documento || '-' }}</div>
-                <div class="col-12">Responsable: {{ d.Proveedor?.Responsable || '-' }}</div>
+                <div class="col-6">No. Pago: {{ d.Proveedor?.NumeroPago || '-' }}</div>
+                <div class="col-6">Responsable: {{ d.Proveedor?.Responsable || '-' }}</div>
                 <div class="col-6">Nombre: {{ d.Proveedor?.NombreProveedor || '-' }}</div>
                 <div class="col-6">Nit: {{ d.Proveedor?.Nit || '-' }}</div>
                 <div class="col-6">Dirección: {{ d.Proveedor?.Direccion || '-' }}</div>

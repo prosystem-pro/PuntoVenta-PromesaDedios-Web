@@ -6,7 +6,7 @@ import { Entorno } from '../../Entorno/Entorno';
 import { ModalProveedor } from './modal-proveedor/modal-proveedor';
 import { ServicioProveedor } from '../../Servicios/proveedor.service';
 import { AlertaServicio } from '../../Servicios/alerta.service';
-import * as XLSX from 'xlsx';
+// xlsx se carga de forma dinamica dentro de exportarExcel() para no incluirlo en el bundle inicial.
 
 @Component({
     selector: 'app-proveedores',
@@ -215,7 +215,8 @@ export class Proveedores implements OnInit {
         }
     }
 
-    exportarExcel(): void {
+    async exportarExcel(): Promise<void> {
+        const XLSX = await import('xlsx');
         const datosParaExportar = this.proveedoresFiltrados().map((p, index) => ({
             'No.': index + 1,
             'Nombre': p.NombreProveedor,
@@ -225,8 +226,8 @@ export class Proveedores implements OnInit {
             'Estatus': p.Estatus === 1 ? 'Activo' : 'Inactivo'
         }));
 
-        const hoja: XLSX.WorkSheet = XLSX.utils.json_to_sheet(datosParaExportar);
-        const libro: XLSX.WorkBook = XLSX.utils.book_new();
+        const hoja = XLSX.utils.json_to_sheet(datosParaExportar);
+        const libro = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(libro, hoja, 'Proveedores');
 
         const fecha = new Date().toISOString().split('T')[0];

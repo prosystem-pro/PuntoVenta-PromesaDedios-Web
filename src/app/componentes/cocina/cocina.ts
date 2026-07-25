@@ -30,15 +30,45 @@ export class Cocina implements OnInit, OnDestroy {
 
     async ngOnInit() {
         await this.cargar();
-        // Refresca el listado cada 10s para captar nuevos pedidos
-        this.intervalId = setInterval(() => this.cargar(false), 10000);
-        this.tickId = setInterval(() => this.tick.update(v => v + 1), 1000);
+        this.iniciarIntervalos();
+        // Pausa el polling cuando la pestaña no esta visible y refresca al volver.
+        document.addEventListener('visibilitychange', this.onVisibilityChange);
     }
 
     ngOnDestroy() {
-        if (this.intervalId) clearInterval(this.intervalId);
-        if (this.tickId) clearInterval(this.tickId);
+        this.detenerIntervalos();
+        document.removeEventListener('visibilitychange', this.onVisibilityChange);
     }
+
+    // Refresca el listado cada 30s para captar nuevos pedidos + tick de 1s para cronometros.
+    private iniciarIntervalos() {
+        if (!this.intervalId) {
+            this.intervalId = setInterval(() => this.cargar(false), 30000);
+        }
+        if (!this.tickId) {
+            this.tickId = setInterval(() => this.tick.update(v => v + 1), 1000);
+        }
+    }
+
+    private detenerIntervalos() {
+        if (this.intervalId) {
+            clearInterval(this.intervalId);
+            this.intervalId = null;
+        }
+        if (this.tickId) {
+            clearInterval(this.tickId);
+            this.tickId = null;
+        }
+    }
+
+    private onVisibilityChange = () => {
+        if (document.visibilityState === 'visible') {
+            this.cargar(false); // refresco inmediato al volver a la pestaña
+            this.iniciarIntervalos();
+        } else {
+            this.detenerIntervalos();
+        }
+    };
 
     async cargar(conLoader: boolean = true) {
         if (conLoader) this.cargando.set(true);

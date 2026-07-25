@@ -7,7 +7,7 @@ import { PedidoProduccion } from '../../../Modelos/produccion.modelo';
 import { Entorno } from '../../../Entorno/Entorno';
 import { AlertaServicio } from '../../../Servicios/alerta.service';
 import { PedidoCrearModal } from './pedido-crear-modal/pedido-crear-modal';
-import * as XLSX from 'xlsx';
+// xlsx se carga de forma dinamica dentro de exportarExcel() para no incluirlo en el bundle inicial.
 
 @Component({
     selector: 'app-produccion-listado',
@@ -259,7 +259,8 @@ export class ProduccionListado implements OnInit {
         }
     }
 
-    exportarExcel() {
+    async exportarExcel() {
+        const XLSX = await import('xlsx');
         const datos = this.listadoFiltrado().map((p, i) => ({
             'No.': i + 1,
             'Pedido': p.CodigoPedidoProduccion,

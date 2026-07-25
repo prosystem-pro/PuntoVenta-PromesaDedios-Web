@@ -24,7 +24,22 @@ export class CompraModal implements OnInit {
     private servicioProveedor = inject(ServicioProveedor);
     private servicioConfig = inject(ServicioConfiguracion);
 
-    @Input() visible = false;
+    // Los catalogos (proveedores, productos, categorias, unidades, caja) se cargan solo la
+    // primera vez que el modal se abre, no al entrar a la pantalla de Compras. Asi evitamos
+    // 5 llamadas al API en cada navegacion a Compras si el usuario nunca registra una compra.
+    private _visible = false;
+    private catalogosCargados = false;
+    @Input()
+    set visible(v: boolean) {
+        this._visible = v;
+        if (v && !this.catalogosCargados) {
+            this.catalogosCargados = true;
+            this.cargarCatalogos();
+        }
+    }
+    get visible(): boolean {
+        return this._visible;
+    }
     @Output() cerrar = new EventEmitter<void>();
     @Output() guardado = new EventEmitter<any>();
 
@@ -121,7 +136,7 @@ export class CompraModal implements OnInit {
             this.aplicarValidadorReferencia();
             if (v === 'Crédito') this.mostrarMedioPago.set(false);
         });
-        await this.cargarCatalogos();
+        // La carga de catalogos se difiere al primer open del modal (ver setter de `visible`).
     }
 
     medioPagoDeshabilitado(): boolean {

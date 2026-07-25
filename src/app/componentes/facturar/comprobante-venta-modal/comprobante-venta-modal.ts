@@ -3,8 +3,8 @@ import { CommonModule } from '@angular/common';
 import { Entorno } from '../../../Entorno/Entorno';
 import { AlertaServicio } from '../../../Servicios/alerta.service';
 import { ComprobanteVenta } from '../../../Modelos/venta.modelo';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+// jspdf y html2canvas se cargan de forma dinamica dentro de descargarPdf()
+// para no incluirlos en el bundle inicial (solo se usan al descargar el PDF).
 
 @Component({
     selector: 'app-comprobante-venta-modal',
@@ -47,6 +47,10 @@ export class ComprobanteVentaModal implements OnChanges {
         if (!this.ticket) return;
         this.generandoPdf.set(true);
         try {
+            const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
+                import('html2canvas'),
+                import('jspdf')
+            ]);
             const canvas = await html2canvas(this.ticket.nativeElement, {
                 scale: 2,
                 backgroundColor: '#ffffff',

@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { Terminal } from '../../Modelos/terminal.modelo';
 import { Entorno } from '../../Entorno/Entorno';
 import { ModalTerminal } from './modal-terminal/modal-terminal';
-import * as XLSX from 'xlsx';
+// xlsx se carga de forma dinamica dentro de exportarExcel() para no incluirlo en el bundle inicial.
 
 @Component({
     selector: 'app-terminales',
@@ -128,7 +128,8 @@ export class Terminales implements OnInit {
         this.textoBusqueda.set('');
     }
 
-    exportarExcel(): void {
+    async exportarExcel(): Promise<void> {
+        const XLSX = await import('xlsx');
         const datosParaExportar = this.terminalesFiltradas().map(t => ({
             'No.': this.formatearNumero(t.CodigoTerminal),
             'Nombre': t.NombreTerminal,
@@ -136,8 +137,8 @@ export class Terminales implements OnInit {
             'Estatus': t.Estatus === 1 ? 'Activo' : 'Inactivo'
         }));
 
-        const hoja: XLSX.WorkSheet = XLSX.utils.json_to_sheet(datosParaExportar);
-        const libro: XLSX.WorkBook = XLSX.utils.book_new();
+        const hoja = XLSX.utils.json_to_sheet(datosParaExportar);
+        const libro = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(libro, hoja, 'Terminales');
 
         const fecha = new Date().toISOString().split('T')[0];

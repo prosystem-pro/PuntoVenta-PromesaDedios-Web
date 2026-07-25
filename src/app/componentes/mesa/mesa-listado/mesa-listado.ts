@@ -65,25 +65,49 @@ export class MesaListado implements OnInit, OnDestroy {
         await this.cargarCatalogos();
         await this.cargarMesas();
 
-        // Intervalo de actualizacion (cada 10 segundos para estados y totales)
-        this.intervalId = setInterval(() => {
-            this.cargarMesas(false);
-        }, 10000);
+        // Arranca el refresco periodico y el cronometro
+        this.iniciarIntervalos();
 
-        // Tick de 1 segundo para el cronometro de las tarjetas
-        this.tickId = setInterval(() => {
-            this.tick.update(v => v + 1);
-        }, 1000);
+        // Pausa el polling cuando la pestaña no esta visible y refresca al volver,
+        // para no golpear el API en segundo plano.
+        document.addEventListener('visibilitychange', this.onVisibilityChange);
     }
 
     ngOnDestroy() {
+        this.detenerIntervalos();
+        document.removeEventListener('visibilitychange', this.onVisibilityChange);
+    }
+
+    // Intervalo de actualizacion (cada 30 segundos para estados y totales) +
+    // tick de 1 segundo para el cronometro de las tarjetas ocupadas.
+    private iniciarIntervalos() {
+        if (!this.intervalId) {
+            this.intervalId = setInterval(() => this.cargarMesas(false), 30000);
+        }
+        if (!this.tickId) {
+            this.tickId = setInterval(() => this.tick.update(v => v + 1), 1000);
+        }
+    }
+
+    private detenerIntervalos() {
         if (this.intervalId) {
             clearInterval(this.intervalId);
+            this.intervalId = null;
         }
         if (this.tickId) {
             clearInterval(this.tickId);
+            this.tickId = null;
         }
     }
+
+    private onVisibilityChange = () => {
+        if (document.visibilityState === 'visible') {
+            this.cargarMesas(false); // refresco inmediato al volver a la pestaña
+            this.iniciarIntervalos();
+        } else {
+            this.detenerIntervalos();
+        }
+    };
 
     async cargarCatalogos() {
         const res = await this.servicioConfig.obtenerClasificaciones();

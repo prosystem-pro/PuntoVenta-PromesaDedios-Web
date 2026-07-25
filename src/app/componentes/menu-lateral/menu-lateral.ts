@@ -1,7 +1,8 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { Entorno } from '../../Entorno/Entorno';
+import { CajaEstadoService } from '../../Servicios/caja-estado.service';
 
 @Component({
   selector: 'app-menu-lateral',
@@ -14,8 +15,17 @@ export class MenuLateral {
   public colorPrincipal = Entorno.ColorSistema;
   public logo = Entorno.Logo;
 
+  cajaEstado = inject(CajaEstadoService);
+  private router = inject(Router);
+
   // Estado del menu: true = abierto, false = colapsado
   estaExpandido = signal(true);
+
+  // Lleva a la pantalla de Caja y le pide abrir el formulario de cierre.
+  cerrarCaja(): void {
+    this.cajaEstado.solicitarCierre();
+    this.router.navigate(['/caja']);
+  }
 
   itemsMenu = [
     { texto: 'Caja', icono: 'bi bi-inbox-fill', ruta: '/caja' },

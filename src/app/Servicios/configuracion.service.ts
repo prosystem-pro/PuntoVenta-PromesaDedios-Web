@@ -4,7 +4,8 @@ import { Empresa } from '../Modelos/empresa.modelo';
 import { Mesa } from '../Modelos/mesa.modelo';
 import { ClasificacionMesa } from '../Modelos/clasificacion-mesa.modelo';
 import { RespuestaAPI } from '../Modelos/producto.modelo';
-import { DatosInicialesCaja, EstadoCaja, AperturaCajaPayload, AperturaCajaResultado } from '../Modelos/caja.modelo';
+import { EstadoCaja, AperturaCajaPayload, AperturaCajaResultado, DatosCaja, CierreCajaPayload, CierreCajaResultado } from '../Modelos/caja.modelo';
+import { ComprobanteVenta } from '../Modelos/venta.modelo';
 
 @Injectable({
     providedIn: 'root'
@@ -117,10 +118,13 @@ export class ServicioConfiguracion {
         }
     }
 
-    // Datos para armar la apertura: caja configurada, turno y denominaciones.
-    async obtenerDatosInicialesCaja(): Promise<RespuestaAPI<DatosInicialesCaja>> {
+    // Datos de caja. Si NO hay caja abierta trae caja/turno/denominaciones (para la apertura);
+    // si hay caja abierta trae la apertura + resúmenes + movimientos. El rango de fechas es
+    // opcional: sin fechas filtra por la apertura activa; con fechas filtra por rango.
+    async obtenerDatosInicialesCaja(fechaInicio?: string, fechaFin?: string): Promise<RespuestaAPI<DatosCaja>> {
         try {
-            const respuesta = await api.get<RespuestaAPI<DatosInicialesCaja>>('caja/obtener-datos-iniciales');
+            const params = (fechaInicio && fechaFin) ? { fechaInicio, fechaFin } : undefined;
+            const respuesta = await api.get<RespuestaAPI<DatosCaja>>('caja/obtener-datos-iniciales', { params });
             return respuesta.data;
         } catch (error: any) {
             return this.manejarError(error);
@@ -130,6 +134,27 @@ export class ServicioConfiguracion {
     async abrirCaja(payload: AperturaCajaPayload): Promise<RespuestaAPI<AperturaCajaResultado>> {
         try {
             const respuesta = await api.post<RespuestaAPI<AperturaCajaResultado>>('caja/abrir-caja', payload);
+            return respuesta.data;
+        } catch (error: any) {
+            return this.manejarError(error);
+        }
+    }
+
+    async cerrarCaja(payload: CierreCajaPayload): Promise<RespuestaAPI<CierreCajaResultado>> {
+        try {
+            const respuesta = await api.post<RespuestaAPI<CierreCajaResultado>>('caja/cerrar-caja', payload);
+            return respuesta.data;
+        } catch (error: any) {
+            return this.manejarError(error);
+        }
+    }
+
+    // Comprobante de un movimiento de caja (para la lupa "ver documento").
+    // PENDIENTE DE API: el movimiento ya trae CodigoMovimiento; se espera un endpoint
+    // que lo reciba y devuelva el comprobante normalizado (misma forma que la factura de venta).
+    async obtenerDocumentoMovimiento(codigoMovimiento: number): Promise<RespuestaAPI<ComprobanteVenta>> {
+        try {
+            const respuesta = await api.get<RespuestaAPI<ComprobanteVenta>>(`caja/documento-movimiento/${codigoMovimiento}`);
             return respuesta.data;
         } catch (error: any) {
             return this.manejarError(error);

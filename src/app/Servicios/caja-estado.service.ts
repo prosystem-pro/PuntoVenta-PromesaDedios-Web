@@ -14,6 +14,18 @@ export class CajaEstadoService {
     turno = signal<string>('');
     cargado = signal<boolean>(false);
 
+    // Bandera para pedirle a la pantalla de Caja que abra el formulario de cierre
+    // (el botón "Cerrar caja" vive en el menú lateral, no en la pantalla). Se consume una vez.
+    cierrePendiente = signal<boolean>(false);
+
+    solicitarCierre(): void {
+        this.cierrePendiente.set(true);
+    }
+
+    consumirCierre(): void {
+        this.cierrePendiente.set(false);
+    }
+
     async cargar(): Promise<void> {
         try {
             const res = await this.config.obtenerCajaActual();

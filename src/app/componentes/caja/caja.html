@@ -11,16 +11,32 @@
         </h4>
     </div>
 
-    <!-- Tarjetas de totales por método (maqueta, pendiente de endpoint) -->
+    <!-- Tarjetas de totales por método de pago (formas de pago del período) -->
     <div class="row g-3 mb-3">
-        @for (m of ['Efectivo', 'Tarjeta', 'Transferencia', 'Cheque']; track m) {
         <div class="col-6 col-lg-3">
             <div class="card-metodo text-center p-3 rounded-3 h-100">
-                <div class="fw-bold">{{ m }}</div>
-                <div class="fs-5 text-muted">Q 0.00</div>
+                <div class="fw-bold">Efectivo</div>
+                <div class="fs-5 text-muted">Q {{ resumenFormasPago()?.Efectivo ?? '0.00' }}</div>
             </div>
         </div>
-        }
+        <div class="col-6 col-lg-3">
+            <div class="card-metodo text-center p-3 rounded-3 h-100">
+                <div class="fw-bold">Tarjeta</div>
+                <div class="fs-5 text-muted">Q {{ resumenFormasPago()?.Tarjeta ?? '0.00' }}</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card-metodo text-center p-3 rounded-3 h-100">
+                <div class="fw-bold">Transferencia</div>
+                <div class="fs-5 text-muted">Q {{ resumenFormasPago()?.Transferencia ?? '0.00' }}</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card-metodo text-center p-3 rounded-3 h-100">
+                <div class="fw-bold">Cheque</div>
+                <div class="fs-5 text-muted">Q {{ resumenFormasPago()?.Cheque ?? '0.00' }}</div>
+            </div>
+        </div>
     </div>
 
     <div class="row g-3">
@@ -31,42 +47,51 @@
 
                 <div class="text-center fw-bold mb-2">INGRESOS</div>
                 <div class="bloque-lista mb-3">
-                    @for (i of ['Apertura de Caja', 'Ventas', 'Abono de pedido', 'Propinas', 'Iva']; track i) {
                     <div class="d-flex justify-content-between py-1">
-                        <span>{{ i }}</span><span class="text-muted">Q 0.00</span>
+                        <span>Apertura de Caja</span><span class="text-muted">Q {{ resumenIngresos()?.MontoApertura ?? '0.00' }}</span>
                     </div>
-                    }
+                    <div class="d-flex justify-content-between py-1">
+                        <span>Ventas</span><span class="text-muted">Q {{ resumenIngresos()?.Ventas ?? '0.00' }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-1">
+                        <span>Abono de pedido</span><span class="text-muted">Q {{ resumenIngresos()?.Abonos_Pedidos ?? '0.00' }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-1">
+                        <span>Propinas</span><span class="text-muted">Q {{ resumenIngresos()?.Propinas ?? '0.00' }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-1">
+                        <span>Compras anuladas</span><span class="text-muted">Q {{ resumenIngresos()?.Compras_Anuladas ?? '0.00' }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-1">
+                        <span>Abonos prov. anulados</span><span class="text-muted">Q {{ resumenIngresos()?.Abonos_Proveedores_Anulados ?? '0.00' }}</span>
+                    </div>
                     <div class="d-flex justify-content-between py-1 border-top mt-1 fw-bold">
-                        <span>Total</span><span>Q 0.00</span>
+                        <span>Total</span><span>Q {{ resumenIngresos()?.Total ?? '0.00' }}</span>
                     </div>
                 </div>
 
                 <div class="text-center fw-bold mb-2">EGRESOS</div>
                 <div class="bloque-lista mb-3">
-                    @for (e of ['Compra insumos', 'Pago Proveedores', 'Anulados']; track e) {
                     <div class="d-flex justify-content-between py-1">
-                        <span>{{ e }}</span><span class="text-muted">Q 0.00</span>
+                        <span>Compra insumos</span><span class="text-muted">Q {{ resumenEgresos()?.Compras ?? '0.00' }}</span>
                     </div>
-                    }
+                    <div class="d-flex justify-content-between py-1">
+                        <span>Pago Proveedores</span><span class="text-muted">Q {{ resumenEgresos()?.Pago_Proveedores ?? '0.00' }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-1">
+                        <span>Ventas anuladas</span><span class="text-muted">Q {{ resumenEgresos()?.Ventas_Anuladas ?? '0.00' }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-1">
+                        <span>Abonos anulados</span><span class="text-muted">Q {{ resumenEgresos()?.Abonos_Anulados ?? '0.00' }}</span>
+                    </div>
                     <div class="d-flex justify-content-between py-1 border-top mt-1 fw-bold">
-                        <span>Total</span><span>Q 0.00</span>
+                        <span>Total</span><span>Q {{ resumenEgresos()?.Total ?? '0.00' }}</span>
                     </div>
                 </div>
 
                 <div class="d-flex justify-content-between align-items-center mt-auto pt-2 border-top">
                     <span class="fw-bold">Disponible en caja</span>
-                    <span class="disponible fw-bold px-3 py-1 rounded">Q 0.00</span>
-                </div>
-
-                @if (estado() === 'abierto') {
-                <button class="btn text-white fw-bold mt-3" [style.background-color]="colorSistema" disabled
-                    title="Pendiente de endpoint de cierre">
-                    <i class="bi bi-door-closed me-2"></i> Cerrar caja
-                </button>
-                }
-
-                <div class="text-center small text-muted mt-2 fst-italic">
-                    Resumen y cierre pendientes de endpoints del API.
+                    <span class="disponible fw-bold px-3 py-1 rounded">Q {{ totalGeneral() }}</span>
                 </div>
             </div>
         </div>
@@ -84,42 +109,85 @@
                     </div>
                     }
 
-                    @else if (estado() === 'abierto') {
+                    @else if (estado() === 'abierto' && vistaAbierta() === 'movimientos') {
                     <div class="d-flex flex-column flex-grow-1">
                         <h6 class="text-center fw-bold mb-3">MOVIMIENTOS DE CAJA</h6>
 
-                        <!-- Buscar -->
-                        <div class="input-group input-group-sm mb-3">
-                            <input type="text" class="form-control" placeholder="Buscar"
-                                [ngModel]="busqueda()" (ngModelChange)="actualizarBusqueda($event)">
-                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <!-- Filtro de fechas + buscar -->
+                        <div class="d-flex flex-wrap align-items-end gap-2 mb-3">
+                            <div>
+                                <label class="form-label small fw-semibold mb-1">Fecha inicio</label>
+                                <input type="date" class="form-control form-control-sm"
+                                    [ngModel]="fechaInicioMov()" (ngModelChange)="fechaInicioMov.set($event)">
+                            </div>
+                            <div>
+                                <label class="form-label small fw-semibold mb-1">Fecha fin</label>
+                                <input type="date" class="form-control form-control-sm"
+                                    [ngModel]="fechaFinMov()" (ngModelChange)="fechaFinMov.set($event)">
+                            </div>
+                            <button class="btn btn-sm text-white fw-semibold" [style.background-color]="colorSistema"
+                                (click)="buscarMovimientos()" [disabled]="cargandoMovimientos()">
+                                Buscar
+                            </button>
+                            @if (filtroFechaAplicado()) {
+                            <button class="btn btn-sm btn-outline-secondary" (click)="limpiarFiltroMovimientos()"
+                                [disabled]="cargandoMovimientos()">
+                                Limpiar
+                            </button>
+                            }
+                            <div class="input-group input-group-sm ms-auto" style="max-width: 240px;">
+                                <input type="text" class="form-control" placeholder="Buscar"
+                                    [ngModel]="busqueda()" (ngModelChange)="actualizarBusqueda($event)">
+                                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                            </div>
                         </div>
 
                         <!-- Tabla -->
-                        <div class="table-responsive flex-grow-1">
+                        <div class="table-responsive flex-grow-1 position-relative">
+                            @if (cargandoMovimientos()) {
+                            <div class="mov-cargando d-flex justify-content-center align-items-center">
+                                <span class="spinner-border spinner-border-sm" [style.color]="colorSistema"></span>
+                            </div>
+                            }
                             <table class="table table-sm align-middle mb-0 tabla-movimientos">
                                 <thead>
                                     <tr>
                                         <th role="button" (click)="ordenarPor('Documento')">Documento <i class="bi bi-arrow-down-up small"></i></th>
                                         <th role="button" (click)="ordenarPor('TipoOperacion')">Tipo de operación <i class="bi bi-arrow-down-up small"></i></th>
-                                        <th role="button" (click)="ordenarPor('MetodoPago')">Método de pago <i class="bi bi-arrow-down-up small"></i></th>
-                                        <th role="button" (click)="ordenarPor('Nombre')">Nombre <i class="bi bi-arrow-down-up small"></i></th>
-                                        <th class="text-end" role="button" (click)="ordenarPor('Monto')">Monto <i class="bi bi-arrow-down-up small"></i></th>
+                                        <th role="button" (click)="ordenarPor('Entidad')">Nombre <i class="bi bi-arrow-down-up small"></i></th>
+                                        <th class="text-end" role="button" (click)="ordenarPor('MontoTotal')">Monto <i class="bi bi-arrow-down-up small"></i></th>
+                                        <th class="text-center">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @for (m of movimientosPagina(); track $index) {
-                                    <tr [class.fila-anulada]="m.Anulado">
-                                        <td>{{ m.Documento }}</td>
-                                        <td>{{ m.TipoOperacion }}</td>
-                                        <td>{{ nombreMetodo(m.MetodoPago) }}</td>
-                                        <td>{{ m.Nombre }}</td>
-                                        <td class="text-end">Q {{ m.Monto | number:'1.2-2' }}</td>
+                                    <tr [class.mov-anulado]="m.Estatus === 'ANULADO'"
+                                        [title]="m.Estatus === 'ANULADO' && m.MotivoAnulacion ? 'Anulado: ' + m.MotivoAnulacion : ''">
+                                        <td>{{ m.Documento || '—' }}</td>
+                                        <td>
+                                            {{ etiquetaOperacion(m.TipoOperacion) }}
+                                            @if (m.Estatus === 'ANULADO') {
+                                            <span class="badge-anulado ms-1">ANULADO</span>
+                                            }
+                                        </td>
+                                        <td>{{ m.Entidad || '—' }}</td>
+                                        <td class="text-end">Q {{ m.MontoTotal | number:'1.2-2' }}</td>
+                                        <td class="text-center">
+                                            <button class="btn btn-sm btn-ver-doc border-0 shadow-none"
+                                                (click)="verDocumento(m)" title="Ver documento"
+                                                [disabled]="cargandoDocumento() !== null">
+                                                @if (cargandoDocumento() === m.CodigoMovimiento) {
+                                                <span class="spinner-border spinner-border-sm"></span>
+                                                } @else {
+                                                <i class="bi bi-search"></i>
+                                                }
+                                            </button>
+                                        </td>
                                     </tr>
                                     } @empty {
                                     <tr>
                                         <td colspan="5" class="text-center text-muted py-4 fst-italic">
-                                            Movimientos pendientes de endpoint del API.
+                                            No hay movimientos registrados en la caja.
                                         </td>
                                     </tr>
                                     }
@@ -147,6 +215,71 @@
                     </div>
                     }
 
+                    @else if (estado() === 'abierto' && vistaAbierta() === 'cierre') {
+                    <!-- Cierre de caja (mismo panel, modo cierre) -->
+                    <label class="form-label fw-semibold mb-1">Responsable</label>
+                    <input type="text" class="form-control campo-bloqueado mb-3" [value]="nombreUsuario()" disabled>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-semibold mb-1">Caja</label>
+                            <input type="text" class="form-control campo-bloqueado" [value]="nombreCaja()" disabled>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold mb-1">Turno</label>
+                            <input type="text" class="form-control campo-bloqueado" [value]="turno()" disabled>
+                        </div>
+                    </div>
+
+                    <!-- Monto de cierre (obligatorio) -->
+                    <label class="form-label fw-semibold mb-1">Monto cierre <span class="text-danger">*</span></label>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text">Q</span>
+                        <input type="number" class="form-control" placeholder="Ingrese monto de cierre" min="0" step="0.01"
+                            inputmode="decimal" [ngModel]="montoCierre()" (ngModelChange)="setMontoCierre($event)"
+                            (keydown)="bloquearTeclasInvalidas($event)" [disabled]="cerrando()">
+                    </div>
+
+                    <!-- Herramienta de conteo del efectivo final -->
+                    <label class="form-label fw-semibold mb-2">Denominación de Efectivo</label>
+                    @if (cargandoCierre()) {
+                    <div class="d-flex justify-content-center py-3">
+                        <span class="spinner-border spinner-border-sm" [style.color]="colorSistema"></span>
+                    </div>
+                    } @else {
+                    <div class="denominaciones-grid mb-2">
+                        @for (d of denominacionesCierre(); track d.CodigoDenominacion) {
+                        <div class="input-group input-group-sm denom-item">
+                            <span class="input-group-text denom-valor">Q {{ d.Valor | number:'1.2-2' }}</span>
+                            <input type="number" class="form-control" placeholder="0" min="0" step="1"
+                                inputmode="decimal" [ngModel]="d.Cantidad"
+                                (ngModelChange)="actualizarCantidadCierre(d.CodigoDenominacion, $event)"
+                                (keydown)="bloquearTeclasInvalidas($event)" [disabled]="cerrando()">
+                        </div>
+                        }
+                    </div>
+
+                    <div class="d-flex justify-content-end align-items-center gap-2 mb-3">
+                        <span class="text-muted small">Total contado:</span>
+                        <span class="total-contado fw-bold px-3 py-1 rounded">Q {{ totalContadoCierre() | number:'1.2-2' }}</span>
+                    </div>
+                    }
+
+                    <div class="mt-auto d-flex justify-content-end gap-2">
+                        <button class="btn btn-outline-secondary" (click)="cancelarCierre()" [disabled]="cerrando()">
+                            Cancelar
+                        </button>
+                        <button class="btn text-white fw-bold px-4" [style.background-color]="colorSistema"
+                            (click)="cerrarCaja()" [disabled]="cerrando() || cargandoCierre()">
+                            @if (cerrando()) {
+                            <span class="spinner-border spinner-border-sm me-2"></span> Cerrando...
+                            } @else {
+                            <i class="bi bi-door-closed me-2"></i> Cerrar caja
+                            }
+                        </button>
+                    </div>
+                    }
+
                     @else {
                     <!-- Responsable / Caja / Turno -->
                     <label class="form-label fw-semibold mb-1">Responsable</label>
@@ -168,7 +301,7 @@
                     <div class="input-group mb-3">
                         <span class="input-group-text">Q</span>
                         <input type="number" class="form-control" placeholder="Ingrese monto inicial" min="0" step="0.01"
-                            [ngModel]="montoInicial()" (ngModelChange)="montoInicial.set($event)"
+                            inputmode="decimal" [ngModel]="montoInicial()" (ngModelChange)="setMontoInicial($event)"
                             (keydown)="bloquearTeclasInvalidas($event)" [disabled]="abriendo()">
                     </div>
 
@@ -179,7 +312,7 @@
                         <div class="input-group input-group-sm denom-item">
                             <span class="input-group-text denom-valor">Q {{ d.Valor | number:'1.2-2' }}</span>
                             <input type="number" class="form-control" placeholder="0" min="0" step="1"
-                                [ngModel]="d.Cantidad"
+                                inputmode="decimal" [ngModel]="d.Cantidad"
                                 (ngModelChange)="actualizarCantidad(d.CodigoDenominacion, $event)"
                                 (keydown)="bloquearTeclasInvalidas($event)" [disabled]="abriendo()">
                         </div>
@@ -207,3 +340,11 @@
         </div>
     </div>
 </div>
+
+<!-- Comprobante del movimiento (lupa "ver documento") -->
+<app-comprobante-venta-modal
+    [visible]="mostrarDocumento()"
+    [data]="documentoData()"
+    [colorSistema]="colorSistema"
+    (cerrar)="cerrarDocumento()">
+</app-comprobante-venta-modal>

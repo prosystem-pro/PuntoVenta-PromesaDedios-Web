@@ -30,7 +30,9 @@
 
   <div class="mt-auto pt-3 border-top text-center">
     <button class="btn w-100 text-white fw-bold shadow-sm d-flex align-items-center justify-content-center"
-      [style.backgroundColor]="colorPrincipal">
+      [style.backgroundColor]="colorPrincipal" (click)="cerrarCaja()"
+      [disabled]="!cajaEstado.abierta()"
+      [title]="cajaEstado.abierta() ? 'Cerrar caja' : 'No hay una caja abierta'">
       <i class="bi bi-door-closed" [class.me-2]="estaExpandido()"></i>
       <span *ngIf="estaExpandido()">Cerrar caja</span>
     </button>

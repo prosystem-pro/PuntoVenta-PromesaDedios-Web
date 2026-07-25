@@ -47,16 +47,21 @@
     font-weight: 500;
 }
 
-/* Grilla de denominaciones: dos columnas en pantallas medianas+ */
+/* Grilla de denominaciones: dos columnas, llenado por columna (como el prototipo:
+   baja toda la columna izquierda y luego la derecha), usando multi-column. */
 .denominaciones-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: .5rem;
+    column-count: 2;
+    column-gap: .5rem;
+}
+
+.denominaciones-grid .denom-item {
+    break-inside: avoid;
+    margin-bottom: .5rem;
 }
 
 @media (max-width: 575.98px) {
     .denominaciones-grid {
-        grid-template-columns: 1fr;
+        column-count: 1;
     }
 }
 
@@ -86,9 +91,50 @@
     font-size: .85rem;
 }
 
-/* Fila de movimiento anulado: tachada y atenuada */
-.fila-anulada td {
+/* Movimiento anulado: fondo rojo tenue + borde lateral + texto tachado atenuado,
+   para que se distinga claramente del resto (pedido del dev). */
+.tabla-movimientos tbody tr.mov-anulado {
+    background-color: #fdecea;
+}
+
+.tabla-movimientos tbody tr.mov-anulado td {
+    color: #b03a2e;
     text-decoration: line-through;
-    color: #c0392b;
-    opacity: .75;
+}
+
+.tabla-movimientos tbody tr.mov-anulado td:first-child {
+    box-shadow: inset 3px 0 0 #e74c3c;
+}
+
+/* Badge "ANULADO" (no se tacha) */
+.badge-anulado {
+    display: inline-block;
+    text-decoration: none;
+    background-color: #e74c3c;
+    color: #fff;
+    font-size: .62rem;
+    font-weight: 700;
+    letter-spacing: .3px;
+    padding: .1rem .4rem;
+    border-radius: 999px;
+    vertical-align: middle;
+}
+
+/* Botón "ver documento" (lupa) */
+.btn-ver-doc {
+    color: #6c757d;
+    background: transparent;
+    padding: .15rem .4rem;
+}
+
+.btn-ver-doc:hover {
+    color: var(--color-sistema);
+}
+
+/* Overlay de carga sobre la tabla de movimientos al filtrar por fecha */
+.mov-cargando {
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.65);
+    z-index: 2;
 }

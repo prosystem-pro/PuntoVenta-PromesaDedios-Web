@@ -34,6 +34,7 @@ export const routes: Routes = [
       { path: 'cocina', loadComponent: () => import('./componentes/cocina/cocina').then(m => m.Cocina) },
       { path: 'produccion/ingresar/:id', loadComponent: () => import('./componentes/produccion/produccion-ingresar/produccion-ingresar').then(m => m.ProduccionIngresar) },
       { path: 'configuracion', loadComponent: () => import('./componentes/configuracion/configuracion').then(m => m.Configuracion) },
+      { path: 'reportes', loadComponent: () => import('./componentes/reportes/reportes').then(m => m.Reportes) },
       { path: '', redirectTo: 'usuario', pathMatch: 'full' },
     ],
   },

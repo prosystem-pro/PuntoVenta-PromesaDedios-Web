@@ -1,0 +1,282 @@
+.rp-container {
+    position: relative;
+    padding: 1rem 1.25rem 2rem;
+    overflow-x: hidden;
+    /* ancho común de los controles: tipo, año y mes (mismo tamaño, como el prototipo) */
+    --rp-ctrl-w: 250px;
+}
+
+/* ---- Barra superior ---- */
+.rp-top {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.rp-tipo {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    background: var(--color-sistema);
+    color: #fff;
+    padding: .4rem .9rem;
+    border-radius: .6rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, .12);
+    width: var(--rp-ctrl-w);
+}
+
+.rp-tipo i {
+    font-size: 1.1rem;
+}
+
+.rp-tipo-select {
+    flex: 1;
+    min-width: 0;
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+    outline: none;
+    padding-right: .25rem;
+}
+
+.rp-tipo-select option {
+    color: #333;
+}
+
+.rp-titulo {
+    position: relative;
+    margin: 0;
+    padding-bottom: .55rem;
+    text-align: center;
+    font-weight: 800;
+    font-size: 1.6rem;
+    white-space: nowrap;
+}
+
+/* Subrayado naranja bajo el título (como el prototipo) */
+.rp-titulo::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    transform: translateX(-50%);
+    width: 360px;
+    max-width: 100%;
+    height: 3px;
+    background: var(--color-sistema);
+    border-radius: 2px;
+}
+
+/* ---- Segunda fila: pastillas Año / Mes ---- */
+.rp-controls {
+    display: flex;
+    gap: .75rem;
+    margin-bottom: 1.25rem;
+}
+
+/* Año y Mes iguales entre sí; juntos (con la separación) suman el ancho del selector de tipo */
+.rp-pill {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    background: var(--color-sistema);
+    border-radius: .6rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, .12);
+    width: calc((var(--rp-ctrl-w) - .75rem) / 2);
+}
+
+.rp-pill-select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+    outline: none;
+    width: 100%;
+    padding: .4rem 2rem .4rem .9rem;
+}
+
+.rp-pill-select option {
+    color: #333;
+}
+
+.rp-pill > .bi {
+    position: absolute;
+    right: .7rem;
+    color: #fff;
+    pointer-events: none;
+    font-size: .8rem;
+}
+
+.rp-btn-consultas {
+    justify-self: end;
+    background: var(--color-sistema);
+    color: #fff;
+    font-weight: 600;
+    white-space: nowrap;
+    border: none;
+    border-radius: .6rem;
+    padding: .4rem 1.1rem;
+}
+
+.rp-btn-consultas:hover {
+    color: #fff;
+    filter: brightness(.95);
+}
+
+/* ---- Tarjetas ---- */
+.rp-cards {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.rp-card {
+    position: relative;
+    background: #fff;
+    border-radius: .75rem;
+    padding: 1rem 1.25rem 0;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, .07);
+    border: 1px solid rgba(0, 0, 0, .05);
+    overflow: hidden;
+}
+
+.rp-card-monto {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #2b2b2b;
+    line-height: 1.1;
+}
+
+.rp-card-label {
+    font-size: .9rem;
+    color: #666;
+    margin-top: .2rem;
+}
+
+/* Mini-gráfica decorativa (solo estética, sin datos reales) */
+.rp-spark {
+    display: block;
+    width: 100%;
+    height: 38px;
+    margin-top: .5rem;
+}
+
+.rp-spark-line {
+    fill: none;
+    stroke: #4a90e2;
+    stroke-width: 1.5;
+    vector-effect: non-scaling-stroke;
+}
+
+.rp-spark-fill {
+    fill: rgba(74, 144, 226, .15);
+    stroke: none;
+}
+
+/* ---- Cuerpo ---- */
+.rp-body {
+    display: grid;
+    grid-template-columns: 1fr 1.4fr;
+    gap: 1rem;
+    align-items: stretch;
+}
+
+.rp-col-izq,
+.rp-col-der {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-width: 0;
+    /* permite que las columnas del grid se encojan bajo el ancho del canvas */
+}
+
+.rp-panel {
+    background: #fff;
+    border-radius: .75rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, .07);
+    border: 1px solid rgba(0, 0, 0, .05);
+    overflow: hidden;
+    min-width: 0;
+}
+
+/* El ranking (top 10) aprovecha el alto restante para alinear con la gráfica anual */
+.rp-panel-crece {
+    flex: 1;
+}
+
+.rp-panel-head {
+    background: var(--color-sistema);
+    color: #fff;
+    font-weight: 700;
+    padding: .55rem 1rem;
+}
+
+.rp-panel-body {
+    padding: .75rem 1rem 1rem;
+}
+
+/* ---- Tablas ---- */
+.rp-table th {
+    font-size: .8rem;
+    color: #888;
+    font-weight: 600;
+    border-bottom: 2px solid #eee;
+    white-space: nowrap;
+}
+
+.rp-table td {
+    font-size: .9rem;
+    vertical-align: middle;
+    border-bottom: 1px solid #f2f2f2;
+}
+
+/* ---- Gráficas ---- */
+.rp-chart {
+    position: relative;
+    height: 240px;
+    min-width: 0;
+}
+
+.rp-chart canvas {
+    max-width: 100%;
+}
+
+/* ---- Carga ---- */
+.rp-loading {
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, .55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 5;
+    border-radius: .75rem;
+}
+
+@media (max-width: 992px) {
+    .rp-top {
+        grid-template-columns: 1fr;
+        justify-items: center;
+    }
+
+    .rp-controls {
+        justify-content: center;
+    }
+
+    .rp-cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .rp-body {
+        grid-template-columns: 1fr;
+    }
+}

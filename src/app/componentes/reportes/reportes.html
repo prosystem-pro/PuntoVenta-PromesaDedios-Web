@@ -1,0 +1,155 @@
+<div class="rp-container" [style.--color-sistema]="colorSistema">
+
+    <!-- Barra superior: selector de tipo + título + filtros de fecha -->
+    <div class="rp-top">
+        <div class="rp-tipo">
+            <i class="bi bi-bar-chart-line-fill"></i>
+            <select class="rp-tipo-select" [ngModel]="tipo()" (ngModelChange)="cambiarTipo($event)">
+                @for (t of tipos; track t.valor) {
+                <option [value]="t.valor">{{ t.etiqueta }}</option>
+                }
+            </select>
+        </div>
+
+        <h2 class="rp-titulo" [style.color]="colorSistema">{{ tituloTipo() }}</h2>
+
+        <button type="button" class="btn btn-sm rp-btn-consultas" (click)="irAConsultas()">
+            <i class="bi bi-table"></i> Ir a consultas
+        </button>
+    </div>
+
+    <!-- Segunda fila: pastillas de Año / Mes -->
+    <div class="rp-controls">
+        <div class="rp-pill">
+            <select class="rp-pill-select" [ngModel]="anio()" (ngModelChange)="anio.set(+$event); cargar()">
+                @for (a of anios; track a) {
+                <option [value]="a">{{ a }}</option>
+                }
+            </select>
+            <i class="bi bi-chevron-down"></i>
+        </div>
+        <div class="rp-pill">
+            <select class="rp-pill-select" [ngModel]="mes()" (ngModelChange)="mes.set(+$event); cargar()">
+                @for (m of meses; track m.valor) {
+                <option [value]="m.valor">{{ m.nombre }}</option>
+                }
+            </select>
+            <i class="bi bi-chevron-down"></i>
+        </div>
+    </div>
+
+    <!-- Tarjetas de métodos de pago + total -->
+    <div class="rp-cards">
+        @for (m of metodos(); track m.nombre; let i = $index) {
+        <div class="rp-card">
+            <div class="rp-card-monto">Q{{ m.monto | number:'1.0-0' }}</div>
+            <div class="rp-card-label">{{ m.nombre }}</div>
+            <svg class="rp-spark" viewBox="0 0 100 30" preserveAspectRatio="none">
+                <polygon class="rp-spark-fill" [attr.points]="'0,30 ' + puntosSpark(sparklines[i]) + ' 100,30'"></polygon>
+                <polyline class="rp-spark-line" [attr.points]="puntosSpark(sparklines[i])"></polyline>
+            </svg>
+        </div>
+        }
+        <div class="rp-card">
+            <div class="rp-card-monto">Q{{ totalGeneral() | number:'1.0-0' }}</div>
+            <div class="rp-card-label">{{ palabraTotal() }}</div>
+            <svg class="rp-spark" viewBox="0 0 100 30" preserveAspectRatio="none">
+                <polygon class="rp-spark-fill" [attr.points]="'0,30 ' + puntosSpark(sparklines[4]) + ' 100,30'"></polygon>
+                <polyline class="rp-spark-line" [attr.points]="puntosSpark(sparklines[4])"></polyline>
+            </svg>
+        </div>
+    </div>
+
+    <!-- Cuerpo: rankings (izquierda) + gráficas (derecha) -->
+    <div class="rp-body">
+
+        <!-- Columna izquierda: rankings -->
+        <div class="rp-col-izq">
+            <div class="rp-panel">
+                <div class="rp-panel-head">Ranking de transacciones</div>
+                <div class="rp-panel-body">
+                    <table class="table table-sm rp-table mb-0">
+                        <thead>
+                            <tr>
+                                <th>No.</th>
+                                <th>Método</th>
+                                <th class="text-end"># transacciones</th>
+                                <th class="text-end">Ticket promedio</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (r of rankingTransacciones(); track r.No) {
+                            <tr>
+                                <td>{{ r.No | number:'2.0-0' }}</td>
+                                <td>{{ r.Metodo | titlecase }}</td>
+                                <td class="text-end fw-semibold">{{ r.Transacciones | number:'1.0-0' }}</td>
+                                <td class="text-end">Q {{ r.TicketPromedio | number:'1.2-2' }}</td>
+                            </tr>
+                            } @empty {
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-3">Sin datos</td>
+                            </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="rp-panel rp-panel-crece">
+                <div class="rp-panel-head">{{ tituloRankingEntidad() }}</div>
+                <div class="rp-panel-body">
+                    <table class="table table-sm rp-table mb-0">
+                        <thead>
+                            <tr>
+                                <th>No.</th>
+                                <th>{{ columnaEntidad() }}</th>
+                                <th class="text-end">Monto</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (r of rankingEntidades(); track r.No) {
+                            <tr>
+                                <td>{{ r.No | number:'2.0-0' }}</td>
+                                <td>{{ nombreEntidad(r) }}</td>
+                                <td class="text-end fw-semibold">Q {{ r.Monto | number:'1.2-2' }}</td>
+                            </tr>
+                            } @empty {
+                            <tr>
+                                <td colspan="3" class="text-center text-muted py-3">Sin datos</td>
+                            </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna derecha: gráficas -->
+        <div class="rp-col-der">
+            <div class="rp-panel">
+                <div class="rp-panel-head">{{ tituloMensual() }}</div>
+                <div class="rp-panel-body">
+                    <div class="rp-chart">
+                        <canvas baseChart [data]="dataLinea()" [options]="opcionesLinea" type="line"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="rp-panel">
+                <div class="rp-panel-head">{{ tituloAnual() }}</div>
+                <div class="rp-panel-body">
+                    <div class="rp-chart">
+                        <canvas baseChart [data]="dataBarra()" [options]="opcionesBarra" type="bar"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay de carga -->
+    @if (cargando()) {
+    <div class="rp-loading">
+        <div class="spinner-border" [style.color]="colorSistema" role="status"></div>
+    </div>
+    }
+</div>

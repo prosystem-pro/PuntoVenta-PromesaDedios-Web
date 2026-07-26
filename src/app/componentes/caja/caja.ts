@@ -11,8 +11,13 @@ import {
     ResumenIngresosCaja, ResumenEgresosCaja, ResumenFormasPagoCaja
 } from '../../Modelos/caja.modelo';
 import { Denominacion } from '../../Modelos/denominacion.modelo';
-import { ComprobanteVenta } from '../../Modelos/venta.modelo';
 import { ComprobanteVentaModal } from '../facturar/comprobante-venta-modal/comprobante-venta-modal';
+import { FacturaCompraModal } from '../compras/factura-compra-modal/factura-compra-modal';
+import { ComprobanteAbonoModal } from '../compras/comprobante-abono-modal/comprobante-abono-modal';
+import { ComprobantePagoModal } from '../estado-pedidos/comprobante-pago-modal/comprobante-pago-modal';
+
+// Tipo de documento que abre la lupa, según el origen del movimiento de caja.
+type TipoDocumentoCaja = 'venta' | 'compra' | 'abono' | 'pago';
 
 // Fila de la herramienta de conteo: una denominación con su cantidad ingresada.
 interface FilaDenominacion {
@@ -24,7 +29,7 @@ interface FilaDenominacion {
 @Component({
     selector: 'app-caja',
     standalone: true,
-    imports: [CommonModule, FormsModule, ComprobanteVentaModal],
+    imports: [CommonModule, FormsModule, ComprobanteVentaModal, FacturaCompraModal, ComprobanteAbonoModal, ComprobantePagoModal],
     templateUrl: './caja.html',
     styleUrl: './caja.css'
 })
@@ -81,8 +86,11 @@ export class Caja implements OnInit {
     cargandoMovimientos = signal(false);
 
     // ----- Ver documento del movimiento (lupa) -----
+    // El API devuelve distintas formas según el tipo de movimiento; ramificamos por TipoOperacion
+    // y abrimos el modal que corresponde. La data es genérica (cada modal sabe leer su forma).
     mostrarDocumento = signal(false);
-    documentoData = signal<ComprobanteVenta | null>(null);
+    tipoDocumento = signal<TipoDocumentoCaja | null>(null);
+    documentoData = signal<any>(null);
     cargandoDocumento = signal<number | null>(null); // CodigoMovimiento en carga
 
     // ----- Cierre de caja (inline en el panel derecho) -----
@@ -357,13 +365,33 @@ export class Caja implements OnInit {
         }
     }
 
+    // Mapea el tipo de operación del movimiento al documento/modal que le corresponde.
+    // Devuelve null cuando el movimiento no tiene documento visible (apertura, etc.).
+    private tipoDocumentoPara(tipoOperacion: string): TipoDocumentoCaja | null {
+        switch (tipoOperacion) {
+            case 'VENTA': return 'venta';                 // factura de venta con productos
+            case 'COMPRA_CONTADO': return 'compra';       // factura de compra
+            case 'ABONO_COMPRA_CREDITO': return 'abono';  // recibo de abono a proveedor
+            case 'ABONO_PEDIDO': return 'pago';           // recibo de pago de venta/pedido
+            default: return null;
+        }
+    }
+
     // ----- Ver documento del movimiento -----
     async verDocumento(m: MovimientoCaja) {
         if (!m.CodigoMovimiento || this.cargandoDocumento() !== null) return;
+
+        const tipo = this.tipoDocumentoPara(m.TipoOperacion);
+        if (!tipo) {
+            this.servicioAlerta.MostrarAlerta('Este movimiento no tiene un documento para mostrar.');
+            return;
+        }
+
         this.cargandoDocumento.set(m.CodigoMovimiento);
         try {
             const res = await this.servicioConfig.obtenerDocumentoMovimiento(m.CodigoMovimiento);
             if (res.success && res.data) {
+                this.tipoDocumento.set(tipo);
                 this.documentoData.set(res.data);
                 this.mostrarDocumento.set(true);
             } else {
@@ -379,6 +407,7 @@ export class Caja implements OnInit {
     cerrarDocumento() {
         this.mostrarDocumento.set(false);
         this.documentoData.set(null);
+        this.tipoDocumento.set(null);
     }
 
     // ----- Cierre de caja (inline) -----

@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter, signal, OnChanges, SimpleChanges, inject, ElementRef, ViewChild } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { Entorno } from '../../../Entorno/Entorno';
 import { AlertaServicio } from '../../../Servicios/alerta.service';
 import { ComprobanteVenta } from '../../../Modelos/venta.modelo';
@@ -10,11 +10,26 @@ import { ComprobanteVenta } from '../../../Modelos/venta.modelo';
     selector: 'app-comprobante-venta-modal',
     standalone: true,
     imports: [CommonModule],
+    providers: [DatePipe],
     templateUrl: './comprobante-venta-modal.html',
     styleUrl: './comprobante-venta-modal.css'
 })
 export class ComprobanteVentaModal implements OnChanges {
     private servicioAlerta = inject(AlertaServicio);
+    private datePipe = inject(DatePipe);
+
+    // Muestra una fecha que puede venir cruda (Date/ISO, de Facturar/Mesa) o YA formateada
+    // como string 'dd/MM/yyyy HH:mm' (del API, p.ej. ObtenerDatosFacturaVenta). Si no es
+    // parseable como Date, se asume ya formateada y se devuelve tal cual; así el pipe 'date'
+    // nunca lanza excepción (que antes cortaba el render del comprobante).
+    mostrarFecha(valor: any, formato: string = 'dd/MM/yyyy HH:mm'): string {
+        if (!valor) return '';
+        const fecha = new Date(valor);
+        if (!isNaN(fecha.getTime())) {
+            return this.datePipe.transform(fecha, formato) ?? String(valor);
+        }
+        return String(valor);
+    }
 
     @Input() visible = false;
     @Input() data: ComprobanteVenta | null = null;

@@ -21,6 +21,9 @@ export class FacturaCompraModal implements OnChanges {
 
     @Input() visible = false;
     @Input() codigoCompra: number | null = null;
+    // Modo "data directa": si viene la factura ya cargada (p.ej. desde Caja), se usa tal cual
+    // y no se hace fetch por codigoCompra.
+    @Input() datosDirectos: FacturaCompra | null = null;
     @Input() colorSistema = Entorno.ColorSistema;
 
     @Output() cerrar = new EventEmitter<void>();
@@ -33,9 +36,13 @@ export class FacturaCompraModal implements OnChanges {
     generandoPdf = signal(false);
 
     async ngOnChanges(changes: SimpleChanges): Promise<void> {
-        if (changes['visible']?.currentValue && this.codigoCompra) {
-            this.data.set(null);
-            await this.cargar();
+        if (changes['visible']?.currentValue) {
+            if (this.datosDirectos) {
+                this.data.set(this.datosDirectos);
+            } else if (this.codigoCompra) {
+                this.data.set(null);
+                await this.cargar();
+            }
         }
     }
 

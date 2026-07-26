@@ -17,6 +17,9 @@ export class ComprobanteAbonoModal implements OnChanges {
 
     @Input() visible = false;
     @Input() codigoPagoProveedor: number | null = null;
+    // Modo "data directa": si viene el recibo ya cargado (p.ej. desde Caja), se usa tal cual
+    // y no se hace fetch por codigoPagoProveedor.
+    @Input() datosDirectos: any = null;
     @Output() cerrar = new EventEmitter<void>();
 
     colorSistema = Entorno.ColorSistema;
@@ -25,8 +28,12 @@ export class ComprobanteAbonoModal implements OnChanges {
     data = signal<any>(null);
 
     async ngOnChanges(changes: SimpleChanges) {
-        if (changes['visible']?.currentValue && this.codigoPagoProveedor) {
-            await this.cargar();
+        if (changes['visible']?.currentValue) {
+            if (this.datosDirectos) {
+                this.data.set(this.datosDirectos);
+            } else if (this.codigoPagoProveedor) {
+                await this.cargar();
+            }
         }
     }
 

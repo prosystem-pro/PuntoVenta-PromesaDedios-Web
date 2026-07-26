@@ -341,10 +341,34 @@
     </div>
 </div>
 
-<!-- Comprobante del movimiento (lupa "ver documento") -->
+<!-- Documento del movimiento (lupa "ver documento"): el modal depende del tipo de operación -->
+<!-- VENTA -> factura de venta -->
 <app-comprobante-venta-modal
-    [visible]="mostrarDocumento()"
+    [visible]="mostrarDocumento() && tipoDocumento() === 'venta'"
     [data]="documentoData()"
     [colorSistema]="colorSistema"
     (cerrar)="cerrarDocumento()">
 </app-comprobante-venta-modal>
+
+<!-- COMPRA_CONTADO -> factura de compra -->
+<app-factura-compra-modal
+    [visible]="mostrarDocumento() && tipoDocumento() === 'compra'"
+    [datosDirectos]="documentoData()"
+    [colorSistema]="colorSistema"
+    (cerrar)="cerrarDocumento()">
+</app-factura-compra-modal>
+
+<!-- ABONO_COMPRA_CREDITO -> recibo de abono a proveedor -->
+<app-comprobante-abono-modal
+    [visible]="mostrarDocumento() && tipoDocumento() === 'abono'"
+    [datosDirectos]="documentoData()"
+    (cerrar)="cerrarDocumento()">
+</app-comprobante-abono-modal>
+
+<!-- ABONO_PEDIDO -> recibo de pago de venta/pedido -->
+<app-comprobante-pago-modal
+    [visible]="mostrarDocumento() && tipoDocumento() === 'pago'"
+    [data]="documentoData()"
+    [colorSistema]="colorSistema"
+    (cerrar)="cerrarDocumento()">
+</app-comprobante-pago-modal>

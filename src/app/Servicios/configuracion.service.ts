@@ -5,7 +5,6 @@ import { Mesa } from '../Modelos/mesa.modelo';
 import { ClasificacionMesa } from '../Modelos/clasificacion-mesa.modelo';
 import { RespuestaAPI } from '../Modelos/producto.modelo';
 import { EstadoCaja, AperturaCajaPayload, AperturaCajaResultado, DatosCaja, CierreCajaPayload, CierreCajaResultado } from '../Modelos/caja.modelo';
-import { ComprobanteVenta } from '../Modelos/venta.modelo';
 
 @Injectable({
     providedIn: 'root'
@@ -149,12 +148,14 @@ export class ServicioConfiguracion {
         }
     }
 
-    // Comprobante de un movimiento de caja (para la lupa "ver documento").
-    // PENDIENTE DE API: el movimiento ya trae CodigoMovimiento; se espera un endpoint
-    // que lo reciba y devuelva el comprobante normalizado (misma forma que la factura de venta).
-    async obtenerDocumentoMovimiento(codigoMovimiento: number): Promise<RespuestaAPI<ComprobanteVenta>> {
+    // Documento de un movimiento de caja (para la lupa "ver documento").
+    // El API resuelve el documento según el origen del movimiento y devuelve DISTINTAS formas:
+    //   VENTA -> factura de venta (ComprobanteVenta) | COMPRA_CONTADO -> factura de compra (FacturaCompra)
+    //   ABONO_COMPRA_CREDITO -> recibo de abono a proveedor | ABONO_PEDIDO -> recibo de pago (ComprobantePago)
+    // Por eso el tipo es genérico; el componente ramifica por TipoOperacion y elige el modal.
+    async obtenerDocumentoMovimiento(codigoMovimiento: number): Promise<RespuestaAPI<any>> {
         try {
-            const respuesta = await api.get<RespuestaAPI<ComprobanteVenta>>(`caja/documento-movimiento/${codigoMovimiento}`);
+            const respuesta = await api.get<RespuestaAPI<any>>(`caja/documento-movimiento/${codigoMovimiento}`);
             return respuesta.data;
         } catch (error: any) {
             return this.manejarError(error);

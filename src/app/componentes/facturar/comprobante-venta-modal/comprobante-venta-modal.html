@@ -38,7 +38,7 @@
             <!-- Datos de comprobante -->
             <h6 class="fw-bold text-center my-2">Datos de comprobante</h6>
             <div class="row g-1 small">
-                <div class="col-7">Fecha: {{ data.DatosComprobante.FechaFacturacion | date:'dd/MM/yyyy HH:mm' }} Horas</div>
+                <div class="col-7">Fecha: {{ mostrarFecha(data.DatosComprobante.FechaFacturacion) }} Horas</div>
                 <div class="col-5">Documento: {{ data.DatosComprobante.Documento || '-' }}</div>
                 <div class="col-12">Responsable: {{ data.DatosComprobante.Responsable || '-' }}</div>
                 <div class="col-7">Cliente: {{ data.DatosComprobante.Cliente || 'C/F' }}</div>
@@ -46,7 +46,7 @@
                 <div class="col-7">Dirección: {{ data.DatosComprobante.Direccion || '-' }}</div>
                 <div class="col-5">Celular: {{ data.DatosComprobante.Celular || '-' }}</div>
                 @if (data.DatosComprobante.FechaEntrega) {
-                <div class="col-12">Fecha de entrega: {{ data.DatosComprobante.FechaEntrega | date:'dd/MM/yyyy' }}</div>
+                <div class="col-12">Fecha de entrega: {{ mostrarFecha(data.DatosComprobante.FechaEntrega, 'dd/MM/yyyy') }}</div>
                 }
             </div>
 

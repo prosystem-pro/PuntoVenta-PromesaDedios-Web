@@ -149,6 +149,20 @@
     overflow: hidden;
 }
 
+/* Vista de día: 3 columnas, tarjetas más altas con gráfica prominente (como el prototipo) */
+.rp-cards-dia {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.rp-card-dia .rp-card-monto {
+    font-size: 1.75rem;
+}
+
+.rp-card-dia .rp-spark {
+    height: 72px;
+    margin-top: 1.25rem;
+}
+
 .rp-card-monto {
     font-size: 1.5rem;
     font-weight: 800;

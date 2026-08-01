@@ -4,9 +4,9 @@
     <div class="rp-top">
         <div class="rp-tipo">
             <i class="bi bi-bar-chart-line-fill"></i>
-            <select class="rp-tipo-select" [ngModel]="tipo()" (ngModelChange)="cambiarTipo($event)">
-                @for (t of tipos; track t.valor) {
-                <option [value]="t.valor">{{ t.etiqueta }}</option>
+            <select class="rp-tipo-select" [ngModel]="seleccion()" (ngModelChange)="cambiarVista($event)">
+                @for (o of opciones; track o.valor) {
+                <option [value]="o.valor">{{ o.etiqueta }}</option>
                 }
             </select>
         </div>
@@ -18,7 +18,8 @@
         </button>
     </div>
 
-    <!-- Segunda fila: pastillas de Año / Mes -->
+    <!-- Segunda fila: pastillas de Año / Mes (no aplican en modo día) -->
+    @if (!esDia()) {
     <div class="rp-controls">
         <div class="rp-pill">
             <select class="rp-pill-select" [ngModel]="anio()" (ngModelChange)="anio.set(+$event); cargar()">
@@ -37,6 +38,25 @@
             <i class="bi bi-chevron-down"></i>
         </div>
     </div>
+    }
+
+    @if (esDia()) {
+
+    <!-- Vista de día: 7 tarjetas de resumen (sin filtros ni gráficas) -->
+    <div class="rp-cards rp-cards-dia">
+        @for (c of tarjetasDia(); track c.nombre; let i = $index) {
+        <div class="rp-card rp-card-dia">
+            <div class="rp-card-monto">{{ c.moneda ? 'Q' : '' }}{{ c.monto | number:'1.0-0' }}</div>
+            <div class="rp-card-label">{{ c.nombre }}</div>
+            <svg class="rp-spark" viewBox="0 0 100 30" preserveAspectRatio="none">
+                <polygon class="rp-spark-fill" [attr.points]="'0,30 ' + puntosSpark(sparklines[i]) + ' 100,30'"></polygon>
+                <polyline class="rp-spark-line" [attr.points]="puntosSpark(sparklines[i])"></polyline>
+            </svg>
+        </div>
+        }
+    </div>
+
+    } @else {
 
     <!-- Tarjetas de métodos de pago + total -->
     <div class="rp-cards">
@@ -145,6 +165,8 @@
             </div>
         </div>
     </div>
+
+    }
 
     <!-- Overlay de carga -->
     @if (cargando()) {

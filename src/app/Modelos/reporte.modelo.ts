@@ -3,6 +3,22 @@
 
 export type TipoReporte = 'VENTA' | 'PEDIDO' | 'COMPRA';
 
+// Selección de la pastilla superior de /reportes: el día (resumen) o el mensual por tipo.
+export type VistaReporte = 'DIA' | TipoReporte;
+
+// Consolidado del día (GET /reporte/consolidado-dia). Sin filtros: usa el día de hoy.
+export interface ConsolidadoDia {
+    FechaConsulta: string;   // 'YYYY-MM-DD'
+    Zona: string;
+    TotalVentas: number;
+    TotalPedidos: number;
+    TotalAbonosClientes: number;
+    TotalCompras: number;
+    TotalPagoProveedores: number;
+    TotalPropinas: number;
+    CantidadTransacciones: number;
+}
+
 export interface MetodosPagoReporte {
     EFECTIVO: number;
     TARJETA: number;

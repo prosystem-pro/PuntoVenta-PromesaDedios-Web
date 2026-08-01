@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import axiosInstance from './axios.config';
 import { RespuestaAPI } from '../Modelos/producto.modelo';
-import { ConsolidadoReporte, TipoReporte } from '../Modelos/reporte.modelo';
+import { ConsolidadoReporte, ConsolidadoDia, TipoReporte } from '../Modelos/reporte.modelo';
 
 @Injectable({
     providedIn: 'root'
@@ -14,6 +14,12 @@ export class ReporteServicio {
         const res = await axiosInstance.get('reporte/consolidado-mes', {
             params: { Tipo: tipo, Anio: anio, Mes: mes }
         });
+        return res.data;
+    }
+
+    // Consolidado del día (7 totales del día de hoy). No recibe parámetros.
+    async obtenerConsolidadoDia(): Promise<RespuestaAPI<ConsolidadoDia>> {
+        const res = await axiosInstance.get('reporte/consolidado-dia');
         return res.data;
     }
 }

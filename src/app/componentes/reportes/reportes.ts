@@ -6,7 +6,7 @@ import { ChartData, ChartOptions } from 'chart.js';
 import { Entorno } from '../../Entorno/Entorno';
 import { AlertaServicio } from '../../Servicios/alerta.service';
 import { ReporteServicio } from '../../Servicios/reporte.service';
-import { ConsolidadoReporte, TipoReporte, RankingEntidad } from '../../Modelos/reporte.modelo';
+import { ConsolidadoReporte, ConsolidadoDia, TipoReporte, VistaReporte, RankingEntidad } from '../../Modelos/reporte.modelo';
 
 @Component({
     selector: 'app-reportes',
@@ -22,12 +22,19 @@ export class Reportes implements OnInit {
     colorSistema = Entorno.ColorSistema;
 
     // --- Filtros ---
-    tipo = signal<TipoReporte>('VENTA');
+    // Selección de la pastilla superior: 'DIA' (resumen de hoy) o un tipo mensual.
+    seleccion = signal<VistaReporte>('DIA');
     anio = signal<number>(new Date().getFullYear());
     mes = signal<number>(new Date().getMonth() + 1);
 
     cargando = signal(false);
     data = signal<ConsolidadoReporte | null>(null);
+    dataDia = signal<ConsolidadoDia | null>(null);
+
+    // En modo día no hay filtros ni gráficas; solo el resumen de 7 tarjetas.
+    esDia = computed(() => this.seleccion() === 'DIA');
+    // Para las etiquetas mensuales, el tipo efectivo (en DIA no aplica; cae en VENTA).
+    tipo = computed<TipoReporte>(() => this.esDia() ? 'VENTA' : this.seleccion() as TipoReporte);
 
     // Opciones de los selectores
     anios: number[] = (() => {
@@ -42,15 +49,17 @@ export class Reportes implements OnInit {
     ];
     private nombresMes = this.meses.map(m => m.nombre);
 
-    tipos: { valor: TipoReporte; etiqueta: string }[] = [
+    opciones: { valor: VistaReporte; etiqueta: string }[] = [
+        { valor: 'DIA', etiqueta: 'Movimientos del día' },
         { valor: 'VENTA', etiqueta: 'Estadística de ventas' },
         { valor: 'COMPRA', etiqueta: 'Estadística de compras' },
         { valor: 'PEDIDO', etiqueta: 'Estadística de pedidos' }
     ];
 
-    // --- Etiquetas dependientes del tipo ---
+    // --- Etiquetas dependientes de la selección ---
     tituloTipo = computed(() => {
-        switch (this.tipo()) {
+        switch (this.seleccion()) {
+            case 'DIA': return 'Estadísticas del día';
             case 'COMPRA': return 'Estadísticas de compras';
             case 'PEDIDO': return 'Estadísticas de pedidos';
             default: return 'Estadísticas de ventas';
@@ -93,6 +102,21 @@ export class Reportes implements OnInit {
     });
     totalGeneral = computed(() => this.data()?.MetodosPago?.TOTAL_GENERAL ?? 0);
 
+    // --- Tarjetas del día (7 totales de hoy) ---
+    // 'moneda' distingue montos (Q) de la cuenta de transacciones (entero).
+    tarjetasDia = computed(() => {
+        const d = this.dataDia();
+        return [
+            { nombre: 'Total de ventas', monto: d?.TotalVentas ?? 0, moneda: true },
+            { nombre: 'Total de pedidos', monto: d?.TotalPedidos ?? 0, moneda: true },
+            { nombre: 'Total de abono de clientes', monto: d?.TotalAbonosClientes ?? 0, moneda: true },
+            { nombre: 'Total de compras', monto: d?.TotalCompras ?? 0, moneda: true },
+            { nombre: 'Total pago proveedores', monto: d?.TotalPagoProveedores ?? 0, moneda: true },
+            { nombre: 'Total propina', monto: d?.TotalPropinas ?? 0, moneda: true },
+            { nombre: 'Cantidad de transacciones', monto: d?.CantidadTransacciones ?? 0, moneda: false }
+        ];
+    });
+
     // Mini-gráficas DECORATIVAS de las tarjetas (el API no manda serie por método;
     // en el prototipo son solo estéticas). Un patrón distinto por tarjeta para dar variedad.
     sparklines: number[][] = [
@@ -100,7 +124,9 @@ export class Reportes implements OnInit {
         [5, 6, 8, 4, 7, 3, 6, 9, 5, 7, 6, 8],
         [7, 5, 6, 4, 8, 6, 9, 5, 7, 4, 6, 7],
         [4, 6, 5, 8, 6, 9, 4, 7, 5, 8, 6, 5],
-        [6, 8, 5, 9, 6, 7, 4, 8, 6, 9, 5, 7]
+        [6, 8, 5, 9, 6, 7, 4, 8, 6, 9, 5, 7],
+        [5, 7, 6, 9, 4, 8, 6, 7, 5, 9, 6, 8],
+        [8, 5, 7, 6, 9, 4, 7, 6, 8, 5, 7, 6]
     ];
 
     // Convierte una serie de valores en los puntos de un SVG de 100x30 (viewBox).
@@ -147,12 +173,38 @@ export class Reportes implements OnInit {
         this.servicioAlerta.MostrarInfo('Sección pendiente de definir su destino.', 'Ir a consultas');
     }
 
-    async cambiarTipo(valor: TipoReporte) {
-        this.tipo.set(valor);
+    async cambiarVista(valor: VistaReporte) {
+        this.seleccion.set(valor);
         await this.cargar();
     }
 
     async cargar() {
+        if (this.esDia()) {
+            await this.cargarDia();
+        } else {
+            await this.cargarMes();
+        }
+    }
+
+    private async cargarDia() {
+        this.cargando.set(true);
+        try {
+            const res = await this.servicio.obtenerConsolidadoDia();
+            if (res.success && res.data) {
+                this.dataDia.set(res.data);
+            } else {
+                this.dataDia.set(null);
+                this.servicioAlerta.MostrarError(res.message, 'No se pudo obtener el reporte del día');
+            }
+        } catch (error: any) {
+            this.dataDia.set(null);
+            this.servicioAlerta.MostrarError(error, 'No se pudo obtener el reporte del día');
+        } finally {
+            this.cargando.set(false);
+        }
+    }
+
+    private async cargarMes() {
         this.cargando.set(true);
         try {
             const res = await this.servicio.obtenerConsolidado(this.tipo(), this.anio(), this.mes());

@@ -100,7 +100,7 @@ export class Facturar implements OnInit {
     async ngOnInit() {
         await this.cargarCategorias();
         // Catálogo completo en segundo plano (solo para resolver código de barras)
-        this.servicioProducto.Listar().then(res => {
+        this.servicioProducto.Listar('facturar').then(res => {
             if (res.success) this.productosGlobal = res.data || [];
         });
     }
@@ -108,7 +108,7 @@ export class Facturar implements OnInit {
     async cargarCategorias() {
         this.cargando.set(true);
         try {
-            const res = await this.servicioProducto.ListarCategorias('VENTANILLA');
+            const res = await this.servicioProducto.ListarCategorias('facturar', 'VENTANILLA');
             if (res.success) {
                 const cats = res.data || [];
                 this.categorias.set(cats);
@@ -132,7 +132,7 @@ export class Facturar implements OnInit {
         this.cargando.set(true);
         this.productos.set([]);
         try {
-            const res = await this.servicioProducto.ProductosPorCategoria(codigoCategoria);
+            const res = await this.servicioProducto.ProductosPorCategoria('facturar', codigoCategoria);
             if (res.success) {
                 const lista = (res.data || []).map((p: any): ProductoVenta => ({
                     CodigoProducto: p.CodigoProducto,

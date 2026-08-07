@@ -123,8 +123,8 @@ export class MateriaPrima implements OnInit {
     async cargarCatalogos() {
         try {
             const [resCat, resUni] = await Promise.all([
-                this.servicioProducto.ListarCategorias('INSUMO'),
-                this.servicioProducto.ListarUnidades()
+                this.servicioProducto.ListarCategorias('materiaprima', 'INSUMO'),
+                this.servicioProducto.ListarUnidades('materiaprima')
             ]);
             if (resCat.success) {
                 const listado = Array.isArray(resCat.data) ? resCat.data : (resCat.data?.Listado || []);
@@ -142,7 +142,7 @@ export class MateriaPrima implements OnInit {
     async cargarInsumos() {
         this.cargando.set(true);
         try {
-            const res = await this.servicioProducto.ListarInsumos();
+            const res = await this.servicioProducto.ListarInsumos('materiaprima');
             const listadoRaw = Array.isArray(res.data) ? res.data : (res.data?.Listado || []);
             const insumosMapeados = listadoRaw.map((p: any) => ({
                 ...p,
@@ -326,7 +326,7 @@ export class MateriaPrima implements OnInit {
         );
         if (confirmado) {
             try {
-                const res = await this.servicioProducto.Eliminar(id);
+                const res = await this.servicioProducto.Eliminar('materiaprima', id);
                 if (res.success) {
                     this.servicioAlerta.MostrarExito(res.message);
                     this.cargarInsumos();

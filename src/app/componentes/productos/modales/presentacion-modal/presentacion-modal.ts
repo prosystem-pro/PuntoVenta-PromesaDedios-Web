@@ -59,7 +59,7 @@ export class PresentacionModal implements OnInit, OnChanges {
 
     async cargarUnidades() {
         try {
-            const res = await this.servicioProducto.ListarUnidades();
+            const res = await this.servicioProducto.ListarUnidades('producto');
             if (res.success) {
                 const listado = Array.isArray(res.data) ? res.data : (res.data?.Listado || []);
                 this.unidades.set(listado);

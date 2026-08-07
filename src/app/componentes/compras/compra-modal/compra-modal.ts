@@ -188,11 +188,13 @@ export class CompraModal implements OnInit {
             }).catch(e => console.error('Error cargando productos:', e));
 
             // Cargar Categorías y Unidades
-            this.servicioProducto.ListarCategorias('INSUMO').then(res => {
+            // TODO(API): el módulo 'compra' aún no expone categoriaproducto-listado (Roberto no lo migró).
+            // Se envía 'compra' para que respete permisos; pendiente que agregue la ruta.
+            this.servicioProducto.ListarCategorias('compra', 'INSUMO').then(res => {
                 if (res.success) this.listadoCategorias.set(res.data || []);
             }).catch(e => console.error('Error cargando categorías:', e));
 
-            this.servicioProducto.ListarUnidades().then(res => {
+            this.servicioProducto.ListarUnidades('compra').then(res => {
                 if (res.success) this.listadoUnidades.set(res.data || []);
             }).catch(e => console.error('Error cargando unidades:', e));
 

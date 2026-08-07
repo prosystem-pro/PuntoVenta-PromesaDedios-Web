@@ -67,19 +67,19 @@ export class EstadoPedidoServicio {
 
     // Anula la venta/pedido completo de ventanilla (devuelve inventario, anula pagos y producción).
     async anularVentaPedido(CodigoVenta: number, MotivoAnulacion: string): Promise<RespuestaAPI<any>> {
-        const res = await axiosInstance.post('venta/anular-ventapedido-completa', { CodigoVenta, MotivoAnulacion });
+        const res = await axiosInstance.post('estadopedido/venta-anular-ventapedido-completa', { CodigoVenta, MotivoAnulacion });
         return res.data;
     }
 
     // Elimina un pedido de producción sin venta (solo si está pendiente).
     async eliminarPedido(CodigoPedidoProduccion: number, MotivoEliminacion: string): Promise<RespuestaAPI<any>> {
-        const res = await axiosInstance.post('venta/eliminar-pedido', { CodigoPedidoProduccion, MotivoEliminacion });
+        const res = await axiosInstance.post('estadopedido/venta-eliminar-pedido', { CodigoPedidoProduccion, MotivoEliminacion });
         return res.data;
     }
 
     // Anula (soft-delete contable) un pago del pedido: deja motivo, revierte caja y recalcula saldo.
     async anularPago(CodigoPagoVenta: number, MotivoAnulacion: string): Promise<RespuestaAPI<any>> {
-        const res = await axiosInstance.post('venta/anular-pago', { CodigoPagoVenta, MotivoAnulacion });
+        const res = await axiosInstance.post('estadopedido/venta-anular-pago', { CodigoPagoVenta, MotivoAnulacion });
         return res.data;
     }
 

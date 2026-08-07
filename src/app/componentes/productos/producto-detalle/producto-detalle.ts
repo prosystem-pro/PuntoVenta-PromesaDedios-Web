@@ -156,10 +156,10 @@ export class ProductoDetalle implements OnInit {
     async cargarCatalogos() {
         try {
             const [resCat, resUni, resProd, resProdAll] = await Promise.all([
-                this.servicioProducto.ListarCategorias('VENTANILLA'),
-                this.servicioProducto.ListarUnidades(),
-                this.servicioProducto.ListarInsumos(),
-                this.servicioProducto.Listar()
+                this.servicioProducto.ListarCategorias('producto', 'VENTANILLA'),
+                this.servicioProducto.ListarUnidades('producto'),
+                this.servicioProducto.ListarInsumos('producto'),
+                this.servicioProducto.Listar('producto')
             ]);
             if (resProdAll.success) {
                 const listado = Array.isArray(resProdAll.data) ? resProdAll.data : (resProdAll.data?.Listado || []);
@@ -194,7 +194,7 @@ export class ProductoDetalle implements OnInit {
     async cargarProducto(id: number) {
         this.cargando.set(true);
         try {
-            const res = await this.servicioProducto.ObtenerCompleto(id);
+            const res = await this.servicioProducto.ObtenerCompleto('producto', id);
 
             if (res.success && res.data) {
                 const pData = res.data;
@@ -594,12 +594,12 @@ export class ProductoDetalle implements OnInit {
             let res;
             if (this.modoEdicion()) {
                 // Para editar, el API recibe los mismos campos unificados
-                res = await this.servicioProducto.Editar({
+                res = await this.servicioProducto.Editar('producto', {
                     ...datos,
                     CodigoProducto: this.productoId!
                 });
             } else {
-                res = await this.servicioProducto.Crear(datos);
+                res = await this.servicioProducto.Crear('producto', datos);
             }
 
             if (res.success) {
@@ -639,7 +639,7 @@ export class ProductoDetalle implements OnInit {
             formData.append('CampoPropio', 'CodigoProducto');
             formData.append('NombreCampoImagen', 'ImagenUrl');
 
-            await this.servicioProducto.SubirImagen(formData);
+            await this.servicioProducto.SubirImagen('producto', formData);
         } catch (error) {
             console.error('Error subiendo imagen:', error);
         }

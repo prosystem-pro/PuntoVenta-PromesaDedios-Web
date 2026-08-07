@@ -110,7 +110,7 @@ export class MesaListado implements OnInit, OnDestroy {
     };
 
     async cargarCatalogos() {
-        const res = await this.servicioConfig.obtenerClasificaciones();
+        const res = await this.servicioConfig.obtenerClasificaciones('ventamesa');
         if (res.success) {
             this.clasificaciones.set(res.data || []);
         }

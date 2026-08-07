@@ -131,8 +131,8 @@ export class Productos implements OnInit {
     async cargarCatalogos() {
         try {
             const [resCat, resUni] = await Promise.all([
-                this.servicioProducto.ListarCategorias('VENTANILLA'),
-                this.servicioProducto.ListarUnidades()
+                this.servicioProducto.ListarCategorias('producto', 'VENTANILLA'),
+                this.servicioProducto.ListarUnidades('producto')
             ]);
             if (resCat.success) {
                 const listado = Array.isArray(resCat.data) ? resCat.data : (resCat.data?.Listado || []);
@@ -150,7 +150,7 @@ export class Productos implements OnInit {
     async cargarProductos() {
         this.cargando.set(true);
         try {
-            const res = await this.servicioProducto.Listar();
+            const res = await this.servicioProducto.Listar('producto');
             const listadoRaw = Array.isArray(res.data) ? res.data : (res.data?.Listado || []);
 
             // Mapeo de datos del API al Modelo Frontend
@@ -193,7 +193,7 @@ export class Productos implements OnInit {
         );
         if (confirmado) {
             try {
-                const res = await this.servicioProducto.Eliminar(id);
+                const res = await this.servicioProducto.Eliminar('producto', id);
                 if (res.success) {
                     this.servicioAlerta.MostrarExito(res.message);
                     this.cargarProductos();

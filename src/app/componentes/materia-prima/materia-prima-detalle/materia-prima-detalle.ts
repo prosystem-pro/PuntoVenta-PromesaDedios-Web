@@ -88,7 +88,7 @@ export class MateriaPrimaDetalle implements OnInit {
     async cargarInsumo(id: number) {
         this.cargando.set(true);
         try {
-            const res = await this.servicioProducto.ObtenerCompleto(id);
+            const res = await this.servicioProducto.ObtenerCompleto('materiaprima', id);
             if (res.success) {
                 const p = res.data;
                 const inv = p.Inventario || {};
@@ -117,8 +117,8 @@ export class MateriaPrimaDetalle implements OnInit {
     async cargarCatalogos() {
         try {
             const [resCat, resUni] = await Promise.all([
-                this.servicioProducto.ListarCategorias('INSUMO'),
-                this.servicioProducto.ListarUnidades()
+                this.servicioProducto.ListarCategorias('materiaprima', 'INSUMO'),
+                this.servicioProducto.ListarUnidades('materiaprima')
             ]);
             if (resCat.success) {
                 const listado = Array.isArray(resCat.data) ? resCat.data : (resCat.data?.Listado || []);
@@ -135,7 +135,7 @@ export class MateriaPrimaDetalle implements OnInit {
 
     async cargarInsumosExistentes() {
         try {
-            const res = await this.servicioProducto.ListarInsumos();
+            const res = await this.servicioProducto.ListarInsumos('materiaprima');
             const listadoRaw = Array.isArray(res.data) ? res.data : (res.data?.Listado || []);
             const insumosMapeados = listadoRaw.map((p: any) => ({
                 ...p,
@@ -370,7 +370,7 @@ export class MateriaPrimaDetalle implements OnInit {
                     Ingredientes: []
                 };
 
-                const res = await this.servicioProducto.Crear(cleanPayload);
+                const res = await this.servicioProducto.Crear('materiaprima', cleanPayload);
                 if (res.success) {
                     exitos++;
                     const codigo = res.data?.Producto?.CodigoProducto || res.data?.CodigoProducto;
@@ -446,7 +446,7 @@ export class MateriaPrimaDetalle implements OnInit {
                 TieneReceta: false
             };
 
-            const res = await this.servicioProducto.Editar(payload);
+            const res = await this.servicioProducto.Editar('materiaprima', payload);
             if (res.success) {
                 if (this.archivoImagen && this.insumoId()) {
                     await this.subirImagen(this.insumoId()!, this.archivoImagen, val.CodigoCategoriaProducto);
@@ -477,7 +477,7 @@ export class MateriaPrimaDetalle implements OnInit {
         formData.append('CampoPropio', 'CodigoProducto');
         formData.append('NombreCampoImagen', 'ImagenUrl');
 
-        await this.servicioProducto.SubirImagen(formData);
+        await this.servicioProducto.SubirImagen('materiaprima', formData);
     }
 
     cancelar() {

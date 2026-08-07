@@ -53,7 +53,6 @@ export class CompraModal implements OnInit {
 
     // Listados reales
     listadoProveedores = signal<any[]>([]);
-    listadoCategorias = signal<any[]>([]);
     listadoUnidades = signal<any[]>([]);
     listadoProductos = signal<any[]>([]);
 
@@ -187,13 +186,8 @@ export class CompraModal implements OnInit {
                 }
             }).catch(e => console.error('Error cargando productos:', e));
 
-            // Cargar Categorías y Unidades
-            // TODO(API): el módulo 'compra' aún no expone categoriaproducto-listado (Roberto no lo migró).
-            // Se envía 'compra' para que respete permisos; pendiente que agregue la ruta.
-            this.servicioProducto.ListarCategorias('compra', 'INSUMO').then(res => {
-                if (res.success) this.listadoCategorias.set(res.data || []);
-            }).catch(e => console.error('Error cargando categorías:', e));
-
+            // Cargar Unidades (la categoría del ítem sale del producto seleccionado,
+            // no se usa un listado de categorías aparte)
             this.servicioProducto.ListarUnidades('compra').then(res => {
                 if (res.success) this.listadoUnidades.set(res.data || []);
             }).catch(e => console.error('Error cargando unidades:', e));

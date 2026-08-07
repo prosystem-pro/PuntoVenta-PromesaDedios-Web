@@ -14,7 +14,7 @@ export class ServicioUsuario {
     // --- USUARIOS ---
     async obtenerUsuarios(): Promise<RespuestaAPI<Usuario[]>> {
         try {
-            const respuesta = await api.get<RespuestaAPI<Usuario[]>>('usuario/listado');
+            const respuesta = await api.get<RespuestaAPI<Usuario[]>>('administrativo/usuario-listado');
             return respuesta.data;
         } catch (error: any) {
             return this.manejarError(error);
@@ -23,7 +23,7 @@ export class ServicioUsuario {
 
     async crearUsuario(usuario: Partial<Usuario>): Promise<RespuestaAPI<Usuario>> {
         try {
-            const respuesta = await api.post<RespuestaAPI<Usuario>>('usuario/crear', usuario);
+            const respuesta = await api.post<RespuestaAPI<Usuario>>('administrativo/usuario-crear', usuario);
             return respuesta.data;
         } catch (error: any) {
             return this.manejarError(error);
@@ -32,7 +32,7 @@ export class ServicioUsuario {
 
     async editarUsuario(id: number, usuario: Partial<Usuario>): Promise<RespuestaAPI<Usuario>> {
         try {
-            const respuesta = await api.put<RespuestaAPI<Usuario>>(`usuario/editar/${id}`, usuario);
+            const respuesta = await api.put<RespuestaAPI<Usuario>>(`administrativo/usuario-editar/${id}`, usuario);
             return respuesta.data;
         } catch (error: any) {
             return this.manejarError(error);
@@ -41,7 +41,7 @@ export class ServicioUsuario {
 
     async eliminarUsuario(id: number): Promise<RespuestaAPI<Usuario>> {
         try {
-            const respuesta = await api.delete<RespuestaAPI<Usuario>>(`usuario/eliminar/${id}`);
+            const respuesta = await api.delete<RespuestaAPI<Usuario>>(`administrativo/usuario-eliminar/${id}`);
             return respuesta.data;
         } catch (error: any) {
             return this.manejarError(error);
@@ -51,7 +51,7 @@ export class ServicioUsuario {
     // --- ROLES ---
     async obtenerRoles(): Promise<RespuestaAPI<Rol[]>> {
         try {
-            const respuesta = await api.get<RespuestaAPI<Rol[]>>('rol/listado');
+            const respuesta = await api.get<RespuestaAPI<Rol[]>>('administrativo/rol-listado');
             return respuesta.data;
         } catch (error: any) {
             return this.manejarError(error);
@@ -60,7 +60,7 @@ export class ServicioUsuario {
 
     async crearRol(rol: Partial<Rol>): Promise<RespuestaAPI<Rol>> {
         try {
-            const respuesta = await api.post<RespuestaAPI<Rol>>('rol/crear', rol);
+            const respuesta = await api.post<RespuestaAPI<Rol>>('administrativo/rol-crear', rol);
             return respuesta.data;
         } catch (error: any) {
             return this.manejarError(error);
@@ -69,7 +69,7 @@ export class ServicioUsuario {
 
     async editarRol(id: number, rol: Partial<Rol>): Promise<RespuestaAPI<Rol>> {
         try {
-            const respuesta = await api.put<RespuestaAPI<Rol>>(`rol/editar/${id}`, rol);
+            const respuesta = await api.put<RespuestaAPI<Rol>>(`administrativo/rol-editar/${id}`, rol);
             return respuesta.data;
         } catch (error: any) {
             return this.manejarError(error);
@@ -78,7 +78,7 @@ export class ServicioUsuario {
 
     async eliminarRol(id: number): Promise<RespuestaAPI<Rol>> {
         try {
-            const respuesta = await api.delete<RespuestaAPI<Rol>>(`rol/eliminar/${id}`);
+            const respuesta = await api.delete<RespuestaAPI<Rol>>(`administrativo/rol-eliminar/${id}`);
             return respuesta.data;
         } catch (error: any) {
             return this.manejarError(error);

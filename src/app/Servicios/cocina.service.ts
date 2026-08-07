@@ -10,7 +10,7 @@ export class CocinaServicio {
 
     // Lista los pedidos de cocina pendientes. Responde 404 cuando no hay ninguno.
     async listar(): Promise<RespuestaAPI<CocinaPedido[]>> {
-        const res = await axiosInstance.get('/venta/cocinalistado');
+        const res = await axiosInstance.get('/cocina/venta-cocinalistado');
         return res.data;
     }
 
@@ -18,7 +18,7 @@ export class CocinaServicio {
     // NOTA: el descuento de insumos de receta del inventario debe hacerlo el API
     // dentro de este endpoint (hoy solo cambia el estatus).
     async entregar(codigoCocinaPedido: number): Promise<RespuestaAPI<any>> {
-        const res = await axiosInstance.post('/venta/cocinaentregar', { CodigoCocinaPedido: codigoCocinaPedido });
+        const res = await axiosInstance.post('/cocina/venta-cocinaentregar', { CodigoCocinaPedido: codigoCocinaPedido });
         return res.data;
     }
 }

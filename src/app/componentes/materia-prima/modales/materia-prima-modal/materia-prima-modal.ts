@@ -102,9 +102,9 @@ export class MateriaPrimaModal implements OnChanges {
         try {
             let res;
             if (this.insumoAEditar) {
-                res = await this.servicioProducto.Editar({ ...p, CodigoProducto: this.insumoAEditar.CodigoProducto });
+                res = await this.servicioProducto.Editar('materiaprima', { ...p, CodigoProducto: this.insumoAEditar.CodigoProducto });
             } else {
-                res = await this.servicioProducto.Crear(p);
+                res = await this.servicioProducto.Crear('materiaprima', p);
             }
 
             if (res.success) {
@@ -138,6 +138,6 @@ export class MateriaPrimaModal implements OnChanges {
         formData.append('CampoPropio', 'CodigoProducto');
         formData.append('NombreCampoImagen', 'ImagenUrl');
 
-        await this.servicioProducto.SubirImagen(formData);
+        await this.servicioProducto.SubirImagen('materiaprima', formData);
     }
 }

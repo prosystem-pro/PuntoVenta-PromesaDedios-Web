@@ -59,7 +59,7 @@ export class CategoriaModal implements OnInit {
 
     async cargarCategorias() {
         try {
-            const res = await this.servicioProducto.ListarCategorias(this.tipoProducto);
+            const res = await this.servicioProducto.ListarCategorias('producto', this.tipoProducto);
             if (res.success) {
                 const listado = Array.isArray(res.data) ? res.data : (res.data?.Listado || []);
                 this.categorias.set(listado);
@@ -84,7 +84,7 @@ export class CategoriaModal implements OnInit {
         try {
             let res;
             if (this.modoEdicion()) {
-                res = await this.servicioProducto.EditarCategoria({
+                res = await this.servicioProducto.EditarCategoria('producto', {
                     ...this.nuevaCategoria,
                     CodigoCategoriaProducto: this.modoEdicion()!
                 });
@@ -93,7 +93,7 @@ export class CategoriaModal implements OnInit {
                     this.servicioAlerta.MostrarAlerta('Las categorías nuevas solo pueden crearse en estado Activo.', 'Atención');
                     return;
                 }
-                res = await this.servicioProducto.CrearCategoria({
+                res = await this.servicioProducto.CrearCategoria('producto', {
                     ...this.nuevaCategoria,
                     TipoProducto: this.tipoProducto
                 });
@@ -129,7 +129,7 @@ export class CategoriaModal implements OnInit {
         if (!confirmado) return;
 
         try {
-            const res = await this.servicioProducto.EliminarCategoria(id);
+            const res = await this.servicioProducto.EliminarCategoria('producto', id);
             if (res.success) {
                 this.servicioAlerta.MostrarExito(res.message);
                 this.cargarCategorias();

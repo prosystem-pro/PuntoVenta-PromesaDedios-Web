@@ -185,7 +185,7 @@ export class ProduccionIngresar implements OnInit {
         const insumosMap = new Map();
 
         // Buscamos las recetas de todos los productos en paralelo
-        const promesas = detallesPedido.map(d => this.servicioProducto.ObtenerCompleto(d.CodigoProducto));
+        const promesas = detallesPedido.map(d => this.servicioProducto.ObtenerCompleto('produccion', d.CodigoProducto));
         const resultados = await Promise.all(promesas);
 
         resultados.forEach((res: any, index: number) => {

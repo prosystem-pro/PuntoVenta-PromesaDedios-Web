@@ -16,7 +16,7 @@ export class ServicioConfiguracion {
     // --- EMPRESA ---
     async obtenerEmpresas(): Promise<RespuestaAPI<Empresa[]>> {
         try {
-            const respuesta = await api.get<RespuestaAPI<Empresa[]>>('empresa/listado');
+            const respuesta = await api.get<RespuestaAPI<Empresa[]>>('administrativo/empresa-listado');
             return respuesta.data;
         } catch (error: any) {
             return this.manejarError(error);
@@ -25,7 +25,7 @@ export class ServicioConfiguracion {
 
     async actualizarEmpresa(id: number, empresa: Partial<Empresa>): Promise<RespuestaAPI<Empresa>> {
         try {
-            const respuesta = await api.put<RespuestaAPI<Empresa>>(`empresa/editar/${id}`, empresa);
+            const respuesta = await api.put<RespuestaAPI<Empresa>>(`administrativo/empresa-editar/${id}`, empresa);
             return respuesta.data;
         } catch (error: any) {
             return this.manejarError(error);
@@ -35,7 +35,7 @@ export class ServicioConfiguracion {
     // --- MESAS ---
     async obtenerMesas(): Promise<RespuestaAPI<any[]>> {
         try {
-            const respuesta = await api.get<RespuestaAPI<any[]>>('mesa/listado/porclasificacion');
+            const respuesta = await api.get<RespuestaAPI<any[]>>('administrativo/mesa-listado/porclasificacion');
             return respuesta.data;
         } catch (error: any) {
             return this.manejarError(error);
@@ -44,7 +44,7 @@ export class ServicioConfiguracion {
 
     async crearMesa(mesa: any): Promise<RespuestaAPI<any>> {
         try {
-            const respuesta = await api.post<RespuestaAPI<any>>('mesa/crearcorrelativo', mesa);
+            const respuesta = await api.post<RespuestaAPI<any>>('administrativo/mesa-crearcorrelativo', mesa);
             return respuesta.data;
         } catch (error: any) {
             return this.manejarError(error);
@@ -53,7 +53,7 @@ export class ServicioConfiguracion {
 
     async editarMesa(mesa: any): Promise<RespuestaAPI<any>> {
         try {
-            const respuesta = await api.put<RespuestaAPI<any>>(`mesa/correlativos/editar`, mesa);
+            const respuesta = await api.put<RespuestaAPI<any>>(`administrativo/mesa-correlativos/editar`, mesa);
             return respuesta.data;
         } catch (error: any) {
             return this.manejarError(error);
@@ -63,7 +63,7 @@ export class ServicioConfiguracion {
     async eliminarMesa(datos: any): Promise<RespuestaAPI<any>> {
         try {
             // El API espera CodigoClasificacionMesa y Apodo en el body para eliminar correlativos
-            const respuesta = await api.delete<RespuestaAPI<any>>(`mesa/correlativos/eliminar`, { data: datos });
+            const respuesta = await api.delete<RespuestaAPI<any>>(`administrativo/mesa-correlativos/eliminar`, { data: datos });
             return respuesta.data;
         } catch (error: any) {
             return this.manejarError(error);
@@ -71,9 +71,11 @@ export class ServicioConfiguracion {
     }
 
     // --- CLASIFICACION MESAS ---
-    async obtenerClasificaciones(): Promise<RespuestaAPI<ClasificacionMesa[]>> {
+    // Compartido entre Configuración (módulo administrativo) y la pantalla POS (módulo ventamesa):
+    // el prefijo lo decide la pantalla que llama, para que los permisos queden separados.
+    async obtenerClasificaciones(modulo: 'administrativo' | 'ventamesa' = 'administrativo'): Promise<RespuestaAPI<ClasificacionMesa[]>> {
         try {
-            const respuesta = await api.get<RespuestaAPI<ClasificacionMesa[]>>('clasificacionmesa/listado');
+            const respuesta = await api.get<RespuestaAPI<ClasificacionMesa[]>>(`${modulo}/clasificacionmesa-listado`);
             return respuesta.data;
         } catch (error: any) {
             return this.manejarError(error);
@@ -82,7 +84,7 @@ export class ServicioConfiguracion {
 
     async crearClasificacion(clasificacion: Partial<ClasificacionMesa>): Promise<RespuestaAPI<ClasificacionMesa>> {
         try {
-            const respuesta = await api.post<RespuestaAPI<ClasificacionMesa>>('clasificacionmesa/crear', clasificacion);
+            const respuesta = await api.post<RespuestaAPI<ClasificacionMesa>>('administrativo/clasificacionmesa-crear', clasificacion);
             return respuesta.data;
         } catch (error: any) {
             return this.manejarError(error);
@@ -91,7 +93,9 @@ export class ServicioConfiguracion {
 
     async editarClasificacion(id: number, clasificacion: Partial<ClasificacionMesa>): Promise<RespuestaAPI<ClasificacionMesa>> {
         try {
-            const respuesta = await api.put<RespuestaAPI<ClasificacionMesa>>(`clasificacionmesa/editar/${id}`, clasificacion);
+            // TODO(API): el módulo administrativo no expone clasificacionmesa-editar (Roberto no la migró).
+            // El front actualmente no invoca este método; si se usa, pedir la ruta a Roberto.
+            const respuesta = await api.put<RespuestaAPI<ClasificacionMesa>>(`administrativo/clasificacionmesa-editar/${id}`, clasificacion);
             return respuesta.data;
         } catch (error: any) {
             return this.manejarError(error);
@@ -100,7 +104,7 @@ export class ServicioConfiguracion {
 
     async eliminarClasificacion(id: number): Promise<RespuestaAPI<any>> {
         try {
-            const respuesta = await api.delete<RespuestaAPI<any>>(`clasificacionmesa/eliminar/${id}`);
+            const respuesta = await api.delete<RespuestaAPI<any>>(`administrativo/clasificacionmesa-eliminar/${id}`);
             return respuesta.data;
         } catch (error: any) {
             return this.manejarError(error);

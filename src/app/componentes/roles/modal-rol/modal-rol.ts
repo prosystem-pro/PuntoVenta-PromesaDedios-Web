@@ -35,6 +35,7 @@ export class ModalRol implements OnChanges {
         { id: 'produccion', label: 'Producción', recurso: 'Produccion' },
         { id: 'roles_permisos', label: 'Roles y permisos', recurso: 'Administrativo' },
         { id: 'facturar', label: 'Facturar', recurso: 'Facturar' },
+        { id: 'historial_ventas', label: 'Historial de ventas', recurso: 'HistorialVenta' },
         { id: 'cocina', label: 'Cocina', recurso: 'Cocina' },
         { id: 'estado_pedido', label: 'Estado pedido', recurso: 'EstadoPedido' },
         { id: 'clientes', label: 'Clientes', recurso: 'Cliente' },

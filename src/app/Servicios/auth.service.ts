@@ -30,6 +30,16 @@ export class ServicioAutenticacion {
 
     constructor() { }
 
+    // Indica si el usuario puede ver/usar un recurso (módulo). El nombre debe coincidir
+    // con el NombreRecurso del API (ej: 'Caja', 'Facturar', 'Administrativo').
+    // SuperAdmin y AccesoCompleto ven todo; el resto según los recursos de su rol.
+    tieneAcceso(recurso: string): boolean {
+        const u = this._usuarioActual();
+        if (!u) return false;
+        if (u.SuperAdmin === 1 || u.AccesoCompleto) return true;
+        return (u.Permisos ?? []).some((p: any) => p?.NombreRecurso === recurso);
+    }
+
     async iniciarSesion(NombreUsuario: string, Clave: string): Promise<RespuestaLogin> {
         try {
             const respuesta = await api.post<RespuestaLogin>('login', {

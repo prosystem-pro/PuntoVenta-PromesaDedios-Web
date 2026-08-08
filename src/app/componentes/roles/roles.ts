@@ -32,6 +32,8 @@ export class Roles implements OnInit {
     // Control del modal
     mostrarModal = signal(false);
     rolSeleccionado = signal<Rol | null>(null);
+    // Recursos ya asignados al rol en edición (para precargar los checks del modal)
+    recursosSeleccionados = signal<string[]>([]);
 
     // Paginacion fija
     paginaActual = signal(1);
@@ -130,12 +132,23 @@ export class Roles implements OnInit {
         }
     }
 
-    editarRol(rol: Rol): void {
-        this.rolSeleccionado.set(rol);
-        this.mostrarModal.set(true);
+    async editarRol(rol: Rol) {
+        // Traemos los recursos asignados para precargar los checks del modal
+        this.cargando.set(true);
+        const res = await this.servicioUsuario.obtenerRolCompleto(rol.CodigoRol);
+        this.cargando.set(false);
+
+        if (res.success) {
+            this.recursosSeleccionados.set(res.data?.Recursos ?? []);
+            this.rolSeleccionado.set(rol);
+            this.mostrarModal.set(true);
+        } else {
+            this.servicioAlerta.MostrarError(res, 'Error al obtener el rol');
+        }
     }
 
     crearRol(): void {
+        this.recursosSeleccionados.set([]);
         this.rolSeleccionado.set(null);
         this.mostrarModal.set(true);
     }
@@ -143,20 +156,25 @@ export class Roles implements OnInit {
     cerrarModal(): void {
         this.mostrarModal.set(false);
         this.rolSeleccionado.set(null);
+        this.recursosSeleccionados.set([]);
     }
 
     async manejarGuardarRol(datos: any) {
+        // datos = { nombreRol, nombresRecurso: string[] }
         let res;
-        const payload = {
-            NombreRol: datos.nombreRol,
-            Estatus: 1 // Por defecto activo, se puede expandir el modal para incluir estatus
-        };
 
         this.cargando.set(true);
         if (this.rolSeleccionado()) {
-            res = await this.servicioUsuario.editarRol(this.rolSeleccionado()!.CodigoRol, payload);
+            res = await this.servicioUsuario.editarRol({
+                CodigoRol: this.rolSeleccionado()!.CodigoRol,
+                NombreRol: datos.nombreRol,
+                NombresRecurso: datos.nombresRecurso
+            });
         } else {
-            res = await this.servicioUsuario.crearRol(payload);
+            res = await this.servicioUsuario.crearRol({
+                NombreRol: datos.nombreRol,
+                NombresRecurso: datos.nombresRecurso
+            });
         }
         this.cargando.set(false);
 

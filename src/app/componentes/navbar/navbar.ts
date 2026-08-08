@@ -18,8 +18,13 @@ export class Navbar implements OnInit {
   cajaEstado = inject(CajaEstadoService);
   private router = inject(Router);
 
+  // Solo quien tiene el módulo Caja ve el estado de caja (y dispara su request)
+  puedeVerCaja = this.servicioAutenticacion.tieneAcceso('Caja');
+
   ngOnInit(): void {
-    this.cajaEstado.cargar();
+    if (this.puedeVerCaja) {
+      this.cajaEstado.cargar();
+    }
   }
 
   cerrarSesion(event: Event): void {

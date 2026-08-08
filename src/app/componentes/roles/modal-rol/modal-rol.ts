@@ -14,30 +14,35 @@ export class ModalRol implements OnChanges {
     @Input() visible = false;
     @Input() colorSistema = '#ff9500';
     @Input() rolAEditar: Rol | null = null;
+    // Recursos asignados al rol que se edita (nombres del back, ej: ['Caja','Producto','Administrativo'])
+    @Input() recursosAsignados: string[] = [];
     @Output() alCerrar = new EventEmitter<void>();
     @Output() alGuardar = new EventEmitter<any>();
 
     modoEdicion = signal(false);
+    // Se muestra si intentan guardar sin marcar ningún módulo (el API exige al menos uno)
+    sinPermisos = signal(false);
 
     rolForm: FormGroup;
 
+    // Cada checkbox del front mapea a un NombreRecurso del back (los que Roberto tiene quemados).
+    // Usuarios + Roles y permisos + Configuración son un solo paquete: 'Administrativo'.
     modulos = [
-        { id: 'caja', label: 'Caja' },
-        { id: 'productos', label: 'Productos' },
-        { id: 'usuarios', label: 'Usuarios' },
-        { id: 'venta_mesa', label: 'Venta en mesa' },
-        { id: 'produccion', label: 'Producción' },
-        { id: 'roles_permisos', label: 'Roles y permisos' },
-        { id: 'facturar', label: 'Facturar' },
-        { id: 'cocina', label: 'Cocina' },
-        { id: 'terminales', label: 'Terminales' },
-        { id: 'estado_pedido', label: 'Estado pedido' },
-        { id: 'clientes', label: 'Clientes' },
-        { id: 'configuracion', label: 'Configuración' },
-        { id: 'compras', label: 'Compras' },
-        { id: 'proveedores', label: 'Proveedores' },
-        { id: 'materia_prima', label: 'Materia prima' },
-        { id: 'reportes', label: 'Reportes' }
+        { id: 'caja', label: 'Caja', recurso: 'Caja' },
+        { id: 'productos', label: 'Productos', recurso: 'Producto' },
+        { id: 'usuarios', label: 'Usuarios', recurso: 'Administrativo' },
+        { id: 'venta_mesa', label: 'Venta en mesa', recurso: 'VentaMesa' },
+        { id: 'produccion', label: 'Producción', recurso: 'Produccion' },
+        { id: 'roles_permisos', label: 'Roles y permisos', recurso: 'Administrativo' },
+        { id: 'facturar', label: 'Facturar', recurso: 'Facturar' },
+        { id: 'cocina', label: 'Cocina', recurso: 'Cocina' },
+        { id: 'estado_pedido', label: 'Estado pedido', recurso: 'EstadoPedido' },
+        { id: 'clientes', label: 'Clientes', recurso: 'Cliente' },
+        { id: 'configuracion', label: 'Configuración', recurso: 'Administrativo' },
+        { id: 'compras', label: 'Compras', recurso: 'Compra' },
+        { id: 'proveedores', label: 'Proveedores', recurso: 'Proveedor' },
+        { id: 'materia_prima', label: 'Materia prima', recurso: 'MateriaPrima' },
+        { id: 'reportes', label: 'Reportes', recurso: 'Reporte' }
     ];
 
     constructor(private fb: FormBuilder) {
@@ -56,15 +61,27 @@ export class ModalRol implements OnChanges {
     ngOnChanges(changes: SimpleChanges): void {
         if (changes['rolAEditar'] && this.rolAEditar) {
             this.modoEdicion.set(true);
+            this.sinPermisos.set(false);
+            this.rolForm.reset({ Estatus: true });
             this.rolForm.patchValue({
                 nombreRol: this.rolAEditar.NombreRol,
                 Estatus: this.rolAEditar.Estatus === 1
             });
-            // Si hubiera permisos persistidos en el backend, se cargarían aquí
+            this.marcarModulosDesdeRecursos(this.recursosAsignados);
         } else if (changes['visible'] && this.visible && !this.rolAEditar) {
             this.modoEdicion.set(false);
+            this.sinPermisos.set(false);
             this.rolForm.reset({ Estatus: true });
         }
+    }
+
+    // Marca los checkboxes cuyo recurso esté en la lista asignada (un recurso puede activar varios checks, ej: Administrativo)
+    private marcarModulosDesdeRecursos(recursos: string[]): void {
+        const asignados = new Set(recursos || []);
+        const grupo = this.rolForm.get('permisos') as FormGroup;
+        this.modulos.forEach(m => {
+            grupo.get(m.id)?.setValue(asignados.has(m.recurso));
+        });
     }
 
     cerrar() {
@@ -73,15 +90,26 @@ export class ModalRol implements OnChanges {
     }
 
     guardar() {
-        if (this.rolForm.valid) {
-            const formValue = this.rolForm.value;
-            const datosParaGuardar = {
-                ...formValue,
-                Estatus: formValue.Estatus ? 1 : 0
-            };
-            this.alGuardar.emit(datosParaGuardar);
-        } else {
+        if (!this.rolForm.valid) {
             this.rolForm.markAllAsTouched();
+            return;
         }
+
+        const permisos = this.rolForm.get('permisos')?.value || {};
+        // NombresRecurso únicos a partir de los módulos marcados (dedupe por el paquete Administrativo)
+        const nombresRecurso = [...new Set(
+            this.modulos.filter(m => permisos[m.id]).map(m => m.recurso)
+        )];
+
+        if (nombresRecurso.length === 0) {
+            this.sinPermisos.set(true);
+            return;
+        }
+
+        this.sinPermisos.set(false);
+        this.alGuardar.emit({
+            nombreRol: this.rolForm.get('nombreRol')?.value,
+            nombresRecurso
+        });
     }
 }

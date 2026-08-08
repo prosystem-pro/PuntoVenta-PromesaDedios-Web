@@ -107,5 +107,6 @@
 
 <!-- Modal -->
 <app-modal-rol [visible]="mostrarModal()" [colorSistema]="colorSistema" [rolAEditar]="rolSeleccionado()"
+    [recursosAsignados]="recursosSeleccionados()"
     (alCerrar)="cerrarModal()" (alGuardar)="manejarGuardarRol($event)">
 </app-modal-rol>

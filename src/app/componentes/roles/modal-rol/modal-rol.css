@@ -1,3 +1,9 @@
+.modulos-error {
+    color: #dc3545;
+    font-size: 0.85rem;
+    margin: 0.5rem 0 0;
+}
+
 .modal-overlay {
     position: fixed;
     top: 0;

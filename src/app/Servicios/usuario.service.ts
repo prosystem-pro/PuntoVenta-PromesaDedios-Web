@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import api from './axios.config';
 import { Usuario } from '../Modelos/usuario.modelo';
-import { Rol } from '../Modelos/rol.modelo';
+import { Rol, RolDetalleCompleto } from '../Modelos/rol.modelo';
 import { RespuestaAPI } from '../Modelos/producto.modelo';
 
 @Injectable({
@@ -48,37 +48,61 @@ export class ServicioUsuario {
         }
     }
 
-    // --- ROLES ---
+    // --- ROLES (endpoints "completo": rol + recursos/permisos en una sola llamada) ---
+    // Listado con conteos (Usuarios/Recursos). Se mapea al modelo Rol de la tabla.
     async obtenerRoles(): Promise<RespuestaAPI<Rol[]>> {
         try {
-            const respuesta = await api.get<RespuestaAPI<Rol[]>>('administrativo/rol-listado');
+            const respuesta = await api.get<RespuestaAPI<any[]>>('administrativo/rol-listado-completo');
+            const cuerpo = respuesta.data;
+            if (cuerpo?.success && Array.isArray(cuerpo.data)) {
+                cuerpo.data = cuerpo.data.map((r: any) => ({
+                    CodigoRol: r.CodigoRol,
+                    NombreRol: r.NombreRol,
+                    Estatus: r.Estatus,
+                    CantidadUsuarios: r.Usuarios ?? 0,
+                    CantidadPermisos: r.Recursos ?? 0
+                }));
+            }
+            return cuerpo as RespuestaAPI<Rol[]>;
+        } catch (error: any) {
+            return this.manejarError(error);
+        }
+    }
+
+    // Detalle de un rol con sus recursos asignados (para precargar los checks al editar)
+    async obtenerRolCompleto(id: number): Promise<RespuestaAPI<RolDetalleCompleto>> {
+        try {
+            const respuesta = await api.get<RespuestaAPI<RolDetalleCompleto>>(`administrativo/rol-completo/${id}`);
             return respuesta.data;
         } catch (error: any) {
             return this.manejarError(error);
         }
     }
 
-    async crearRol(rol: Partial<Rol>): Promise<RespuestaAPI<Rol>> {
+    // Crea el rol y asigna los recursos marcados. Body: { NombreRol, NombresRecurso: string[] }
+    async crearRol(payload: { NombreRol: string; NombresRecurso: string[] }): Promise<RespuestaAPI<any>> {
         try {
-            const respuesta = await api.post<RespuestaAPI<Rol>>('administrativo/rol-crear', rol);
+            const respuesta = await api.post<RespuestaAPI<any>>('administrativo/rol-crear-completo', payload);
             return respuesta.data;
         } catch (error: any) {
             return this.manejarError(error);
         }
     }
 
-    async editarRol(id: number, rol: Partial<Rol>): Promise<RespuestaAPI<Rol>> {
+    // Edita el rol y reemplaza sus recursos. Body: { CodigoRol, NombreRol, NombresRecurso: string[] }
+    async editarRol(payload: { CodigoRol: number; NombreRol: string; NombresRecurso: string[] }): Promise<RespuestaAPI<any>> {
         try {
-            const respuesta = await api.put<RespuestaAPI<Rol>>(`administrativo/rol-editar/${id}`, rol);
+            const respuesta = await api.put<RespuestaAPI<any>>('administrativo/rol-editar-completo', payload);
             return respuesta.data;
         } catch (error: any) {
             return this.manejarError(error);
         }
     }
 
-    async eliminarRol(id: number): Promise<RespuestaAPI<Rol>> {
+    // Elimina el rol junto con sus permisos asignados
+    async eliminarRol(id: number): Promise<RespuestaAPI<any>> {
         try {
-            const respuesta = await api.delete<RespuestaAPI<Rol>>(`administrativo/rol-eliminar/${id}`);
+            const respuesta = await api.delete<RespuestaAPI<any>>(`administrativo/rol-eliminar-completo/${id}`);
             return respuesta.data;
         } catch (error: any) {
             return this.manejarError(error);

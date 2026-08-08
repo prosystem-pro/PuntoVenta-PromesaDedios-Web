@@ -32,6 +32,9 @@
                     </label>
                     }
                 </div>
+                @if (sinPermisos()) {
+                <p class="modulos-error">Selecciona al menos un módulo para el rol.</p>
+                }
             </div>
 
             <!-- Estatus (Switch) -->

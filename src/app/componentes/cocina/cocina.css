@@ -56,6 +56,24 @@
     vertical-align: middle;
 }
 
+/* Botón de nota del producto: ícono 💬 (como el prototipo) que abre un popup al tocarlo.
+   En pantalla táctil no hay hover, por eso la nota se revela con tap, no como tooltip. */
+.btn-nota {
+    border: 0;
+    background: transparent;
+    color: #212529;
+    padding: 0.25rem 0.4rem;
+    line-height: 1;
+    cursor: pointer;
+    border-radius: 0.4rem;
+    font-size: 1rem;
+}
+
+.btn-nota:hover,
+.btn-nota:active {
+    background: rgba(0, 0, 0, 0.06);
+}
+
 .cocina-btn {
     padding: 0.5rem;
 }

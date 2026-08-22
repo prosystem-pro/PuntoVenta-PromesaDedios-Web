@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CocinaServicio } from '../../Servicios/cocina.service';
-import { CocinaPedido } from '../../Modelos/cocina.modelo';
+import { CocinaPedido, CocinaProducto } from '../../Modelos/cocina.modelo';
 import { AlertaServicio } from '../../Servicios/alerta.service';
 import { Entorno } from '../../Entorno/Entorno';
 
@@ -113,6 +113,12 @@ export class Cocina implements OnInit, OnDestroy {
         if (min >= 15) return 'cab-rojo';
         if (min >= 5) return 'cab-naranja';
         return 'cab-verde';
+    }
+
+    // Muestra la nota/observación del producto en un popup (tap-friendly para la pantalla de cocina).
+    verNota(prod: CocinaProducto) {
+        if (!prod.Observaciones) return;
+        this.servicioAlerta.MostrarInfo(prod.Observaciones, `Nota — ${prod.NombreProducto}`);
     }
 
     async atender(p: CocinaPedido) {

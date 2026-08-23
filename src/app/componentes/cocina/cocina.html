@@ -40,7 +40,10 @@
                                 <td class="border-0">{{ prod.NombreProducto }}</td>
                                 <td class="border-0 text-end">
                                     @if (prod.Observaciones) {
-                                    <i class="bi bi-chat-fill text-dark" [title]="prod.Observaciones"></i>
+                                    <button type="button" class="btn-nota" (click)="verNota(prod)"
+                                        title="Ver nota del producto">
+                                        <i class="bi bi-chat-fill"></i>
+                                    </button>
                                     }
                                 </td>
                             </tr>

@@ -120,14 +120,15 @@ export class VentaMesa implements OnInit {
             if (res.success && res.data) {
                 this.tieneVentaActiva.set(true);
                 this.nombreMesa.set(res.data.Mesa || '');
-                // La comanda devuelve Productos:[{ CodigoProducto, Producto, Cantidad, PrecioUnitario, Total }]
+                // La comanda devuelve Productos:[{ CodigoProducto, Producto, Cantidad, PrecioUnitario, Total, Observaciones }]
                 const items = res.data.Productos || [];
                 this.carrito.set(items.map((it: any) => ({
                     CodigoProducto: it.CodigoProducto,
                     NombreProducto: it.Producto,
                     PrecioUnitario: it.PrecioUnitario,
                     Cantidad: it.Cantidad,
-                    Nota: ''
+                    // Recupera la observación guardada para que se conserve al reabrir la orden (TC-712)
+                    Nota: it.Observaciones ?? ''
                 })));
             }
         } catch {

@@ -68,7 +68,7 @@
                         <!-- Fila Stock -->
                         <div class="d-flex gap-3" style="grid-column: span 2;">
                             <div class="form-group flex-grow-1">
-                                <label class="form-label">Stock<span class="text-danger">*</span></label>
+                                <label class="form-label">Stock@if (!esCocina()) {<span class="text-danger">*</span>}</label>
                                 <input type="number" min="0" step="0.01" formControlName="Stock" class="form-control"
                                     [class.is-invalid]="esInvalido('Stock')" placeholder="Cant.">
                             </div>

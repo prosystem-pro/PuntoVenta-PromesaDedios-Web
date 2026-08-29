@@ -100,6 +100,10 @@ export class ProductoDetalle implements OnInit {
 
     productoId: number | null = null;
 
+    // Los productos de Cocina no manejan stock físico propio (se descuentan por receta),
+    // por eso el campo Stock deja de ser obligatorio y su asterisco se oculta (TC-736).
+    esCocina = signal(false);
+
     constructor() {
         // Validadores de formato
         const dosDecimales = Validators.pattern(/^\d+(\.\d{1,2})?$/);
@@ -144,6 +148,11 @@ export class ProductoDetalle implements OnInit {
     async ngOnInit() {
         await this.cargarCatalogos();
 
+        // Ajusta la obligatoriedad de Stock según el tipo de producto (Cocina => opcional).
+        this.productoForm.get('TipoProducto')?.valueChanges
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe((tipo: string) => this.aplicarValidacionStock(tipo));
+
         this.route.params.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
             if (params['id']) {
                 this.productoId = +params['id'];
@@ -151,6 +160,21 @@ export class ProductoDetalle implements OnInit {
                 this.cargarProducto(this.productoId);
             }
         });
+    }
+
+    // Cocina no maneja stock propio: Stock deja de ser obligatorio (TC-736).
+    private aplicarValidacionStock(tipo: string) {
+        const cocina = (tipo || '').toUpperCase() === 'COCINA';
+        this.esCocina.set(cocina);
+
+        const dosDecimales = Validators.pattern(/^\d+(\.\d{1,2})?$/);
+        const stock = this.productoForm.get('Stock');
+        if (!stock) return;
+
+        stock.setValidators(cocina
+            ? [Validators.min(0), dosDecimales]
+            : [Validators.required, Validators.min(0), dosDecimales]);
+        stock.updateValueAndValidity({ emitEvent: false });
     }
 
     async cargarCatalogos() {

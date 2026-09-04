@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, inject, OnDestroy, DestroyRef } from '@angular/core';
+import { Component, OnInit, signal, computed, inject, OnDestroy, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { Mesa } from '../../../Modelos/mesa.modelo';
@@ -52,6 +52,34 @@ export class MesaListado implements OnInit, OnDestroy {
     mostrarMover = signal(false);
     mostrarComanda = signal(false);
     comandaData = signal<Comanda | null>(null);
+
+    // Mesas AGREGADAS a una cuenta combinada (candidatas a descombinar).
+    // El listado no marca cual mesa es la principal, pero si trae por mesa su propia
+    // Venta.CodigoVenta y Venta.FechaApertura. Reproducimos la regla del API:
+    //   - mesmo CodigoVenta con >1 mesa = grupo combinado
+    //   - principal = la de MENOR FechaApertura (desempate: menor CodigoMesa)
+    //   - las demas del grupo son "agregadas" -> muestran el boton descombinar
+    // (El API igual protege la principal si se le llama por error.)
+    mesasAgregadas = computed<Set<number>>(() => {
+        const porVenta = new Map<number, Mesa[]>();
+        for (const m of this.mesas()) {
+            const cv = m.Venta?.CodigoVenta;
+            if (m.Estatus === 2 && cv != null) {
+                const arr = porVenta.get(cv) ?? [];
+                arr.push(m);
+                porVenta.set(cv, arr);
+            }
+        }
+        const agregadas = new Set<number>();
+        for (const arr of porVenta.values()) {
+            if (arr.length <= 1) continue; // mesa sola: no esta combinada
+            const principal = arr.reduce((a, b) => this.esPrincipalEntre(a, b) ? a : b);
+            for (const m of arr) {
+                if (m.CodigoMesa !== principal.CodigoMesa) agregadas.add(m.CodigoMesa);
+            }
+        }
+        return agregadas;
+    });
 
     // Tick de 1s para refrescar el cronometro de las tarjetas ocupadas
     private tick = signal(0);
@@ -147,6 +175,25 @@ export class MesaListado implements OnInit, OnDestroy {
 
     totalMesa(mesa: Mesa): number {
         return mesa.Venta?.Total ?? 0;
+    }
+
+    // La mesa pertenece a una cuenta combinada y NO es la principal -> se puede descombinar.
+    esCombinadaAgregada(mesa: Mesa): boolean {
+        return this.mesasAgregadas().has(mesa.CodigoMesa);
+    }
+
+    // FechaApertura de la mesa en ms (las sin fecha van al final).
+    private tsApertura(mesa: Mesa): number {
+        const f = mesa.Venta?.FechaApertura;
+        const t = f ? new Date(f).getTime() : NaN;
+        return isNaN(t) ? Number.MAX_SAFE_INTEGER : t;
+    }
+
+    // a es "mas principal" que b: menor FechaApertura; desempate por menor CodigoMesa.
+    private esPrincipalEntre(a: Mesa, b: Mesa): boolean {
+        const ta = this.tsApertura(a), tb = this.tsApertura(b);
+        if (ta !== tb) return ta < tb;
+        return a.CodigoMesa < b.CodigoMesa;
     }
 
     // Cronometro: tiempo transcurrido desde la apertura del pedido (HH:MM:SS)
@@ -330,6 +377,33 @@ export class MesaListado implements OnInit, OnDestroy {
             }
         } catch (error) {
             this.servicioAlerta.MostrarError(error, 'No se pudieron combinar las mesas');
+        } finally {
+            this.procesando.set(false);
+        }
+    }
+
+    // ---- Descombinar mesa (separar una agregada de la cuenta combinada) ----
+    // El consumo permanece en la mesa principal; esta mesa se libera (Estatus 1).
+    async descombinarMesa(mesa: Mesa) {
+        if (this.procesando()) return;
+
+        const confirmar = await this.servicioAlerta.Confirmacion(
+            'Descombinar mesa',
+            `¿Desea separar la ${mesa.NombreMesa} de la cuenta combinada? El consumo se mantiene en la mesa principal.`
+        );
+        if (!confirmar) return;
+
+        this.procesando.set(true);
+        try {
+            const res = await this.servicioMesa.descombinarMesa(mesa.CodigoMesa);
+            if (res.success) {
+                this.servicioAlerta.MostrarExito(res.message);
+                this.cargarMesas(false);
+            } else {
+                this.servicioAlerta.MostrarError(res.message);
+            }
+        } catch (error) {
+            this.servicioAlerta.MostrarError(error, 'No se pudo descombinar la mesa');
         } finally {
             this.procesando.set(false);
         }

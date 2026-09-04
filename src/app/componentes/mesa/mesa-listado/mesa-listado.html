@@ -61,6 +61,12 @@
                         </g>
                     </svg>
                 </button>
+                @if (esCombinadaAgregada(mesa)) {
+                <button class="acc acc-descombinar" title="Descombinar mesa"
+                    (click)="$event.stopPropagation(); descombinarMesa(mesa)">
+                    <i class="bi bi-scissors"></i>
+                </button>
+                }
                 <button class="acc acc-mover" title="Mover pedido"
                     (click)="$event.stopPropagation(); abrirMover(mesa)">
                     <!-- Mesa con flechas circulares (mover) -->

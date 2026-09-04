@@ -26,6 +26,13 @@ export class MesaServicio {
         return res.data;
     }
 
+    async descombinarMesa(codigoMesa: number): Promise<RespuestaAPI<any>> {
+        // Separa una mesa AGREGADA de la cuenta combinada. El API protege la mesa
+        // principal (la de menor FechaApertura): si se llama sobre ella responde 400.
+        const res = await axiosInstance.post('/ventamesa/mesa-descombinar', { CodigoMesa: codigoMesa });
+        return res.data;
+    }
+
     async moverPedido(datos: { CodigoMesaOrigen: number, CodigoMesaDestino: number }): Promise<RespuestaAPI<any>> {
         const res = await axiosInstance.post('/ventamesa/mesa-moverpedido', datos);
         return res.data;

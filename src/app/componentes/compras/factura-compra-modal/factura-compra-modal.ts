@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Entorno } from '../../../Entorno/Entorno';
 import { AlertaServicio } from '../../../Servicios/alerta.service';
 import { CompraServicio } from '../../../Servicios/compra.service';
+import { ImpresionService } from '../../../Servicios/impresion.service';
 import { FacturaCompra } from '../../../Modelos/compra.modelo';
 // jspdf y html2canvas se cargan de forma dinamica dentro de descargarPdf()
 // para no incluirlos en el bundle inicial (solo se usan al descargar el PDF).
@@ -18,6 +19,7 @@ import { FacturaCompra } from '../../../Modelos/compra.modelo';
 export class FacturaCompraModal implements OnChanges {
     private servicioCompra = inject(CompraServicio);
     private servicioAlerta = inject(AlertaServicio);
+    private impresion = inject(ImpresionService);
 
     @Input() visible = false;
     @Input() codigoCompra: number | null = null;
@@ -64,7 +66,12 @@ export class FacturaCompraModal implements OnChanges {
     }
 
     imprimir() {
-        window.print();
+        const d = this.data();
+        if (d) {
+            this.impresion.imprimirFacturaCompra(d);
+        } else {
+            window.print();
+        }
     }
 
     async descargarPdf() {

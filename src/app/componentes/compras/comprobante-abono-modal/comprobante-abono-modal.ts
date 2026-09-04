@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Entorno } from '../../../Entorno/Entorno';
 import { CompraServicio } from '../../../Servicios/compra.service';
 import { AlertaServicio } from '../../../Servicios/alerta.service';
+import { ImpresionService } from '../../../Servicios/impresion.service';
 
 @Component({
     selector: 'app-comprobante-abono-modal',
@@ -14,6 +15,7 @@ import { AlertaServicio } from '../../../Servicios/alerta.service';
 export class ComprobanteAbonoModal implements OnChanges {
     private servicioCompra = inject(CompraServicio);
     private servicioAlerta = inject(AlertaServicio);
+    private impresion = inject(ImpresionService);
 
     @Input() visible = false;
     @Input() codigoPagoProveedor: number | null = null;
@@ -57,7 +59,12 @@ export class ComprobanteAbonoModal implements OnChanges {
     }
 
     imprimir() {
-        window.print();
+        const d = this.data();
+        if (d) {
+            this.impresion.imprimirComprobanteAbono(d);
+        } else {
+            window.print();
+        }
     }
 
     onCerrar() {

@@ -1,5 +1,8 @@
 import { Injectable } from '@angular/core';
 import { ComprobanteVenta } from '../Modelos/venta.modelo';
+import type { ComprobantePago } from '../Modelos/estado-pedido.modelo';
+import type { FacturaCompra } from '../Modelos/compra.modelo';
+import type { Comanda } from '../componentes/mesa/comanda-modal/comanda-modal';
 
 /**
  * Puente nativo que expone el wrapper Android (Sunmi V3 MIX) cuando la web corre
@@ -12,14 +15,20 @@ interface SunmiPrinterBridge {
     printReceipt(json: string): void;
 }
 
+// Fila de dos columnas (izquierda / derecha alineada al borde).
+type Fila = { izq: string; der: string };
+
 // Ticket serializado que entiende SunmiPrinter.printReceipt (todos opcionales).
 interface TicketNativo {
     logo?: string;
     negocio?: { nombre?: string; detalle?: string[] };
-    seccionDatos?: { titulo?: string; filas?: { izq: string; der: string }[] };
+    // Bloques genéricos de dos columnas, en orden. Para documentos con varias
+    // secciones (comprobante de pago, abono...) que no encajan en los slots fijos.
+    secciones?: { titulo?: string; filas: Fila[] }[];
+    seccionDatos?: { titulo?: string; filas?: Fila[] };
     productos?: { titulo?: string; encabezado?: string[]; items?: { cant: string; nombre: string; total: string }[] };
     totales?: { etiqueta: string; valor: string; negrita?: boolean }[];
-    pago?: { titulo?: string; filas?: { izq: string; der: string }[] };
+    pago?: { titulo?: string; filas?: Fila[] };
     pie?: string;
     cortar?: boolean;
     abrirCajon?: boolean;
@@ -68,12 +77,187 @@ export class ImpresionService {
      * diálogo "Guardar como PDF". El lado nativo muestra un error visible si falla.
      */
     imprimirComprobante(data: ComprobanteVenta): 'nativo' | 'web' {
+        return this.emitir(this.construirTicket(data));
+    }
+
+    /** Imprime una comanda de cocina. */
+    imprimirComanda(d: Comanda): 'nativo' | 'web' {
+        const t = d.Totales ?? {};
+        const totales: TicketNativo['totales'] = [];
+        if (t.Iva) {
+            totales.push({ etiqueta: 'Subtotal', valor: this.q(t.Subtotal) });
+            totales.push({ etiqueta: 'IVA', valor: this.q(t.Iva) });
+        }
+        totales.push({ etiqueta: 'Total', valor: this.q(t.Total), negrita: true });
+
+        return this.emitir({
+            negocio: { nombre: 'COMANDA' },
+            seccionDatos: {
+                titulo: d.Mesa || 'Mesa',
+                filas: [
+                    { izq: `Fecha: ${this.fecha(d.Fecha)}`, der: `Documento: ${d.Documento || '-'}` },
+                    { izq: `Responsable: ${d.Responsable || '-'}`, der: '' },
+                ],
+            },
+            productos: {
+                titulo: 'Producto',
+                encabezado: ['Cant', 'Producto', 'Total'],
+                items: (d.Productos ?? []).map(p => ({
+                    cant: String(p.Cantidad ?? ''),
+                    nombre: p.Producto || '',
+                    total: this.q(p.Total),
+                })),
+            },
+            totales,
+            pie: 'Comanda de cocina',
+            cortar: true,
+        });
+    }
+
+    /** Imprime la factura/comprobante de una compra. */
+    imprimirFacturaCompra(d: FacturaCompra): 'nativo' | 'web' {
+        const dc = d.DatosComprobante ?? {};
+        const filasDatos: Fila[] = [
+            { izq: `Fecha: ${this.fecha(dc.Fecha)}`, der: `Documento: ${dc.Documento ?? '-'}` },
+            { izq: `Responsable: ${dc.Responsable || '-'}`, der: '' },
+            { izq: `Proveedor: ${dc.Proveedor || '-'}`, der: `Nit: ${dc.Nit || 'C/F'}` },
+            { izq: `Dirección: ${dc.Direccion || '-'}`, der: `Celular: ${dc.Celular || '-'}` },
+        ];
+        if (dc.FechaVencimiento) {
+            filasDatos.push({ izq: `Vencimiento: ${this.fecha(dc.FechaVencimiento, false)}`, der: '' });
+        }
+
+        const totales: TicketNativo['totales'] = [
+            { etiqueta: 'Total', valor: this.q(d.Totales?.Total), negrita: true },
+        ];
+        if (d.Totales?.SaldoPendiente && d.Totales.SaldoPendiente > 0) {
+            totales.push({ etiqueta: 'Saldo pendiente', valor: this.q(d.Totales.SaldoPendiente) });
+        }
+
+        // En papel de 80mm omitimos P.Unit y mostramos el subtotal como "Total" por línea.
+        const filasPago: Fila[] = [];
+        for (const fp of d.FormaPago ?? []) {
+            if (fp.Referencia) filasPago.push({ izq: `Referencia: ${fp.Referencia}`, der: '' });
+            filasPago.push({ izq: this.titulo(fp.MetodoPago), der: this.q(fp.MontoPagado) });
+        }
+
+        return this.emitir({
+            negocio: {
+                nombre: d.Empresa?.Nombre || 'Promesa de Dios',
+                detalle: [d.Empresa?.Nit, d.Empresa?.Direccion, d.Empresa?.Telefono].filter((x): x is string => !!x),
+            },
+            seccionDatos: { titulo: 'Datos de comprobante', filas: filasDatos },
+            productos: {
+                titulo: 'Producto',
+                encabezado: ['Cant', 'Producto', 'Total'],
+                items: (d.Productos ?? []).map(p => ({
+                    cant: String(p.Cantidad ?? ''),
+                    nombre: p.Producto || '',
+                    total: this.q(p.Subtotal),
+                })),
+            },
+            totales,
+            pago: filasPago.length ? { titulo: 'Forma de pago', filas: filasPago } : undefined,
+            pie: 'Comprobante de compra',
+            cortar: true,
+        });
+    }
+
+    /** Imprime el comprobante de un abono a proveedor (compras). El recibo llega como objeto suelto. */
+    imprimirComprobanteAbono(d: any): 'nativo' | 'web' {
+        const emp = d?.Empresa ?? {};
+        const prov = d?.Proveedor ?? {};
+        const saldo = d?.Saldo ?? {};
+        const fp = d?.FormaPago ?? {};
+
+        const filasPago: Fila[] = [];
+        if (fp.NumeroReferencia) filasPago.push({ izq: `Referencia: ${fp.NumeroReferencia}`, der: '' });
+        filasPago.push({ izq: this.titulo(fp.Metodo), der: this.q(fp.Monto) });
+        if (fp.Banco) filasPago.push({ izq: `Banco: ${fp.Banco}`, der: '' });
+
+        return this.emitir({
+            negocio: {
+                nombre: emp.NombreEmpresa || 'Promesa de Dios',
+                detalle: [emp.Nit, emp.Direccion, emp.Telefono].filter((x): x is string => !!x),
+            },
+            secciones: [
+                {
+                    titulo: 'Datos de comprobante',
+                    filas: [
+                        { izq: `Fecha: ${this.fecha(prov.Fecha)}`, der: `Documento: ${prov.Documento || '-'}` },
+                        { izq: `No. Pago: ${prov.NumeroPago || '-'}`, der: `Responsable: ${prov.Responsable || '-'}` },
+                        { izq: `Nombre: ${prov.NombreProveedor || '-'}`, der: `Nit: ${prov.Nit || '-'}` },
+                        { izq: `Dirección: ${prov.Direccion || '-'}`, der: `Celular: ${prov.Celular || '-'}` },
+                    ],
+                },
+                { titulo: 'Nota', filas: [{ izq: 'Autorizado por Propietario', der: '' }] },
+                {
+                    titulo: 'Saldo',
+                    filas: [
+                        { izq: 'Saldo anterior', der: this.q(saldo.SaldoAnterior) },
+                        { izq: 'Monto abonado', der: this.q(saldo.SaldoAbonado) },
+                        { izq: 'Saldo actual', der: this.q(saldo.SaldoActual) },
+                    ],
+                },
+                { titulo: 'Forma de pago', filas: filasPago },
+                { filas: [{ izq: '', der: '' }, { izq: 'F. ____________________________', der: '' }, { izq: 'Firma', der: '' }] },
+            ],
+            cortar: true,
+        });
+    }
+
+    /** Imprime el comprobante de pago/abono de un pedido (estado de pedidos). */
+    imprimirComprobantePago(d: ComprobantePago): 'nativo' | 'web' {
+        const dc = d.DatosComprobante ?? {};
+        const fp = d.FormaPago ?? {};
+        const dm = d.DetalleMovimiento ?? {};
+
+        const filasPago: Fila[] = [];
+        if (fp.Referencia) filasPago.push({ izq: `Referencia: ${fp.Referencia}`, der: '' });
+        filasPago.push({ izq: this.titulo(fp.MetodoPago), der: this.q(fp.Monto) });
+        filasPago.push({ izq: 'Recibido', der: this.q(fp.MontoRecibido) });
+        filasPago.push({ izq: 'Cambio', der: this.q(fp.Cambio) });
+
+        return this.emitir({
+            negocio: {
+                nombre: d.Empresa?.Nombre || 'Promesa de Dios',
+                detalle: [d.Empresa?.Nit, d.Empresa?.Direccion, d.Empresa?.Telefono].filter((x): x is string => !!x),
+            },
+            secciones: [
+                {
+                    titulo: 'Comprobante de pago',
+                    filas: [
+                        { izq: `Fecha: ${this.fecha(dc.FechaPago)}`, der: '' },
+                        { izq: `No. Pago: ${dc.DocumentoPago || '-'}`, der: `Pedido: ${dc.DocumentoVenta || '-'}` },
+                        { izq: `Cliente: ${dc.Cliente || 'C/F'}`, der: `Nit: ${dc.Nit || 'C/F'}` },
+                        { izq: `Dirección: ${dc.Direccion || '-'}`, der: `Celular: ${dc.Celular || '-'}` },
+                    ],
+                },
+                { titulo: 'Forma de pago', filas: filasPago },
+                {
+                    filas: [
+                        { izq: 'Saldo anterior', der: this.q(dm.SaldoAnterior) },
+                        { izq: 'Monto abonado', der: this.q(dm.MontoAbonado) },
+                        { izq: 'Saldo pendiente', der: this.q(dm.SaldoPendiente) },
+                    ],
+                },
+            ],
+            pie: '¡Gracias por su pago!',
+            cortar: true,
+        });
+    }
+
+    /**
+     * Envía el ticket a la impresora nativa si estamos en el wrapper; si no, cae al
+     * fallback de navegador (window.print sobre el DOM del modal).
+     */
+    private emitir(ticket: TicketNativo): 'nativo' | 'web' {
         const bridge = this.bridge;
         if (!bridge) {
             window.print();
             return 'web';
         }
-        bridge.printReceipt(JSON.stringify(this.construirTicket(data)));
+        bridge.printReceipt(JSON.stringify(ticket));
         return 'nativo';
     }
 

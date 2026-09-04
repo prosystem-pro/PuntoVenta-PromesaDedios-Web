@@ -139,6 +139,20 @@
     border-radius: 0px 0px 0px 14px;
 }
 
+/* Descombinar: bajo el boton de combinar, en el borde derecho. Solo aparece en
+   mesas AGREGADAS a una cuenta combinada. Color distinto para no confundir con combinar. */
+.acc-descombinar {
+    top: 80px;
+    right: 0;
+    background: #6c7a89;
+    border-radius: 0px 0px 0px 14px;
+}
+
+.acc-descombinar:hover {
+    background: #566573;
+    filter: none;
+}
+
 .acc-mover {
     bottom: 0;
     left: 0;

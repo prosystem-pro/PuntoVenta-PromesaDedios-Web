@@ -2,6 +2,7 @@ import { Component, Input, Output, EventEmitter, signal, OnChanges, SimpleChange
 import { CommonModule, DatePipe } from '@angular/common';
 import { Entorno } from '../../../Entorno/Entorno';
 import { AlertaServicio } from '../../../Servicios/alerta.service';
+import { ImpresionService } from '../../../Servicios/impresion.service';
 import { ComprobanteVenta } from '../../../Modelos/venta.modelo';
 // jspdf y html2canvas se cargan de forma dinamica dentro de descargarPdf()
 // para no incluirlos en el bundle inicial (solo se usan al descargar el PDF).
@@ -17,6 +18,7 @@ import { ComprobanteVenta } from '../../../Modelos/venta.modelo';
 export class ComprobanteVentaModal implements OnChanges {
     private servicioAlerta = inject(AlertaServicio);
     private datePipe = inject(DatePipe);
+    private impresion = inject(ImpresionService);
 
     // Muestra una fecha que puede venir cruda (Date/ISO, de Facturar/Mesa) o YA formateada
     // como string 'dd/MM/yyyy HH:mm' (del API, p.ej. ObtenerDatosFacturaVenta). Si no es
@@ -55,7 +57,13 @@ export class ComprobanteVentaModal implements OnChanges {
     }
 
     imprimir() {
-        window.print();
+        // En el wrapper Sunmi imprime en la térmica de 80mm; en desktop cae a
+        // window.print() (impresión del DOM del comprobante). Ver ImpresionService.
+        if (this.data) {
+            this.impresion.imprimirComprobante(this.data);
+        } else {
+            window.print();
+        }
     }
 
     async descargarPdf() {

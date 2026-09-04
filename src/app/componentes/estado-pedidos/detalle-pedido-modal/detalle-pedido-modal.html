@@ -25,8 +25,6 @@
                             <th>Producto</th>
                             <th class="text-center">Unidad</th>
                             <th class="text-end">Cantidad solicitada</th>
-                            <th class="text-end">Stock actual</th>
-                            <th class="text-end">Stock sugerido</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -35,12 +33,10 @@
                             <td>{{ p.NombreProducto }}</td>
                             <td class="text-center">{{ p.AbreviaturaUnidad || p.NombreUnidadMedida }}</td>
                             <td class="text-end fw-semibold">{{ p.CantidadSolicitada | number:'1.0-2' }}</td>
-                            <td class="text-end">{{ p.StockActual | number:'1.0-2' }}</td>
-                            <td class="text-end">{{ p.StockSugerido | number:'1.0-2' }}</td>
                         </tr>
                         } @empty {
                         <tr>
-                            <td colspan="5" class="text-center text-muted py-4 fst-italic">
+                            <td colspan="3" class="text-center text-muted py-4 fst-italic">
                                 Este pedido no tiene productos registrados.
                             </td>
                         </tr>

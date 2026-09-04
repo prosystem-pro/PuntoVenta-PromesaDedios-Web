@@ -2,6 +2,7 @@ import { Component, Input, Output, EventEmitter, signal, OnChanges, SimpleChange
 import { CommonModule } from '@angular/common';
 import { Entorno } from '../../../Entorno/Entorno';
 import { AlertaServicio } from '../../../Servicios/alerta.service';
+import { ImpresionService } from '../../../Servicios/impresion.service';
 // jspdf y html2canvas se cargan de forma dinamica dentro de descargarPdf()
 // para no incluirlos en el bundle inicial (solo se usan al descargar el PDF).
 
@@ -31,6 +32,7 @@ export interface Comanda {
 })
 export class ComandaModal implements OnChanges {
     private servicioAlerta = inject(AlertaServicio);
+    private impresion = inject(ImpresionService);
 
     @Input() visible = false;
     @Input() data: Comanda | null = null;
@@ -55,7 +57,11 @@ export class ComandaModal implements OnChanges {
     }
 
     imprimir() {
-        window.print();
+        if (this.data) {
+            this.impresion.imprimirComanda(this.data);
+        } else {
+            window.print();
+        }
     }
 
     async descargarPdf() {

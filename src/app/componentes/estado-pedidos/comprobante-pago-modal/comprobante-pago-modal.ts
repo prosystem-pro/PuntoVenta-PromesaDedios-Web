@@ -2,6 +2,7 @@ import { Component, Input, Output, EventEmitter, signal, inject, ElementRef, Vie
 import { CommonModule } from '@angular/common';
 import { Entorno } from '../../../Entorno/Entorno';
 import { AlertaServicio } from '../../../Servicios/alerta.service';
+import { ImpresionService } from '../../../Servicios/impresion.service';
 import { ComprobantePago } from '../../../Modelos/estado-pedido.modelo';
 // jspdf y html2canvas se cargan de forma dinamica dentro de descargarPdf()
 // para no incluirlos en el bundle inicial (solo se usan al descargar el PDF).
@@ -15,6 +16,7 @@ import { ComprobantePago } from '../../../Modelos/estado-pedido.modelo';
 })
 export class ComprobantePagoModal {
     private servicioAlerta = inject(AlertaServicio);
+    private impresion = inject(ImpresionService);
 
     @Input() visible = false;
     @Input() data: ComprobantePago | null = null;
@@ -28,7 +30,11 @@ export class ComprobantePagoModal {
     generandoPdf = signal(false);
 
     imprimir() {
-        window.print();
+        if (this.data) {
+            this.impresion.imprimirComprobantePago(this.data);
+        } else {
+            window.print();
+        }
     }
 
     async descargarPdf() {

@@ -61,21 +61,59 @@ export class ImpresionService {
         this.precargarLogo();
     }
 
-    /** Descarga el PNG del logo y lo guarda como data URI. Silencioso si falla. */
+    /**
+     * Prepara el logo para la térmica y lo guarda como data URI. Silencioso si falla.
+     *
+     * La impresora es 1-bit (blanco/negro), sin canal alfa: si se le manda el PNG
+     * original (arte negro sobre fondo TRANSPARENTE), rellena todo el recuadro de
+     * negro. Por eso aquí se aplana sobre fondo blanco y se aplica un umbral a
+     * blanco/negro puro; así la "P" sale nítida y no como bloque negro.
+     */
     private async precargarLogo(): Promise<void> {
         try {
-            const resp = await fetch(Entorno.Logo);
-            if (!resp.ok) return;
-            const blob = await resp.blob();
-            this.logoBase64 = await new Promise<string>((resolve, reject) => {
-                const fr = new FileReader();
-                fr.onloadend = () => resolve(fr.result as string);
-                fr.onerror = () => reject(fr.error);
-                fr.readAsDataURL(blob);
-            });
+            const img = await this.cargarImagen(Entorno.Logo);
+            const maxW = 200; // ancho apto para 80mm
+            const escala = Math.min(1, maxW / (img.width || maxW));
+            const w = Math.max(1, Math.round(img.width * escala));
+            const h = Math.max(1, Math.round(img.height * escala));
+
+            const canvas = document.createElement('canvas');
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return;
+
+            // Fondo blanco: mata la transparencia (que en térmica salía como bloque negro).
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, w, h);
+            ctx.drawImage(img, 0, 0, w, h);
+
+            // Umbral a blanco/negro puro para impresión nítida.
+            const datos = ctx.getImageData(0, 0, w, h);
+            const px = datos.data;
+            for (let i = 0; i < px.length; i += 4) {
+                const lum = 0.299 * px[i] + 0.587 * px[i + 1] + 0.114 * px[i + 2];
+                const v = lum < 160 ? 0 : 255;
+                px[i] = px[i + 1] = px[i + 2] = v;
+                px[i + 3] = 255;
+            }
+            ctx.putImageData(datos, 0, 0);
+
+            this.logoBase64 = canvas.toDataURL('image/png');
         } catch {
             // Sin logo: se imprime igual, solo con el nombre del negocio en texto.
         }
+    }
+
+    /** Carga una imagen (same-origin, para no manchar el canvas). */
+    private cargarImagen(src: string): Promise<HTMLImageElement> {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => resolve(img);
+            img.onerror = () => reject(new Error('No se pudo cargar el logo'));
+            img.src = src;
+        });
     }
 
     /** Referencia al puente nativo, si estamos dentro del wrapper Android. */

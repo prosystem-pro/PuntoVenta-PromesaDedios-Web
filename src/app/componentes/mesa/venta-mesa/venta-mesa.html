@@ -114,13 +114,22 @@
                     <tbody>
                         @for (item of carrito(); track item.CodigoProducto) {
                         <tr>
-                            <td class="small fw-bold">{{ item.NombreProducto }}</td>
+                            <td class="small fw-bold">
+                                {{ item.NombreProducto }}
+                                @if (item.YaPreparado > 0) {
+                                <span class="badge-cocina" title="Atendido en cocina: no se puede reducir">
+                                    <i class="bi bi-fire"></i> {{ item.YaPreparado }} en cocina
+                                </span>
+                                }
+                            </td>
                             <td class="small">Q {{ item.PrecioUnitario | number:'1.2-2' }}</td>
                             <td>
                                 <div class="d-flex align-items-center justify-content-center gap-1">
                                     <button class="btn btn-qty"
+                                        [disabled]="item.Cantidad <= item.YaPreparado"
+                                        [title]="item.Cantidad <= item.YaPreparado ? 'Ya atendido en cocina, no se puede reducir' : ''"
                                         (click)="actualizarCantidad(item.CodigoProducto, item.Cantidad - 1)">-</button>
-                                    <input type="number" min="1"
+                                    <input type="number" [min]="item.YaPreparado > 0 ? item.YaPreparado : 1"
                                         class="form-control form-control-sm qty-input text-center"
                                         [ngModel]="item.Cantidad"
                                         (ngModelChange)="cambiarCantidad(item.CodigoProducto, $event)">
@@ -135,7 +144,9 @@
                                         (click)="toggleComentario(item.CodigoProducto)">
                                         <i class="bi bi-chat-left-text-fill"></i>
                                     </button>
-                                    <button class="btn btn-link btn-sm p-0 text-danger" title="Eliminar producto"
+                                    <button class="btn btn-link btn-sm p-0 text-danger"
+                                        [disabled]="item.YaPreparado > 0"
+                                        [title]="item.YaPreparado > 0 ? 'Ya atendido en cocina, no se puede eliminar' : 'Eliminar producto'"
                                         (click)="eliminarDelCarrito(item.CodigoProducto)">
                                         <i class="bi bi-trash3-fill"></i>
                                     </button>

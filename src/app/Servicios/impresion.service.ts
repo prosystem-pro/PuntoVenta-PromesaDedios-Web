@@ -79,8 +79,11 @@ export class ImpresionService {
             // el bloque toda la línea, la P queda centrada igual, y su alto empuja el
             // nombre del negocio a la línea siguiente.
             const anchoTermica = 576; // dots imprimibles del cabezal 80mm
-            const maxLogoW = 240;     // ancho máx de la P dentro del bloque
-            const escala = Math.min(1, maxLogoW / (img.width || maxLogoW));
+            const maxLogoW = 300;     // ancho al que se dibuja la P dentro del bloque
+            // El PNG original es chico (90px). Permitimos AMPLIAR hasta maxLogoW (sin
+            // el tope Math.min(1,...) que antes lo dejaba a tamaño nativo); el umbral
+            // posterior limpia la interpolación y la P sale nítida.
+            const escala = maxLogoW / (img.width || maxLogoW);
             const lw = Math.max(1, Math.round(img.width * escala));
             const lh = Math.max(1, Math.round(img.height * escala));
 

@@ -72,11 +72,20 @@ export class ImpresionService {
     private async precargarLogo(): Promise<void> {
         try {
             const img = await this.cargarImagen(Entorno.Logo);
-            const maxW = 200; // ancho apto para 80mm
-            const escala = Math.min(1, maxW / (img.width || maxW));
-            const w = Math.max(1, Math.round(img.width * escala));
-            const h = Math.max(1, Math.round(img.height * escala));
 
+            // El bitmap se genera al ANCHO COMPLETO del cabezal (80mm ≈ 576 dots) con
+            // la P centrada dentro sobre blanco. Motivo: en modo buffer el V3 MIX no
+            // respeta setAlignment para el bitmap (lo pega a la izquierda); al ocupar
+            // el bloque toda la línea, la P queda centrada igual, y su alto empuja el
+            // nombre del negocio a la línea siguiente.
+            const anchoTermica = 576; // dots imprimibles del cabezal 80mm
+            const maxLogoW = 180;     // ancho máx de la P dentro del bloque
+            const escala = Math.min(1, maxLogoW / (img.width || maxLogoW));
+            const lw = Math.max(1, Math.round(img.width * escala));
+            const lh = Math.max(1, Math.round(img.height * escala));
+
+            const w = anchoTermica;
+            const h = lh;
             const canvas = document.createElement('canvas');
             canvas.width = w;
             canvas.height = h;
@@ -86,7 +95,9 @@ export class ImpresionService {
             // Fondo blanco: mata la transparencia (que en térmica salía como bloque negro).
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(0, 0, w, h);
-            ctx.drawImage(img, 0, 0, w, h);
+            // Logo centrado horizontalmente dentro del bloque de ancho completo.
+            const offsetX = Math.round((w - lw) / 2);
+            ctx.drawImage(img, offsetX, 0, lw, lh);
 
             // Umbral a blanco/negro puro para impresión nítida.
             const datos = ctx.getImageData(0, 0, w, h);

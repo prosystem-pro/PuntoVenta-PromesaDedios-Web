@@ -239,3 +239,23 @@
 .categories-scroll::-webkit-scrollbar {
     display: none;
 }
+
+/* Etiqueta para productos ya atendidos en cocina (TC-744): no se pueden reducir ni eliminar */
+.badge-cocina {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: 6px;
+    padding: 1px 7px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #b45309;
+    background: #fff4e5;
+    border: 1px solid #ffd9a8;
+    border-radius: 999px;
+    white-space: nowrap;
+}
+
+.badge-cocina i {
+    font-size: 0.72rem;
+}

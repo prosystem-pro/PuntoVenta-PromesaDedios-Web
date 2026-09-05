@@ -19,6 +19,10 @@ interface ItemCarrito {
     PrecioUnitario: number;
     Cantidad: number;
     Nota: string;
+    // Cantidad ya atendida en cocina (CantidadEnviadaCocina). Es el piso: no se puede
+    // reducir por debajo de esto ni eliminar el producto, porque sus insumos ya se
+    // descontaron del inventario (TC-744). Solo > 0 en productos de tipo cocina atendidos.
+    YaPreparado: number;
 }
 
 // Producto normalizado para la vista (proviene del endpoint por categoría)
@@ -128,7 +132,9 @@ export class VentaMesa implements OnInit {
                     PrecioUnitario: it.PrecioUnitario,
                     Cantidad: it.Cantidad,
                     // Recupera la observación guardada para que se conserve al reabrir la orden (TC-712)
-                    Nota: it.Observaciones ?? ''
+                    Nota: it.Observaciones ?? '',
+                    // Piso de reducción: lo ya atendido en cocina (TC-744)
+                    YaPreparado: Number(it.YaPreparado ?? 0)
                 })));
             }
         } catch {
@@ -212,7 +218,8 @@ export class VentaMesa implements OnInit {
                 NombreProducto: producto.NombreProducto,
                 PrecioUnitario: producto.PrecioUnitario,
                 Cantidad: 1,
-                Nota: ''
+                Nota: '',
+                YaPreparado: 0
             }]);
         }
     }
@@ -226,6 +233,22 @@ export class VentaMesa implements OnInit {
     }
 
     actualizarCantidad(codigo: number, nuevaCant: number) {
+        const item = this.carrito().find(it => it.CodigoProducto === codigo);
+        const piso = item?.YaPreparado ?? 0;
+
+        // TC-744: un producto ya atendido en cocina no puede reducirse por debajo de lo
+        // preparado (sus insumos ya se descontaron). Se topa en el piso y se avisa.
+        if (piso > 0 && nuevaCant < piso) {
+            this.servicioAlerta.MostrarToast(
+                `No se puede reducir: ${piso} ya se ${piso === 1 ? 'atendió' : 'atendieron'} en cocina`,
+                'warning'
+            );
+            this.carrito.update(items => items.map(it =>
+                it.CodigoProducto === codigo ? { ...it, Cantidad: piso } : it
+            ));
+            return;
+        }
+
         if (nuevaCant <= 0) {
             this.carrito.update(items => items.filter(it => it.CodigoProducto !== codigo));
             if (this.comentarioAbierto() === codigo) this.comentarioAbierto.set(null);
@@ -238,6 +261,12 @@ export class VentaMesa implements OnInit {
 
     // Quita por completo un producto de la orden
     eliminarDelCarrito(codigo: number) {
+        const item = this.carrito().find(it => it.CodigoProducto === codigo);
+        // TC-744: si el producto ya fue atendido en cocina no se puede eliminar.
+        if ((item?.YaPreparado ?? 0) > 0) {
+            this.servicioAlerta.MostrarToast('No se puede eliminar: ya fue atendido en cocina', 'warning');
+            return;
+        }
         this.carrito.update(items => items.filter(it => it.CodigoProducto !== codigo));
         if (this.comentarioAbierto() === codigo) this.comentarioAbierto.set(null);
     }
@@ -362,7 +391,11 @@ export class VentaMesa implements OnInit {
     }
 
     limpiar() {
-        this.carrito.set([]);
+        // TC-744: "Limpiar" no puede borrar lo ya atendido en cocina; esos productos se
+        // conservan en su piso (YaPreparado). El resto sí se vacía.
+        this.carrito.update(items => items
+            .filter(it => (it.YaPreparado ?? 0) > 0)
+            .map(it => ({ ...it, Cantidad: it.YaPreparado })));
         this.comentarioAbierto.set(null);
     }
 }

@@ -79,7 +79,7 @@ export class ImpresionService {
             // el bloque toda la línea, la P queda centrada igual, y su alto empuja el
             // nombre del negocio a la línea siguiente.
             const anchoTermica = 576; // dots imprimibles del cabezal 80mm
-            const maxLogoW = 180;     // ancho máx de la P dentro del bloque
+            const maxLogoW = 240;     // ancho máx de la P dentro del bloque
             const escala = Math.min(1, maxLogoW / (img.width || maxLogoW));
             const lw = Math.max(1, Math.round(img.width * escala));
             const lh = Math.max(1, Math.round(img.height * escala));
@@ -104,7 +104,7 @@ export class ImpresionService {
             const px = datos.data;
             for (let i = 0; i < px.length; i += 4) {
                 const lum = 0.299 * px[i] + 0.587 * px[i + 1] + 0.114 * px[i + 2];
-                const v = lum < 160 ? 0 : 255;
+                const v = lum < 185 ? 0 : 255;
                 px[i] = px[i + 1] = px[i + 2] = v;
                 px[i + 3] = 255;
             }

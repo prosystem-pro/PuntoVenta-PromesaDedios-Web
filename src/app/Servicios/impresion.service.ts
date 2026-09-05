@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { Entorno } from '../Entorno/Entorno';
 import { ComprobanteVenta } from '../Modelos/venta.modelo';
 import type { ComprobantePago } from '../Modelos/estado-pedido.modelo';
 import type { FacturaCompra } from '../Modelos/compra.modelo';
@@ -47,6 +48,35 @@ interface TicketNativo {
  */
 @Injectable({ providedIn: 'root' })
 export class ImpresionService {
+
+    /**
+     * Logo del negocio en base64 (data URI), precargado una vez para incrustarlo
+     * en los comprobantes nativos. El puente Kotlin lo decodifica e imprime como
+     * bitmap. Si no se pudo cargar, los tickets salen sin logo (el nombre del
+     * negocio ya va en texto grande, así que no es crítico).
+     */
+    private logoBase64: string | null = null;
+
+    constructor() {
+        this.precargarLogo();
+    }
+
+    /** Descarga el PNG del logo y lo guarda como data URI. Silencioso si falla. */
+    private async precargarLogo(): Promise<void> {
+        try {
+            const resp = await fetch(Entorno.Logo);
+            if (!resp.ok) return;
+            const blob = await resp.blob();
+            this.logoBase64 = await new Promise<string>((resolve, reject) => {
+                const fr = new FileReader();
+                fr.onloadend = () => resolve(fr.result as string);
+                fr.onerror = () => reject(fr.error);
+                fr.readAsDataURL(blob);
+            });
+        } catch {
+            // Sin logo: se imprime igual, solo con el nombre del negocio en texto.
+        }
+    }
 
     /** Referencia al puente nativo, si estamos dentro del wrapper Android. */
     private get bridge(): SunmiPrinterBridge | null {
@@ -111,7 +141,7 @@ export class ImpresionService {
             totales,
             pie: 'Comanda de cocina',
             cortar: true,
-        });
+        }, false);
     }
 
     /** Imprime la factura/comprobante de una compra. */
@@ -251,7 +281,12 @@ export class ImpresionService {
      * Envía el ticket a la impresora nativa si estamos en el wrapper; si no, cae al
      * fallback de navegador (window.print sobre el DOM del modal).
      */
-    private emitir(ticket: TicketNativo): 'nativo' | 'web' {
+    private emitir(ticket: TicketNativo, conLogo = true): 'nativo' | 'web' {
+        // Incrusta el logo en los comprobantes (no en la comanda de cocina). Si aún
+        // no se precargó, sale sin logo; el nombre del negocio ya va en texto.
+        if (conLogo && this.logoBase64 && !ticket.logo) {
+            ticket.logo = this.logoBase64;
+        }
         const bridge = this.bridge;
         if (!bridge) {
             window.print();

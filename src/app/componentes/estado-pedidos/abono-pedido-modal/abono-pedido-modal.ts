@@ -164,6 +164,24 @@ export class AbonoPedidoModal implements OnChanges {
         return this.mediosPago.find(m => m.valor === valor)?.nombre || '';
     }
 
+    // Normaliza la fecha a 'dd/MM/yyyy' (con hora si viene). Acepta ISO/'yyyy-MM-dd',
+    // ya-formateada 'dd/MM/yyyy' (se respeta) o un string cualquiera (se devuelve igual).
+    // Se hace por texto para no arrastrar corrimiento de zona horaria de new Date().
+    mostrarFecha(valor?: string | null): string {
+        if (!valor) return '';
+        const s = String(valor).trim();
+        // Ya viene en dd/MM/yyyy: respetar tal cual.
+        if (/^\d{2}\/\d{2}\/\d{4}/.test(s)) return s;
+        // 'yyyy-MM-dd' con hora opcional (separada por 'T' o espacio).
+        const iso = s.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2}))?/);
+        if (iso) {
+            const [, y, m, d, hh, mm] = iso;
+            const dmy = `${d}/${m}/${y}`;
+            return hh && !(hh === '00' && mm === '00') ? `${dmy} ${hh}:${mm}` : dmy;
+        }
+        return s;
+    }
+
     bloquearTeclasInvalidas(event: KeyboardEvent) {
         if (['-', '+', 'e', 'E'].includes(event.key)) {
             event.preventDefault();

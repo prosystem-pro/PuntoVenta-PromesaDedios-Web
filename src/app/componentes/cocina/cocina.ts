@@ -23,6 +23,12 @@ export class Cocina implements OnInit, OnDestroy {
     // CodigoCocinaPedido que se está atendiendo (para deshabilitar su botón)
     procesando = signal<number | null>(null);
 
+    // Encabezado de la tarjeta: el nombre de la mesa o, cuando es SIN MESA
+    // (venta facturada desde ventanilla), el número de venta (p.ej. "PPD001-VNT050").
+    titulo(p: CocinaPedido): string {
+        return p.CodigoMesa == null ? (p.NumeroVenta || p.NombreMesa) : p.NombreMesa;
+    }
+
     // Tick de 1s para refrescar los cronómetros
     private tick = signal(0);
     private intervalId: any;

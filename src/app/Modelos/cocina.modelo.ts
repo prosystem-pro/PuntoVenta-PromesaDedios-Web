@@ -12,6 +12,7 @@ export interface CocinaProducto {
 export interface CocinaPedido {
     CodigoCocinaPedido: number;
     CodigoVenta: number;
+    NumeroVenta: string;       // Nro. de venta (p.ej. "PPD001-VNT050"); se muestra cuando es SIN MESA
     CodigoMesa: number | null;
     NombreMesa: string;        // "SIN MESA" cuando no proviene de una mesa
     FechaInicio: string;       // ISO; se usa para el cronómetro

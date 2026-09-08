@@ -72,15 +72,15 @@ export class EstadoPedidos implements OnInit {
         await this.cargar();
     }
 
-    // Muestra la fecha (dd/MM/yyyy) y agrega la hora solo si existe y no es 00:00.
-    // El API manda "dd/MM/yyyy HH:mm" (o solo "dd/MM/yyyy" si no se capturó hora).
+    // Muestra la fecha (dd/MM/yyyy) y agrega la hora siempre que venga, incluido 00:00
+    // (requisito TC-768: si no se indica horario de entrega debe aparecer 00:00).
+    // El API manda "dd/MM/yyyy HH:mm" (o solo "dd/MM/yyyy" si no trae hora).
     fechaCorta(fecha: string | null): string {
         if (!fecha) return '—';
         const f = fecha.trim();
         const fechaParte = f.substring(0, 10);
         const horaParte = f.substring(11, 16); // "HH:mm"
-        if (horaParte && horaParte !== '00:00') return `${fechaParte} ${horaParte}`;
-        return fechaParte;
+        return horaParte ? `${fechaParte} ${horaParte}` : fechaParte;
     }
 
     // Rango por defecto: mes actual COMPLETO (del día 1 al último día del mes).

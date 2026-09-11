@@ -338,6 +338,10 @@ export class MesaListado implements OnInit, OnDestroy {
             } else {
                 this.servicioAlerta.MostrarError(res.message);
             }
+        } catch (error) {
+            // Faltaba el catch: el API rechaza (p.ej. "No hay una caja abierta") con 400 y
+            // el servicio relanza; sin este bloque la alerta no se mostraba (TC-733).
+            this.servicioAlerta.MostrarError(error, 'No se pudo facturar la mesa');
         } finally {
             this.procesando.set(false);
         }

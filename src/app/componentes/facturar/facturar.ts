@@ -30,6 +30,7 @@ interface ProductoVenta {
     Stock: number | null;
     StockMinimo?: number | null;
     CodigoBarra?: string | null;
+    TipoProducto?: string | null;
 }
 
 @Component({
@@ -141,7 +142,8 @@ export class Facturar implements OnInit {
                     ImagenUrl: p.ImagenUrl,
                     Stock: p.StockActual ?? null,
                     // El API ya envía StockMinimo: el aviso de "stock bajo" se calcula contra este valor.
-                    StockMinimo: p.StockMinimo ?? null
+                    StockMinimo: p.StockMinimo ?? null,
+                    TipoProducto: p.TipoProducto ?? null
                 }));
                 this.productos.set(lista);
             }
@@ -158,7 +160,9 @@ export class Facturar implements OnInit {
 
     // Hay stock bajo cuando el stock actual es menor o igual al stock mínimo del producto.
     // Si el API no envía StockMinimo, no se muestra aviso (evita falsos positivos).
+    // Los productos de tipo cocina no manejan stock físico: nunca muestran el aviso (TC-804).
     esStockBajo(prod: ProductoVenta): boolean {
+        if (prod.TipoProducto === 'COCINA') return false;
         return prod.Stock !== null && prod.Stock !== undefined
             && prod.StockMinimo !== null && prod.StockMinimo !== undefined
             && prod.Stock <= prod.StockMinimo;

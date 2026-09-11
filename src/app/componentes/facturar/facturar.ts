@@ -229,26 +229,65 @@ export class Facturar implements OnInit {
         if (this.comentarioAbierto() === codigo) this.comentarioAbierto.set(null);
     }
 
-    // Buscar producto por código de barras (en todo el catálogo) y agregarlo
-    buscarPorCodigoBarra() {
+    // Caché de productos por categoría (para resolver el precio del código sin repetir llamadas).
+    private cacheProductosCategoria = new Map<number, any[]>();
+
+    private async obtenerProductosDeCategoria(codigoCategoria: number): Promise<any[]> {
+        const enCache = this.cacheProductosCategoria.get(codigoCategoria);
+        if (enCache) return enCache;
+        const res = await this.servicioProducto.ProductosPorCategoria('facturar', codigoCategoria);
+        const lista = res.success ? (res.data || []) : [];
+        this.cacheProductosCategoria.set(codigoCategoria, lista);
+        return lista;
+    }
+
+    // Buscar por código de barras o código de producto (en todo el catálogo) y agregarlo.
+    // El listado global trae el nombre como "Producto" y la categoría, pero NO el precio;
+    // el precio se toma de los productos de esa categoría (donde sí viene con IVA).
+    async buscarPorCodigoBarra() {
         const codigo = this.codigoBarra().trim();
         if (!codigo) return;
 
-        const prod = this.productosGlobal.find(p => p.CodigoBarra === codigo);
-        if (prod && prod.CodigoProducto) {
-            const precioConIva = Number((prod.PrecioVenta * (1 + (prod.Iva || 0) / 100)).toFixed(2));
-            this.agregarAlCarrito({
-                CodigoProducto: prod.CodigoProducto,
-                NombreProducto: prod.NombreProducto,
-                PrecioUnitario: precioConIva,
-                ImagenUrl: prod.ImagenUrl,
-                Stock: prod.Stock ?? null,
-                CodigoBarra: prod.CodigoBarra
-            });
-            this.codigoBarra.set('');
-        } else {
+        const prod: any = this.productosGlobal.find((p: any) =>
+            p.CodigoBarra === codigo || String(p.CodigoProducto) === codigo
+        );
+        if (!prod || !prod.CodigoProducto) {
             this.servicioAlerta.MostrarToast('No se encontró un producto con ese código', 'warning');
+            return;
         }
+
+        // Datos base del listado global (nombre = "Producto", stock = "StockActual").
+        let nombre = prod.Producto ?? prod.NombreProducto ?? '';
+        let stock = prod.StockActual ?? null;
+        let imagen = prod.ImagenUrl ?? null;
+        let precioConIva: number | null = null;
+
+        // El precio vive en el endpoint por categoría; se resuelve por CodigoProducto.
+        if (prod.Categoria != null) {
+            const lista = await this.obtenerProductosDeCategoria(prod.Categoria);
+            const detalle = lista.find((x: any) => x.CodigoProducto === prod.CodigoProducto);
+            if (detalle) {
+                precioConIva = Number(detalle.PrecioConIva ?? detalle.PrecioVenta ?? 0);
+                nombre = detalle.Producto ?? nombre;
+                stock = detalle.StockActual ?? stock;
+                imagen = detalle.ImagenUrl ?? imagen;
+            }
+        }
+
+        if (precioConIva == null || !isFinite(precioConIva)) {
+            this.servicioAlerta.MostrarToast('No se pudo obtener el precio del producto', 'warning');
+            return;
+        }
+
+        this.agregarAlCarrito({
+            CodigoProducto: prod.CodigoProducto,
+            NombreProducto: nombre,
+            PrecioUnitario: precioConIva,
+            ImagenUrl: imagen,
+            Stock: stock,
+            CodigoBarra: prod.CodigoBarra ?? null
+        });
+        this.codigoBarra.set('');
     }
 
     cambiarAMesa() {

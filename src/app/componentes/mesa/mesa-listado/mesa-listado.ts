@@ -81,6 +81,31 @@ export class MesaListado implements OnInit, OnDestroy {
         return agregadas;
     });
 
+    // Cronometro compartido para mesas combinadas (TC-723): todas las mesas de una misma
+    // cuenta combinada deben marcar el MISMO tiempo. Mapea cada CodigoMesa a la
+    // FechaApertura de la PRINCIPAL de su grupo (la de apertura mas temprana), que es
+    // cuando arranco la cuenta. Las mesas no combinadas no entran aca (usan su propia fecha).
+    private fechaGrupoPorMesa = computed<Map<number, string>>(() => {
+        const porVenta = new Map<number, Mesa[]>();
+        for (const m of this.mesas()) {
+            const cv = m.Venta?.CodigoVenta;
+            if (m.Estatus === 2 && cv != null) {
+                const arr = porVenta.get(cv) ?? [];
+                arr.push(m);
+                porVenta.set(cv, arr);
+            }
+        }
+        const mapa = new Map<number, string>();
+        for (const arr of porVenta.values()) {
+            if (arr.length <= 1) continue; // mesa sola: conserva su propio cronometro
+            const principal = arr.reduce((a, b) => this.esPrincipalEntre(a, b) ? a : b);
+            const fecha = principal.Venta?.FechaApertura;
+            if (!fecha) continue;
+            for (const m of arr) mapa.set(m.CodigoMesa, fecha);
+        }
+        return mapa;
+    });
+
     // Tick de 1s para refrescar el cronometro de las tarjetas ocupadas
     private tick = signal(0);
 
@@ -199,7 +224,9 @@ export class MesaListado implements OnInit, OnDestroy {
     // Cronometro: tiempo transcurrido desde la apertura del pedido (HH:MM:SS)
     tiempoMesa(mesa: Mesa): string {
         this.tick(); // dependencia para refrescar cada segundo
-        const inicio = mesa.Venta?.FechaApertura;
+        // Si la mesa esta combinada, usa la apertura de la principal del grupo para que
+        // todas las mesas de la cuenta marquen el mismo tiempo (TC-723).
+        const inicio = this.fechaGrupoPorMesa().get(mesa.CodigoMesa) ?? mesa.Venta?.FechaApertura;
         if (!inicio) return '00:00:00';
         const ms = Date.now() - new Date(inicio).getTime();
         if (isNaN(ms) || ms < 0) return '00:00:00';

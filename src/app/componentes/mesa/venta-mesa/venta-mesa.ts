@@ -34,6 +34,7 @@ interface ProductoVenta {
     Stock: number | null;
     StockMinimo?: number | null;
     CodigoBarra?: string | null;
+    TipoProducto?: string | null;
 }
 
 @Component({
@@ -91,6 +92,10 @@ export class VentaMesa implements OnInit {
         this.carrito().reduce((acc, item) => acc + (item.PrecioUnitario * item.Cantidad), 0)
     );
 
+    // Snapshot del carrito tal como quedo guardado (o vacio en mesa nueva), para detectar
+    // cambios sin guardar y avisar al regresar a mesas (TC-739).
+    private baselineCarrito = '';
+
     // Cobro / comprobante
     guardando = signal(false);
     mostrarPago = signal(false);
@@ -141,6 +146,37 @@ export class VentaMesa implements OnInit {
             // Mesa libre / sin comanda: orden nueva vacia
             this.tieneVentaActiva.set(false);
         }
+        // Guarda el estado inicial (lo ya guardado, o vacio si es mesa nueva) como base
+        // de comparacion para detectar cambios sin guardar (TC-739).
+        this.baselineCarrito = this.serializarCarrito();
+    }
+
+    // Firma estable del carrito (producto + cantidad + nota) para comparar contra el baseline.
+    private serializarCarrito(): string {
+        return JSON.stringify(
+            this.carrito()
+                .map(it => ({ c: it.CodigoProducto, q: it.Cantidad, n: (it.Nota ?? '').trim() }))
+                .sort((a, b) => a.c - b.c)
+        );
+    }
+
+    // Hay productos/cambios sin guardar respecto a lo ultimo guardado.
+    hayCambiosSinGuardar(): boolean {
+        return this.serializarCarrito() !== this.baselineCarrito;
+    }
+
+    // Regresar a mesas: si hay cambios sin guardar, confirma antes de salir (TC-739).
+    async regresarAMesas() {
+        if (this.hayCambiosSinGuardar()) {
+            const continuar = await this.servicioAlerta.Confirmacion(
+                'Cambios sin guardar',
+                'Si regresa, se perderán los productos seleccionados que no ha guardado. ¿Desea continuar?',
+                'Salir sin guardar',
+                'Seguir editando'
+            );
+            if (!continuar) return;
+        }
+        this.router.navigate(['/ventas']);
     }
 
     async cargarCategorias() {
@@ -178,7 +214,8 @@ export class VentaMesa implements OnInit {
                     PrecioUnitario: Number(p.PrecioConIva ?? p.PrecioVenta ?? 0),
                     ImagenUrl: p.ImagenUrl,
                     Stock: p.StockActual ?? null,
-                    StockMinimo: p.StockMinimo ?? null
+                    StockMinimo: p.StockMinimo ?? null,
+                    TipoProducto: p.TipoProducto ?? null
                 }));
                 this.productos.set(lista);
             }
@@ -194,7 +231,9 @@ export class VentaMesa implements OnInit {
     });
 
     // Hay stock bajo cuando el stock actual es menor o igual al stock mínimo del producto.
+    // Los productos de tipo cocina no manejan stock físico: nunca muestran el aviso (TC-804).
     esStockBajo(prod: ProductoVenta): boolean {
+        if (prod.TipoProducto === 'COCINA') return false;
         return prod.Stock !== null && prod.Stock !== undefined
             && prod.StockMinimo !== null && prod.StockMinimo !== undefined
             && prod.Stock <= prod.StockMinimo;

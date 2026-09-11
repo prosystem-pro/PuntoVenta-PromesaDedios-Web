@@ -211,6 +211,17 @@ export class HistorialVentas implements OnInit {
         return v.Estatus !== 'ANULADO';
     }
 
+    // Muestra el ícono de motivo solo en ventas anuladas que ya traen el texto del API (TC-763).
+    tieneMotivo(v: VentaHistorial): boolean {
+        return v.Estatus === 'ANULADO' && !!(v.MotivoAnulacion && v.MotivoAnulacion.trim());
+    }
+
+    verMotivo(v: VentaHistorial) {
+        const motivo = (v.MotivoAnulacion || '').trim();
+        if (!motivo) return;
+        this.servicioAlerta.MostrarInfo(motivo, 'Motivo de anulación');
+    }
+
     // ----- Ver comprobante (lupa) -----
     async verFactura(v: VentaHistorial) {
         if (!v.CodigoVenta || this.cargandoFactura() !== null) {

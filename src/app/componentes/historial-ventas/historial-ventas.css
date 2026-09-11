@@ -166,6 +166,22 @@
     transform: scale(1.1);
 }
 
+/* Ver motivo de anulación (TC-763) */
+.btn-motivo {
+    background: transparent;
+    color: #6c757d;
+    border: none;
+    font-size: 1.15rem;
+    padding: 0.25rem 0.5rem;
+    transition: all 0.2s;
+}
+
+.btn-motivo:hover {
+    background: rgba(108, 117, 125, 0.12);
+    color: #495057;
+    transform: scale(1.1);
+}
+
 .pagination-footer {
     padding: 0.5rem 0;
 }

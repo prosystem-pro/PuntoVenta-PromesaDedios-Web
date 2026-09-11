@@ -8,4 +8,7 @@ export interface VentaHistorial {
     Monto: number;
     Estatus: string;        // ANULADO | PENDIENTE | CANCELADO | FACTURADO | CERRADO
     FechaVenta: string | null;
+    // PENDIENTE de API: el listado aún no devuelve el motivo. Cuando lo envíe, el ícono
+    // de "ver motivo" en las ventas anuladas se activa solo (TC-763).
+    MotivoAnulacion?: string | null;
 }

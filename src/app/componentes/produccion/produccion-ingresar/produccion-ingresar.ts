@@ -39,6 +39,10 @@ export class ProduccionIngresar implements OnInit {
     guardando = signal(false);
     insumosGuardados = signal(false);
 
+    // TC-784: baseline para detectar cambios sin guardar y advertir al salir.
+    private baselineProductos = signal<string>('');
+    private baselineInsumos = signal<string>('');
+
     // Paginación
     paginaActual = signal(1);
     itemsPorPagina = 10;
@@ -101,14 +105,23 @@ export class ProduccionIngresar implements OnInit {
             if (this.esMasivo()) {
                 const res = await this.servicioProduccion.obtenerListadoPedidosTodos();
                 if (res.success && res.data) {
-                    this.detalles.set(res.data.map((d: any) => ({
-                        ...d,
-                        CantidadProducida: d.Producido || d.Producir || 0,
-                        NombreCategoriaProducto: d.Categoria,
-                        NombreUnidad: d.Unidad,
-                        NombreProducto: d.Producto,
-                        Comentarios: d.Observaciones || [],
-                    })));
+                    this.detalles.set(res.data.map((d: any) => {
+                        // El API (masivo) devuelve Observaciones como arreglo [{ Cantidad, Observaciones }]
+                        // agrupado por producto. El modal espera { Cantidad, Producto, Comentario }.
+                        const comentarios = (d.Observaciones || [])
+                            .filter((o: any) => (o?.Observaciones ?? '').toString().trim())
+                            .map((o: any) => ({ Cantidad: o.Cantidad, Producto: d.Producto, Comentario: o.Observaciones }));
+                        return {
+                            ...d,
+                            CantidadProducida: d.Producido || d.Producir || 0,
+                            NombreCategoriaProducto: d.Categoria,
+                            NombreUnidad: d.Unidad,
+                            NombreProducto: d.Producto,
+                            Comentarios: comentarios,
+                            // El ícono 💬 se ilumina solo si hay comentarios reales.
+                            Observaciones: comentarios.length ? comentarios : null,
+                        };
+                    }));
 
                     // Calculamos los insumos dinámicamente desde las recetas
                     await this.calcularInsumosDesdeRecetas(this.detalles());
@@ -139,12 +152,36 @@ export class ProduccionIngresar implements OnInit {
 
                         // Calculamos los insumos dinámicamente desde las recetas
                         await this.calcularInsumosDesdeRecetas(Detalle);
+                        // TC-783: recuperar el consumo de insumos ya guardado para no perder avances.
+                        await this.overlayConsumoGuardado();
                     }
                 }
             }
+            // TC-784: fijamos el baseline una vez cargados productos e insumos.
+            this.capturarBaseline();
         } finally {
             this.cargando.set(false);
         }
+    }
+
+    // TC-784: detección de cambios sin guardar.
+    private serializarProductos(): string {
+        return JSON.stringify(this.detalles().map((d: any) => ({
+            c: d.CodigoProducto, v: Number(d.CantidadProducida) || 0
+        })));
+    }
+    private serializarInsumos(): string {
+        return JSON.stringify(this.insumos().map((i: any) => ({
+            c: i.CodigoProducto, v: Number(i.ConsumoReal) || 0
+        })));
+    }
+    private capturarBaseline() {
+        this.baselineProductos.set(this.serializarProductos());
+        this.baselineInsumos.set(this.serializarInsumos());
+    }
+    hayCambiosSinGuardar(): boolean {
+        return this.serializarProductos() !== this.baselineProductos()
+            || this.serializarInsumos() !== this.baselineInsumos();
     }
 
     async cargarInsumos() {
@@ -226,6 +263,38 @@ export class ProduccionIngresar implements OnInit {
         this.insumos.set(Array.from(insumosMap.values()));
     }
 
+    // TC-783: al reingresar a un pedido en proceso (no finalizado), trae el consumo
+    // de insumos ya guardado (ProduccionConsumoInsumo) y lo sobrepone al estimado de receta,
+    // para que las cantidades modificadas no se pierdan al salir y volver a entrar.
+    private async overlayConsumoGuardado() {
+        const codProd = this.codigoProduccion();
+        if (!codProd) return;
+        try {
+            const res = await this.servicioProduccion.obtenerInsumosPedido(codProd);
+            const lista = res.success
+                ? (Array.isArray(res.data) ? res.data : ((res.data as any)?.Insumos || []))
+                : [];
+
+            const guardados = new Map<number, number>();
+            for (const i of lista) {
+                const util = i.Utilizada ?? i.Utilizado;
+                if (util !== null && util !== undefined) {
+                    guardados.set(Number(i.CodigoProducto), Number(util));
+                }
+            }
+
+            if (guardados.size === 0) return;
+
+            this.insumos.update(items => items.map(it => {
+                const util = guardados.get(Number(it.CodigoProducto));
+                return util !== undefined ? { ...it, ConsumoReal: util } : it;
+            }));
+            this.insumosGuardados.set(true);
+        } catch {
+            // Si la consulta falla, se conservan los estimados de receta.
+        }
+    }
+
     cambiarVista(vista: 'productos' | 'insumos') {
         this.vistaActiva.set(vista);
         this.busqueda.set('');
@@ -291,6 +360,7 @@ export class ProduccionIngresar implements OnInit {
             }
 
             if (resA.success) {
+                this.capturarBaseline(); // TC-784: lo guardado deja de contar como cambio pendiente
                 if (finalizar) {
                     this.servicioAlerta.MostrarExito('Pedido abastecido y finalizado correctamente');
                     this.router.navigate(['/produccion']);
@@ -348,6 +418,7 @@ export class ProduccionIngresar implements OnInit {
             if (resC.success) {
                 this.servicioAlerta.MostrarExito('Consumo de insumos registrado correctamente');
                 this.insumosGuardados.set(true);
+                this.capturarBaseline(); // TC-784: consumo guardado ya no es cambio pendiente
 
                 // Punto 2: Redirección automática a la vista de productos para facilitar el "Abastecer"
                 this.cambiarVista('productos');
@@ -361,7 +432,22 @@ export class ProduccionIngresar implements OnInit {
         }
     }
 
-    cancelar() {
-        this.router.navigate(['/produccion']);
+    // TC-784: handler único del botón "Regresar" para productos e insumos.
+    // Advierte si hay cambios sin guardar antes de salir de la pantalla o de la vista insumos.
+    async regresar() {
+        if (this.hayCambiosSinGuardar()) {
+            const salir = await this.servicioAlerta.Confirmacion(
+                '¿Salir sin guardar?',
+                'Tiene cambios sin guardar que se perderán si sale. ¿Desea continuar?',
+                'Sí, salir',
+                'Cancelar'
+            );
+            if (!salir) return;
+        }
+        if (this.vistaActiva() === 'insumos') {
+            this.cambiarVista('productos');
+        } else {
+            this.router.navigate(['/produccion']);
+        }
     }
 }

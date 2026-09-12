@@ -86,7 +86,7 @@
                             {{ obtenerTextoEstado(pedido) }}
                         </span>
                     </td>
-                    <td>{{ pedido.FechaEntrega | date:'dd/MM/yyyy HH:mm':'UTC' }}</td>
+                    <td>{{ pedido.FechaEntrega | date:'dd/MM/yyyy HH:mm' }}</td>
                     <td class="text-center">
                         @if (!esModoMasivo()) {
                             @if (pedido.Estado === 'PENDIENTE' || pedido.Estatus === 1) {

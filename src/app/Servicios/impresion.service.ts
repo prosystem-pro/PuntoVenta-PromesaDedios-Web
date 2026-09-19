@@ -158,8 +158,12 @@ export class ImpresionService {
      * reporte no lista), porque en el equipo `window.print()` solo abriría el
      * diálogo "Guardar como PDF". El lado nativo muestra un error visible si falla.
      */
-    imprimirComprobante(data: ComprobanteVenta): 'nativo' | 'web' {
-        return this.emitir(this.construirTicket(data));
+    imprimirComprobante(data: ComprobanteVenta, abrirCajon = false): 'nativo' | 'web' {
+        // TC-808: al cobrar en efectivo se abre el cajón de dinero (pulse al RJ11).
+        // Solo se pide en la impresión posterior al pago, no en reimpresiones.
+        const ticket = this.construirTicket(data);
+        if (abrirCajon) ticket.abrirCajon = true;
+        return this.emitir(ticket);
     }
 
     /** Imprime una comanda de cocina. */

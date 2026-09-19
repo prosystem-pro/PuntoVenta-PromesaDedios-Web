@@ -50,20 +50,29 @@ export class ComprobanteVentaModal implements OnChanges {
         if (changes['visible']?.currentValue && this.data && this.accionAuto) {
             // Espera a que el ticket se renderice antes de imprimir/descargar
             setTimeout(() => {
-                if (this.accionAuto === 'imprimir') this.imprimir();
+                // TC-808: esta es la impresión automática tras el cobro; si el pago
+                // fue en efectivo se abre el cajón de dinero. La reimpresión manual no.
+                if (this.accionAuto === 'imprimir') this.imprimir(this.esPagoEfectivo());
                 else if (this.accionAuto === 'descargar') this.descargarPdf();
             }, 300);
         }
     }
 
-    imprimir() {
+    imprimir(abrirCajon = false) {
         // En el wrapper Sunmi imprime en la térmica de 80mm; en desktop cae a
         // window.print() (impresión del DOM del comprobante). Ver ImpresionService.
         if (this.data) {
-            this.impresion.imprimirComprobante(this.data);
+            this.impresion.imprimirComprobante(this.data, abrirCajon);
         } else {
             window.print();
         }
+    }
+
+    /** TC-808: true si algún método de pago del comprobante es efectivo. */
+    private esPagoEfectivo(): boolean {
+        return (this.data?.FormaPago ?? []).some(fp =>
+            (fp.MetodoPago ?? '').toString().toUpperCase().includes('EFECTIVO')
+        );
     }
 
     async descargarPdf() {

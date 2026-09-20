@@ -51,8 +51,8 @@ export class Facturar implements OnInit {
     colorSistema = Entorno.ColorSistema;
 
     // TEMPORAL (TC-808): botón de diagnóstico del cajón de dinero. Dispara el pulso
-    // al RJ11 sin imprimir, para aislar el hardware del flujo de impresión. Quitar
-    // una vez confirmado que el cajón abre en el equipo.
+    // al puerto RJ12 de la base (V3 MIX acoplado, base con corriente), sin imprimir,
+    // para aislar el hardware del flujo de impresión. Quitar una vez confirmado.
     probarCajon(): void {
         const r = this.servicioImpresion.abrirCajonNativo();
         if (r === 'no-nativo') {

@@ -183,7 +183,8 @@ export class ImpresionService {
      * diálogo "Guardar como PDF". El lado nativo muestra un error visible si falla.
      */
     imprimirComprobante(data: ComprobanteVenta, abrirCajon = false): 'nativo' | 'web' {
-        // TC-808: al cobrar en efectivo se abre el cajón de dinero (pulse al RJ11).
+        // TC-808: al cobrar en efectivo se abre el cajón de dinero (pulso al puerto
+        // RJ12 de la base del V3 MIX; el equipo debe estar acoplado y la base con corriente).
         // Solo se pide en la impresión posterior al pago, no en reimpresiones.
         const ticket = this.construirTicket(data);
         if (abrirCajon) ticket.abrirCajon = true;

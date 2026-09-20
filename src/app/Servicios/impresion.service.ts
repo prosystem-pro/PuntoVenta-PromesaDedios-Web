@@ -14,6 +14,9 @@ interface SunmiPrinterBridge {
     isReady?(): boolean;
     getStatus?(): string;
     printReceipt(json: string): void;
+    // Abre el cajón directamente (sin imprimir). Disponible solo en el APK del
+    // wrapper que ya expone el método suelto; si no, se cae al printReceipt.
+    abrirCajon?(): void;
 }
 
 // Fila de dos columnas (izquierda / derecha alineada al borde).
@@ -148,6 +151,27 @@ export class ImpresionService {
         } catch {
             return null;
         }
+    }
+
+    /**
+     * Abre el cajón de dinero directamente, sin imprimir (diagnóstico y cobro de
+     * pedidos). Devuelve:
+     *  - 'nativo'    si se disparó por el método suelto del wrapper (APK nuevo),
+     *  - 'impresion' si se cayó a printReceipt con abrirCajon (APK viejo: imprime un
+     *                 tiquete mínimo y pide el cajón por esa vía),
+     *  - 'no-nativo' si no estamos dentro del wrapper (navegador/desktop).
+     */
+    abrirCajonNativo(): 'nativo' | 'impresion' | 'no-nativo' {
+        const bridge = this.bridge;
+        if (!bridge) return 'no-nativo';
+        if (typeof bridge.abrirCajon === 'function') {
+            bridge.abrirCajon();
+            return 'nativo';
+        }
+        // Fallback para el APK que aún no expone abrirCajon(): dispara el pulso por la
+        // vía de impresión (tiquete mínimo con el flag).
+        bridge.printReceipt(JSON.stringify({ negocio: { nombre: 'PRUEBA CAJÓN' }, abrirCajon: true, cortar: true }));
+        return 'impresion';
     }
 
     /**

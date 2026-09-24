@@ -8,7 +8,6 @@ import { ComprobanteVenta, FacturarVentanillaRequest, CrearVentaPedidoRequest } 
 import { ProductoServicio } from '../../Servicios/producto.service';
 import { VentaServicio } from '../../Servicios/venta.service';
 import { AlertaServicio } from '../../Servicios/alerta.service';
-import { ImpresionService } from '../../Servicios/impresion.service';
 import { Entorno } from '../../Entorno/Entorno';
 import { ClienteFacturaModal } from './cliente-factura-modal/cliente-factura-modal';
 import { MontoPagoModal, ResultadoPago } from './monto-pago-modal/monto-pago-modal';
@@ -45,24 +44,9 @@ export class Facturar implements OnInit {
     private servicioProducto = inject(ProductoServicio);
     private servicioVenta = inject(VentaServicio);
     private servicioAlerta = inject(AlertaServicio);
-    private servicioImpresion = inject(ImpresionService);
     private router = inject(Router);
 
     colorSistema = Entorno.ColorSistema;
-
-    // TEMPORAL (TC-808): botón de diagnóstico del cajón de dinero. Dispara el pulso
-    // al puerto RJ12 de la base (V3 MIX acoplado, base con corriente), sin imprimir,
-    // para aislar el hardware del flujo de impresión. Quitar una vez confirmado.
-    probarCajon(): void {
-        const r = this.servicioImpresion.abrirCajonNativo();
-        if (r === 'no-nativo') {
-            this.servicioAlerta.MostrarAlerta('No se detecta el wrapper Sunmi (probá desde el equipo, no el navegador).');
-        } else if (r === 'impresion') {
-            this.servicioAlerta.MostrarToast('APK viejo: se pidió el cajón por impresión (sale un tiquete de prueba).', 'success');
-        } else {
-            this.servicioAlerta.MostrarToast('Pulso enviado al cajón.', 'success');
-        }
-    }
 
     // Texto de la banda del nombre: blanco si el color del sistema es oscuro, negro si es claro
     get colorTextoBanda(): string {

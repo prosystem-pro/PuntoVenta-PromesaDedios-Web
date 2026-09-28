@@ -195,8 +195,8 @@ export class ProduccionIngresar implements OnInit {
             }
 
             if (resInsumos.success && resInsumos.data) {
-                // Verificamos si los datos vienen directamente o dentro de una propiedad 'Detalle'
-                const listaRaw = Array.isArray(resInsumos.data) ? resInsumos.data : (resInsumos.data as any).Detalle || [];
+                // El masivo devuelve un array; el de un pedido devuelve { CodigoProduccion, Insumos: [...] }.
+                const listaRaw = Array.isArray(resInsumos.data) ? resInsumos.data : (resInsumos.data as any).Insumos || [];
 
                 this.insumos.set(listaRaw.map((i: any) => ({
                     ...i,
@@ -266,6 +266,8 @@ export class ProduccionIngresar implements OnInit {
     // TC-783: al reingresar a un pedido en proceso (no finalizado), trae el consumo
     // de insumos ya guardado (ProduccionConsumoInsumo) y lo sobrepone al estimado de receta,
     // para que las cantidades modificadas no se pierdan al salir y volver a entrar.
+    // El API (ListadoInsumosPorProduccion) ya devuelve 'Utilizada' con el valor guardado
+    // (antes venía null); acá solo se aplica sobre el ConsumoReal calculado por receta.
     private async overlayConsumoGuardado() {
         const codProd = this.codigoProduccion();
         if (!codProd) return;

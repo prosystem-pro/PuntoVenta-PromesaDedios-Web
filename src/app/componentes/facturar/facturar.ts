@@ -19,6 +19,9 @@ interface ItemCarrito {
     PrecioUnitario: number;
     Cantidad: number;
     Nota: string;
+    // Stock disponible capturado al agregar (TC-749). null = sin control de stock
+    // (producto sin stock informado o de cocina): no se topa la cantidad.
+    Stock: number | null;
 }
 
 // Producto normalizado para la vista (proviene del endpoint por categoría)
@@ -174,8 +177,39 @@ export class Facturar implements OnInit {
         return this.carrito().find(it => it.CodigoProducto === codigo)?.Cantidad ?? 0;
     }
 
+    // Límite de stock para la venta (TC-749): número finito disponible, o null si no
+    // aplica control (stock no informado, o producto de cocina que no maneja stock físico).
+    private limiteStock(prod: { Stock?: number | null; TipoProducto?: string | null }): number | null {
+        if (prod.TipoProducto === 'COCINA') return null;
+        return (prod.Stock === null || prod.Stock === undefined) ? null : Number(prod.Stock);
+    }
+
+    // El producto ya llegó a su tope de stock según lo que hay en el carrito
+    // (para atenuar la tarjeta del grid). null = sin control => nunca llega al tope.
+    alcanzoLimiteStock(prod: ProductoVenta): boolean {
+        const limite = this.limiteStock(prod);
+        return limite !== null && this.cantidadEnCarrito(prod.CodigoProducto) >= limite;
+    }
+
+    // El ítem del carrito ya está en su tope de stock (para desactivar el botón "+").
+    itemEnLimiteStock(item: ItemCarrito): boolean {
+        return item.Stock !== null && item.Cantidad >= item.Stock;
+    }
+
     agregarAlCarrito(producto: ProductoVenta) {
         if (!producto.CodigoProducto) return;
+
+        // TC-749: no permitir agregar por encima del stock disponible.
+        const limite = this.limiteStock(producto);
+        if (limite !== null && this.cantidadEnCarrito(producto.CodigoProducto) >= limite) {
+            this.servicioAlerta.MostrarToast(
+                limite <= 0
+                    ? `${producto.NombreProducto}: sin stock disponible`
+                    : `Stock disponible: ${limite}`,
+                'warning');
+            return;
+        }
+
         const actual = this.carrito();
         const existe = actual.find(it => it.CodigoProducto === producto.CodigoProducto);
 
@@ -187,7 +221,8 @@ export class Facturar implements OnInit {
                 NombreProducto: producto.NombreProducto,
                 PrecioUnitario: producto.PrecioUnitario,
                 Cantidad: 1,
-                Nota: ''
+                Nota: '',
+                Stock: limite
             }]);
         }
     }
@@ -218,8 +253,20 @@ export class Facturar implements OnInit {
             if (this.comentarioAbierto() === codigo) this.comentarioAbierto.set(null);
             return;
         }
+        // TC-749: topar la cantidad al stock disponible del ítem (si maneja control).
+        const item = this.carrito().find(it => it.CodigoProducto === codigo);
+        let cant = nuevaCant;
+        if (item && item.Stock !== null && cant > item.Stock) {
+            cant = item.Stock;
+            this.servicioAlerta.MostrarToast(`Stock disponible: ${item.Stock}`, 'warning');
+        }
+        if (cant <= 0) {
+            this.carrito.update(items => items.filter(it => it.CodigoProducto !== codigo));
+            if (this.comentarioAbierto() === codigo) this.comentarioAbierto.set(null);
+            return;
+        }
         this.carrito.update(items => items.map(it =>
-            it.CodigoProducto === codigo ? { ...it, Cantidad: nuevaCant } : it
+            it.CodigoProducto === codigo ? { ...it, Cantidad: cant } : it
         ));
     }
 

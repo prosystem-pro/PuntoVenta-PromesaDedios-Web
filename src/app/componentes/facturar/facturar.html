@@ -49,6 +49,7 @@
                     <div class="col">
                         <div class="card product-card position-relative"
                             [style.--color-sistema]="colorSistema"
+                            [class.opacity-50]="alcanzoLimiteStock(prod)"
                             (click)="agregarAlCarrito(prod)">
                             <!-- Badge de precio (pildora verde, centrada arriba) -->
                             <div class="price-badge-wrap">
@@ -121,10 +122,12 @@
                                 <div class="d-flex align-items-center justify-content-center gap-1">
                                     <button class="btn btn-qty"
                                         (click)="actualizarCantidad(item.CodigoProducto, item.Cantidad - 1)">-</button>
-                                    <input type="number" min="1" class="form-control form-control-sm qty-input text-center"
+                                    <input type="number" min="1" [attr.max]="item.Stock"
+                                        class="form-control form-control-sm qty-input text-center"
                                         [ngModel]="item.Cantidad"
                                         (ngModelChange)="cambiarCantidad(item.CodigoProducto, $event)">
                                     <button class="btn btn-qty"
+                                        [disabled]="itemEnLimiteStock(item)"
                                         (click)="actualizarCantidad(item.CodigoProducto, item.Cantidad + 1)">+</button>
                                 </div>
                             </td>

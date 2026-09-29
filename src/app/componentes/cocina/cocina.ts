@@ -46,10 +46,12 @@ export class Cocina implements OnInit, OnDestroy {
         document.removeEventListener('visibilitychange', this.onVisibilityChange);
     }
 
-    // Refresca el listado cada 30s para captar nuevos pedidos + tick de 1s para cronometros.
+    // Refresca el listado cada 10s para captar cambios casi en tiempo real (TC-797/807)
+    // + tick de 1s para cronometros. El polling se pausa cuando la pestaña no está
+    // visible (visibilitychange), así no gasta en reposo.
     private iniciarIntervalos() {
         if (!this.intervalId) {
-            this.intervalId = setInterval(() => this.cargar(false), 30000);
+            this.intervalId = setInterval(() => this.cargar(false), 10000);
         }
         if (!this.tickId) {
             this.tickId = setInterval(() => this.tick.update(v => v + 1), 1000);

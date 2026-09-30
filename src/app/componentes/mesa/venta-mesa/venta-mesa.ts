@@ -23,6 +23,9 @@ interface ItemCarrito {
     // reducir por debajo de esto ni eliminar el producto, porque sus insumos ya se
     // descontaron del inventario (TC-744). Solo > 0 en productos de tipo cocina atendidos.
     YaPreparado: number;
+    // TC-749: stock disponible capturado al agregar. null = sin control de stock
+    // (stock no informado o producto de cocina). Solo topa productos con stock finito.
+    Stock: number | null;
 }
 
 // Producto normalizado para la vista (proviene del endpoint por categoría)
@@ -244,8 +247,38 @@ export class VentaMesa implements OnInit {
         return this.carrito().find(it => it.CodigoProducto === codigo)?.Cantidad ?? 0;
     }
 
+    // TC-749: límite de stock para la venta (número finito disponible, o null si no
+    // aplica control: stock no informado o producto de cocina).
+    private limiteStock(prod: { Stock?: number | null; TipoProducto?: string | null }): number | null {
+        if (prod.TipoProducto === 'COCINA') return null;
+        return (prod.Stock === null || prod.Stock === undefined) ? null : Number(prod.Stock);
+    }
+
+    // TC-749: el producto ya llegó a su tope de stock en el carrito (para atenuar la tarjeta).
+    alcanzoLimiteStock(prod: ProductoVenta): boolean {
+        const limite = this.limiteStock(prod);
+        return limite !== null && this.cantidadEnCarrito(prod.CodigoProducto) >= limite;
+    }
+
+    // TC-749: el ítem del carrito ya está en su tope de stock (para desactivar el "+").
+    itemEnLimiteStock(item: ItemCarrito): boolean {
+        return item.Stock !== null && item.Cantidad >= item.Stock;
+    }
+
     agregarAlCarrito(producto: ProductoVenta) {
         if (!producto.CodigoProducto) return;
+
+        // TC-749: no permitir agregar por encima del stock disponible.
+        const limite = this.limiteStock(producto);
+        if (limite !== null && this.cantidadEnCarrito(producto.CodigoProducto) >= limite) {
+            this.servicioAlerta.MostrarToast(
+                limite <= 0
+                    ? `${producto.NombreProducto}: sin stock disponible`
+                    : `Stock disponible: ${limite}`,
+                'warning');
+            return;
+        }
+
         const actual = this.carrito();
         const existe = actual.find(it => it.CodigoProducto === producto.CodigoProducto);
 
@@ -258,7 +291,8 @@ export class VentaMesa implements OnInit {
                 PrecioUnitario: producto.PrecioUnitario,
                 Cantidad: 1,
                 Nota: '',
-                YaPreparado: 0
+                YaPreparado: 0,
+                Stock: limite
             }]);
         }
     }
@@ -286,6 +320,13 @@ export class VentaMesa implements OnInit {
                 it.CodigoProducto === codigo ? { ...it, Cantidad: piso } : it
             ));
             return;
+        }
+
+        // TC-749: no pasar del stock disponible (solo productos con control de stock;
+        // los de cocina, que son los que tienen piso YaPreparado, no topan aquí).
+        if (item && item.Stock !== null && nuevaCant > item.Stock) {
+            nuevaCant = item.Stock;
+            this.servicioAlerta.MostrarToast(`Stock disponible: ${item.Stock}`, 'warning');
         }
 
         if (nuevaCant <= 0) {

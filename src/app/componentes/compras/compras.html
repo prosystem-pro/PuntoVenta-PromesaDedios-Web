@@ -99,7 +99,8 @@
                         <td class="text-center" [class.text-danger]="c.Pendiente > 0">
                             {{ (c.Vencimiento | date:'dd/MM/yyyy':'UTC') || '' }}
                         </td>
-                        <td class="text-center" [class.text-success]="c.Estatus === 'PAGADO'"
+                        <td class="text-center"
+                            [class.text-success]="c.Estatus === 'CANCELADO' || c.Estatus === 'PAGADO'"
                             [class.text-danger]="c.Estatus === 'PENDIENTE'">
                             {{ c.Estatus }}
                         </td>

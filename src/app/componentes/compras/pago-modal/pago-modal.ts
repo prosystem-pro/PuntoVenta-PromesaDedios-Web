@@ -218,6 +218,18 @@ export class PagoModal implements OnChanges {
         }
     }
 
+    // TC-810: el pago de compra anulado trae motivo → se muestra el ícono para verlo.
+    tieneMotivoAnulacion(pago: any): boolean {
+        return pago?.Estatus === 'ANULADO' && !!(pago?.MotivoAnulacion && String(pago.MotivoAnulacion).trim());
+    }
+
+    // TC-810: popup con motivo + usuario + fecha/hora de la anulación del pago de compra.
+    verMotivoAnulacion(pago: any) {
+        const motivo = String(pago?.MotivoAnulacion || '').trim();
+        if (!motivo) return;
+        this.servicioAlerta.MostrarMotivoAnulacion(motivo, pago?.UsuarioAnulacion, pago?.FechaAnulacion);
+    }
+
     abrirAnularPago(pago: any) {
         const id = pago.CodigoPagoProveedor || pago.CodigoAbono;
         if (!id) return;

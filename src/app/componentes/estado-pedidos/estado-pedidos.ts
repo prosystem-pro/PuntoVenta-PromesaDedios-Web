@@ -180,13 +180,14 @@ export class EstadoPedidos implements OnInit {
         }
     }
 
-    // Se puede entregar cuando el pago está cancelado y la producción está lista.
-    // OJO (TC-770): el estado "listo para entregar" es PENDIENTE_AUTORIZACION (Estatus 3);
-    // FINALIZADO (Estatus 4) lo pone el propio EntregarPedido, así que exigir FINALIZADO
-    // dejaba el botón inalcanzable (deadlock). El backend solo valida que el pago esté
-    // completo, no el estatus de producción.
+    // Se puede entregar cuando el pago está completo y el pedido no fue entregado aún.
+    // TC-770: el backend `EntregarPedido` SOLO valida que la venta esté CANCELADO (pago
+    // completo, Estatus 2) y que el pedido no esté ya FINALIZADO (Estatus 4). NO exige un
+    // estado de producción puntual. Antes el front pedía además `Produccion ===
+    // 'PENDIENTE_AUTORIZACION'`, y eso ocultaba el botón para pedidos ya pagados cuya
+    // producción estaba en otro estado (En espera, En proceso, etc.). Se alinea al backend.
     puedeEntregar(pedido: EstadoPedido): boolean {
-        return pedido.Estado === 'CANCELADO' && pedido.Produccion === 'PENDIENTE_AUTORIZACION';
+        return pedido.Estado === 'CANCELADO' && pedido.Produccion !== 'FINALIZADO';
     }
 
     ordenarPor(columna: string) {

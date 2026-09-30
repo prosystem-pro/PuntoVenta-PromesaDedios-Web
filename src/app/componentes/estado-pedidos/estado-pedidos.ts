@@ -291,6 +291,18 @@ export class EstadoPedidos implements OnInit {
         this.detalleDocumento.set(null);
     }
 
+    // TC-809: el pedido anulado trae motivo → se muestra el ícono para ver el detalle.
+    tieneMotivoAnulacion(pedido: EstadoPedido): boolean {
+        return pedido.Estado === 'ANULADO' && !!(pedido.MotivoAnulacion && pedido.MotivoAnulacion.trim());
+    }
+
+    // TC-809: popup con motivo + usuario + fecha/hora de la anulación del pedido.
+    verMotivoAnulacion(pedido: EstadoPedido) {
+        const motivo = (pedido.MotivoAnulacion || '').trim();
+        if (!motivo) return;
+        this.servicioAlerta.MostrarMotivoAnulacion(motivo, pedido.UsuarioAnulacion, pedido.FechaAnulacion);
+    }
+
     // --- Anular venta/pedido (fila CON_VENTA) ---
     // Se muestra solo en pedidos con venta que no estén ya anulados.
     puedeAnular(pedido: EstadoPedido): boolean {

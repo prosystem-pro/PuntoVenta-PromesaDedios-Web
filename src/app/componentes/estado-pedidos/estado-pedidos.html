@@ -103,6 +103,12 @@
                                 <button class="btn btn-detalle" (click)="abrirDetalle(p)" title="Ver contenido del pedido">
                                     <i class="bi bi-eye"></i>
                                 </button>
+                                @if (tieneMotivoAnulacion(p)) {
+                                <button class="btn btn-anular" (click)="verMotivoAnulacion(p)"
+                                    title="Ver motivo de anulación">
+                                    <i class="bi bi-chat-left-text"></i>
+                                </button>
+                                }
                                 @if (p.Tipo === 'CON_VENTA') {
                                 <button class="btn btn-abono" (click)="abrirAbono(p)" title="Abonos / Pagos realizados">
                                     <i class="bi bi-cash-coin"></i>

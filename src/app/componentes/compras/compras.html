@@ -112,6 +112,12 @@
                                 (click)="abrirPagos(c.CodigoCompra)">
                                 <i class="bi bi-cash-stack"></i>
                             </button>
+                            @if (tieneMotivoAnulacion(c)) {
+                            <button class="btn-accion text-danger" title="Ver motivo de anulación"
+                                (click)="verMotivoAnulacion(c)">
+                                <i class="bi bi-chat-left-text"></i>
+                            </button>
+                            }
                             @if (c.Estatus !== 'ANULADA') {
                             <button class="btn-accion text-danger" title="Anular compra"
                                 (click)="abrirAnular(c.CodigoCompra)">

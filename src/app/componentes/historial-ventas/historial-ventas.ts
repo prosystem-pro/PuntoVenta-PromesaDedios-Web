@@ -216,10 +216,12 @@ export class HistorialVentas implements OnInit {
         return v.Estatus === 'ANULADO' && !!(v.MotivoAnulacion && v.MotivoAnulacion.trim());
     }
 
+    // TC-763: muestra el motivo y, si el API los envía, el usuario que anuló y la
+    // fecha/hora de la anulación. Si esos campos aún no llegan, muestra solo el motivo.
     verMotivo(v: VentaHistorial) {
         const motivo = (v.MotivoAnulacion || '').trim();
         if (!motivo) return;
-        this.servicioAlerta.MostrarInfo(motivo, 'Motivo de anulación');
+        this.servicioAlerta.MostrarMotivoAnulacion(motivo, v.UsuarioAnulacion, v.FechaAnulacion);
     }
 
     // ----- Ver comprobante (lupa) -----

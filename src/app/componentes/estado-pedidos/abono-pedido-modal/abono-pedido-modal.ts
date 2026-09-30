@@ -25,6 +25,11 @@ interface PagoRealizado {
     Valor: number;
     Referencia?: string | null;
     Estatus: string; // 'ACTIVO' | 'ANULADO'
+    // TC-809: detalle de la anulación del pago. Motivo y fecha ya existen en PagoVenta;
+    // el usuario y que el listado los devuelva depende del API (ver spec para Roberto).
+    MotivoAnulacion?: string | null;
+    FechaAnulacion?: string | null;
+    UsuarioAnulacion?: string | null;
 }
 
 @Component({
@@ -130,7 +135,11 @@ export class AbonoPedidoModal implements OnChanges {
                 MedioPago: p.MetodoPago,
                 Valor: Number(p.Monto),
                 Referencia: null,
-                Estatus: p.Estatus
+                Estatus: p.Estatus,
+                // TC-809: solo llegan cuando el API los agregue al listado de pagos.
+                MotivoAnulacion: (p as any).MotivoAnulacion ?? null,
+                FechaAnulacion: (p as any).FechaAnulacion ?? null,
+                UsuarioAnulacion: (p as any).UsuarioAnulacion ?? null
             })));
         } catch (error: any) {
             // El API responde 404 cuando no hay abonos: lista vacía.
@@ -317,6 +326,18 @@ export class AbonoPedidoModal implements OnChanges {
     cerrarComprobante() {
         this.mostrarComprobante.set(false);
         this.comprobantePago.set(null);
+    }
+
+    // TC-809: el pago anulado trae motivo → se muestra el ícono para ver el detalle.
+    tieneMotivoAnulacion(p: PagoRealizado): boolean {
+        return p.Estatus === 'ANULADO' && !!(p.MotivoAnulacion && p.MotivoAnulacion.trim());
+    }
+
+    // TC-809: popup con motivo + usuario + fecha/hora de la anulación del pago.
+    verMotivoAnulacion(p: PagoRealizado) {
+        const motivo = (p.MotivoAnulacion || '').trim();
+        if (!motivo) return;
+        this.servicioAlerta.MostrarMotivoAnulacion(motivo, p.UsuarioAnulacion, p.FechaAnulacion);
     }
 
     onCerrar() {

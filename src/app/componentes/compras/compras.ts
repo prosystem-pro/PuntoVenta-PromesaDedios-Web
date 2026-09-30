@@ -247,6 +247,18 @@ export class Compras implements OnInit {
         this.compraFacturaId.set(null);
     }
 
+    // TC-810: la compra anulada trae motivo → se muestra el ícono para ver el detalle.
+    tieneMotivoAnulacion(c: Compra): boolean {
+        return c.Estatus === 'ANULADA' && !!(c.MotivoAnulacion && c.MotivoAnulacion.trim());
+    }
+
+    // TC-810: popup con motivo + usuario + fecha/hora de la anulación de la compra.
+    verMotivoAnulacion(c: Compra) {
+        const motivo = (c.MotivoAnulacion || '').trim();
+        if (!motivo) return;
+        this.servicioAlerta.MostrarMotivoAnulacion(motivo, c.UsuarioAnulacion, c.FechaAnulacion);
+    }
+
     abrirAnular(id: number) {
         this.compraAnularId.set(id);
         this.mostrarAnular.set(true);

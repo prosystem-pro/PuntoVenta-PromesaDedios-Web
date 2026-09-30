@@ -117,6 +117,12 @@
                                             [disabled]="cargandoComprobante()">
                                             <i class="bi bi-file-earmark-text fs-5"></i>
                                         </button>
+                                        @if (tieneMotivoAnulacion(p)) {
+                                        <button class="btn btn-sm btn-outline-danger border-0 shadow-none"
+                                            (click)="verMotivoAnulacion(p)" title="Ver motivo de anulación">
+                                            <i class="bi bi-chat-left-text fs-5"></i>
+                                        </button>
+                                        }
                                         @if (esSuperAdmin && p.Estatus !== 'ANULADO') {
                                         <button class="btn btn-sm btn-delete border-0 shadow-none"
                                             (click)="abrirAnularPago(p)" title="Anular pago">

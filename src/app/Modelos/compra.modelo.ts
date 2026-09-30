@@ -8,6 +8,11 @@ export interface Compra {
     Pendiente: number;
     Vencimiento: string;
     Estatus: string;
+    // TC-810: detalle de la anulación de la compra. PENDIENTE de API — el modelo Compra
+    // no mapea MotivoAnulacion/FechaAnulacion y el listado no los devuelve (ver spec).
+    MotivoAnulacion?: string | null;
+    FechaAnulacion?: string | null;
+    UsuarioAnulacion?: string | null;
 }
 
 export interface PagoRealizado {

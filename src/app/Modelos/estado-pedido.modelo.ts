@@ -10,6 +10,11 @@ export interface EstadoPedido {
     FechaEntrega: string | null;     // Fecha de entrega del pedido
     FechaCreacion: string | null;    // Fecha de creación del pedido
     Tipo: 'CON_VENTA' | 'SOLO_PRODUCCION'; // Decide qué acción aplica (anular vs eliminar)
+    // TC-809: detalle de la anulación del pedido. PENDIENTE de API — la tabla Venta solo
+    // tiene MotivoAnulacion; el listado debe devolver motivo + fecha + usuario (ver spec).
+    MotivoAnulacion?: string | null;
+    FechaAnulacion?: string | null;
+    UsuarioAnulacion?: string | null;
 }
 
 // Detalle de productos de un pedido de producción (GET /estadopedido/detalle-productos/:CodigoPedidoProduccion)

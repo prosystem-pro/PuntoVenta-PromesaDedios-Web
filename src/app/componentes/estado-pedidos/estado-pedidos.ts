@@ -180,14 +180,17 @@ export class EstadoPedidos implements OnInit {
         }
     }
 
-    // Se puede entregar cuando el pago está completo y el pedido no fue entregado aún.
-    // TC-770: el backend `EntregarPedido` SOLO valida que la venta esté CANCELADO (pago
-    // completo, Estatus 2) y que el pedido no esté ya FINALIZADO (Estatus 4). NO exige un
-    // estado de producción puntual. Antes el front pedía además `Produccion ===
-    // 'PENDIENTE_AUTORIZACION'`, y eso ocultaba el botón para pedidos ya pagados cuya
-    // producción estaba en otro estado (En espera, En proceso, etc.). Se alinea al backend.
+    // TC-770: el botón "Entregar" se habilita cuando el pedido está PAGADO (Estado
+    // 'CANCELADO') y la PRODUCCIÓN está TERMINADA/lista.
+    // OJO con el doble nombre del MISMO estado (Estatus 3):
+    //   - Módulo Producción lo muestra como "Finalizado" (produccion-listado: PENDIENTE_
+    //     AUTORIZACION || FINALIZADO => "Finalizado").
+    //   - Este listado (estado-pedidos) lo llama 'PENDIENTE_AUTORIZACION' ("Pend. autorización").
+    // Es el estado "producción terminada, lista para entregar". El Estatus 4 (FINALIZADO
+    // aquí) lo pone el propio EntregarPedido = ya entregado, por eso NO debe mostrar el botón.
+    // Regla (Walter): Producción "Finalizado" + pago "Cancelado".
     puedeEntregar(pedido: EstadoPedido): boolean {
-        return pedido.Estado === 'CANCELADO' && pedido.Produccion !== 'FINALIZADO';
+        return pedido.Estado === 'CANCELADO' && pedido.Produccion === 'PENDIENTE_AUTORIZACION';
     }
 
     ordenarPor(columna: string) {

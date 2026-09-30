@@ -48,7 +48,9 @@
                 <div class="row row-cols-2 row-cols-sm-3 row-cols-lg-4 g-3">
                     @for (prod of productosFiltrados(); track prod.CodigoProducto) {
                     <div class="col">
-                        <div class="card product-card position-relative" (click)="agregarAlCarrito(prod)">
+                        <div class="card product-card position-relative"
+                            [class.opacity-50]="alcanzoLimiteStock(prod)"
+                            (click)="agregarAlCarrito(prod)">
                             <!-- Badge de precio (pildora verde, centrada arriba) -->
                             <div class="price-badge-wrap">
                                 <span class="price-badge">Q {{ prod.PrecioUnitario | number:'1.2-2' }}</span>
@@ -130,10 +132,13 @@
                                         [title]="item.Cantidad <= item.YaPreparado ? 'Ya atendido en cocina, no se puede reducir' : ''"
                                         (click)="actualizarCantidad(item.CodigoProducto, item.Cantidad - 1)">-</button>
                                     <input type="number" [min]="item.YaPreparado > 0 ? item.YaPreparado : 1"
+                                        [attr.max]="item.Stock"
                                         class="form-control form-control-sm qty-input text-center"
                                         [ngModel]="item.Cantidad"
                                         (ngModelChange)="cambiarCantidad(item.CodigoProducto, $event)">
                                     <button class="btn btn-qty"
+                                        [disabled]="itemEnLimiteStock(item)"
+                                        [title]="itemEnLimiteStock(item) ? 'Sin stock disponible' : ''"
                                         (click)="actualizarCantidad(item.CodigoProducto, item.Cantidad + 1)">+</button>
                                 </div>
                             </td>

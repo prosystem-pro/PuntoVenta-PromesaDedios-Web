@@ -227,7 +227,7 @@ export class ProduccionIngresar implements OnInit {
 
         resultados.forEach((res: any, index: number) => {
             if (res.success && res.data && res.data.Receta) {
-                const cantidadPedido = detallesPedido[index].Producir || detallesPedido[index].CantidadSolicitada || 0;
+                const cantidadPedido = detallesPedido[index].CantidadSolicitada || detallesPedido[index].Producir || 0;
                 const receta = res.data.Receta;
 
                 // El backend retorna los detalles de la receta en la propiedad 'RecetaDetalles' (plural del modelo)
@@ -242,7 +242,11 @@ export class ProduccionIngresar implements OnInit {
                     const totalNecesario = rd.Cantidad * cantidadPedido;
 
                     if (insumosMap.has(key)) {
+                        // TC-782: un insumo compartido por varios productos debe acumular
+                        // TANTO el estimado como el consumo real (default), para que
+                        // "Utilizado" arranque igual a "Estimado".
                         insumosMap.get(key).CantidadSolicitada += totalNecesario;
+                        insumosMap.get(key).ConsumoReal += totalNecesario;
                     } else {
                         insumosMap.set(key, {
                             CodigoProducto: insumo.CodigoProducto,

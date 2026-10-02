@@ -430,8 +430,16 @@ export class ImpresionService {
      */
     private fecha(valor?: string | null, conHora = true): string {
         if (!valor) return '';
-        const f = new Date(valor);
-        if (isNaN(f.getTime())) return String(valor);
+        const s = String(valor).trim();
+        // El API a veces manda la fecha ya en dd/MM/yyyy (con hora opcional). new Date()
+        // la lee como MM/dd (formato US) y cruza día/mes, así que la parseamos a mano.
+        const m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})(?:[ T](\d{2}):(\d{2}))?/);
+        if (m) {
+            const [, dd, MM, yyyy, hh, mi] = m;
+            return (conHora && hh !== undefined) ? `${dd}/${MM}/${yyyy} ${hh}:${mi}` : `${dd}/${MM}/${yyyy}`;
+        }
+        const f = new Date(s);
+        if (isNaN(f.getTime())) return s;
         const p = (x: number) => String(x).padStart(2, '0');
         const dmy = `${p(f.getDate())}/${p(f.getMonth() + 1)}/${f.getFullYear()}`;
         return conHora ? `${dmy} ${p(f.getHours())}:${p(f.getMinutes())}` : dmy;

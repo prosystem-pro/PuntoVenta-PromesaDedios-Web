@@ -26,11 +26,21 @@ export class ComprobanteVentaModal implements OnChanges {
     // nunca lanza excepción (que antes cortaba el render del comprobante).
     mostrarFecha(valor: any, formato: string = 'dd/MM/yyyy HH:mm'): string {
         if (!valor) return '';
-        const fecha = new Date(valor);
-        if (!isNaN(fecha.getTime())) {
-            return this.datePipe.transform(fecha, formato) ?? String(valor);
+        const s = String(valor).trim();
+        // El API a veces manda la fecha ya en dd/MM/yyyy (con hora opcional). new Date()
+        // la interpreta como MM/dd (formato US) y cruza día/mes, así que la parseamos a mano.
+        const m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})(?:[ T](\d{2}):(\d{2}))?/);
+        if (m) {
+            const [, dd, MM, yyyy, hh, mi] = m;
+            return (formato.includes('HH') && hh !== undefined)
+                ? `${dd}/${MM}/${yyyy} ${hh}:${mi}`
+                : `${dd}/${MM}/${yyyy}`;
         }
-        return String(valor);
+        const fecha = new Date(s);
+        if (!isNaN(fecha.getTime())) {
+            return this.datePipe.transform(fecha, formato) ?? s;
+        }
+        return s;
     }
 
     @Input() visible = false;

@@ -181,16 +181,18 @@ export class EstadoPedidos implements OnInit {
     }
 
     // TC-770: el botón "Entregar" se habilita cuando el pedido está PAGADO (Estado
-    // 'CANCELADO') y la PRODUCCIÓN está TERMINADA/lista.
-    // OJO con el doble nombre del MISMO estado (Estatus 3):
-    //   - Módulo Producción lo muestra como "Finalizado" (produccion-listado: PENDIENTE_
-    //     AUTORIZACION || FINALIZADO => "Finalizado").
-    //   - Este listado (estado-pedidos) lo llama 'PENDIENTE_AUTORIZACION' ("Pend. autorización").
-    // Es el estado "producción terminada, lista para entregar". El Estatus 4 (FINALIZADO
-    // aquí) lo pone el propio EntregarPedido = ya entregado, por eso NO debe mostrar el botón.
-    // Regla (Walter): Producción "Finalizado" + pago "Cancelado".
+    // 'CANCELADO') y la PRODUCCIÓN está FINALIZADA.
+    // Ciclo real de PedidoProduccion.Estatus (confirmado con Roberto, 1-oct):
+    //   3 PENDIENTE_AUTORIZACION = terminó de producir (abastecer en módulo Producción).
+    //   4 FINALIZADO             = producción finalizada + inventario abastecido
+    //                              (botón "Abastecer" del módulo Productos = AbastecerInventarioProducto).
+    // "Listo para entregar" es el Estatus 4 (ya se abasteció el inventario), NO el 3.
+    // DEPENDENCIA DE API (acoplado): hoy EntregarPedido RECHAZA Estatus 4 ("ya FINALIZADO")
+    // y lo setea al entregar; Roberto debe cambiarlo para que EXIJA Estatus 4 y marque la
+    // entrega por otra vía (Venta 2->3 / inventario). Hasta que ese cambio esté desplegado,
+    // este flip rompería la entrega -> deben salir JUNTOS. No subir el front solo.
     puedeEntregar(pedido: EstadoPedido): boolean {
-        return pedido.Estado === 'CANCELADO' && pedido.Produccion === 'PENDIENTE_AUTORIZACION';
+        return pedido.Estado === 'CANCELADO' && pedido.Produccion === 'FINALIZADO';
     }
 
     ordenarPor(columna: string) {

@@ -210,12 +210,22 @@ export class ProduccionListado implements OnInit {
     });
 
     ingresarProduccionMasiva() {
-        this.router.navigate(['/produccion/ingresar', 'masivo']);
+        // TC-811: llevamos el rango filtrado (fecha de entrega) al flujo masivo por query params.
+        this.router.navigate(['/produccion/ingresar', 'masivo'], {
+            queryParams: {
+                inicio: this.fechaInicioFiltro() || null,
+                fin: this.fechaFinalFiltro() || null
+            }
+        });
     }
 
     async trabajarTodo() {
         try {
-            const res = await this.servicioProduccion.iniciarProduccionMasiva();
+            // TC-811: solo iniciar los pedidos dentro del rango de fecha de entrega filtrado.
+            const res = await this.servicioProduccion.iniciarProduccionMasiva(
+                this.fechaInicioFiltro() || null,
+                this.fechaFinalFiltro() || null
+            );
             if (res.success) {
                 this.servicioAlerta.MostrarExito(res.message);
                 await this.cargarPedidos();

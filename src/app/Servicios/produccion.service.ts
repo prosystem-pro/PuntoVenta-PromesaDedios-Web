@@ -27,8 +27,10 @@ export class ProduccionServicio {
         return res.data;
     }
 
-    async iniciarProduccionMasiva(): Promise<RespuestaAPI<any>> {
-        const res = await axiosInstance.put('/produccion/iniciarproduccionmasiva');
+    // TC-811: el rango (fecha de entrega) acota qué pedidos entran al masivo. Si no se
+    // pasa, el API toma todos (comportamiento anterior). El filtro real lo aplica el API.
+    async iniciarProduccionMasiva(fechaInicio?: string | null, fechaFin?: string | null): Promise<RespuestaAPI<any>> {
+        const res = await axiosInstance.put('/produccion/iniciarproduccionmasiva', { fechaInicio, fechaFin });
         return res.data;
     }
 
@@ -64,8 +66,11 @@ export class ProduccionServicio {
 
     // --- Endpoints Masivos ---
 
-    async obtenerListadoPedidosTodos(): Promise<RespuestaAPI<any>> {
-        const res = await axiosInstance.get('/produccion/listado/pedidostodos');
+    // TC-811: acota el listado masivo por rango de fecha de entrega (filtro en el API).
+    async obtenerListadoPedidosTodos(fechaInicio?: string | null, fechaFin?: string | null): Promise<RespuestaAPI<any>> {
+        const res = await axiosInstance.get('/produccion/listado/pedidostodos', {
+            params: { fechaInicio: fechaInicio || undefined, fechaFin: fechaFin || undefined }
+        });
         return res.data;
     }
 
@@ -74,12 +79,13 @@ export class ProduccionServicio {
         return res.data;
     }
 
-    async abastecerPedidoMasivo(datos: { Detalle: any[], Estatus: boolean }): Promise<RespuestaAPI<any>> {
+    // TC-811: fechaInicio/fechaFin acotan qué pedidos reciben el abastecimiento masivo.
+    async abastecerPedidoMasivo(datos: { Detalle: any[], Estatus: boolean, fechaInicio?: string | null, fechaFin?: string | null }): Promise<RespuestaAPI<any>> {
         const res = await axiosInstance.post('/produccion/abastecerpedidomasivo', datos);
         return res.data;
     }
 
-    async abastecerInsumosMasivo(datos: { Detalle: any[] }): Promise<RespuestaAPI<any>> {
+    async abastecerInsumosMasivo(datos: { Detalle: any[], fechaInicio?: string | null, fechaFin?: string | null }): Promise<RespuestaAPI<any>> {
         const res = await axiosInstance.post('/produccion/abastecerinsumosmasivo', datos);
         return res.data;
     }

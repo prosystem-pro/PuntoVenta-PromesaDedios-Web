@@ -26,6 +26,9 @@ export class ProduccionIngresar implements OnInit {
     codigoPedido = signal<number>(0);
     codigoProduccion = signal<number>(0);
     esMasivo = signal<boolean>(false);
+    // TC-811: rango de fecha de entrega heredado del listado (solo aplica al masivo).
+    private fechaInicioMasivo = signal<string | null>(null);
+    private fechaFinMasivo = signal<string | null>(null);
     vistaActiva = signal<'productos' | 'insumos'>('productos');
     busqueda = signal<string>('');
 
@@ -95,6 +98,10 @@ export class ProduccionIngresar implements OnInit {
             } else {
                 this.codigoPedido.set(+params['id']);
             }
+            // TC-811: rango de fecha de entrega para el masivo (viene por query params del listado).
+            const qp = this.route.snapshot.queryParamMap;
+            this.fechaInicioMasivo.set(qp.get('inicio'));
+            this.fechaFinMasivo.set(qp.get('fin'));
             this.cargarDatos();
         });
     }
@@ -103,7 +110,8 @@ export class ProduccionIngresar implements OnInit {
         this.cargando.set(true);
         try {
             if (this.esMasivo()) {
-                const res = await this.servicioProduccion.obtenerListadoPedidosTodos();
+                // TC-811: el listado masivo se acota al rango de fecha de entrega heredado.
+                const res = await this.servicioProduccion.obtenerListadoPedidosTodos(this.fechaInicioMasivo(), this.fechaFinMasivo());
                 if (res.success && res.data) {
                     this.detalles.set(res.data.map((d: any) => {
                         // El API (masivo) devuelve Observaciones como arreglo [{ Cantidad, Observaciones }]
@@ -350,7 +358,10 @@ export class ProduccionIngresar implements OnInit {
                         CodigoProducto: d.CodigoProducto,
                         CantidadProducida: Number(d.CantidadProducida) || 0
                     })),
-                    Estatus: finalizar
+                    Estatus: finalizar,
+                    // TC-811: acota el abastecimiento a los pedidos del rango de fecha de entrega.
+                    fechaInicio: this.fechaInicioMasivo(),
+                    fechaFin: this.fechaFinMasivo()
                 };
                 resA = await this.servicioProduccion.abastecerPedidoMasivo(datosAbastecerMasivo);
             } else {
@@ -410,7 +421,10 @@ export class ProduccionIngresar implements OnInit {
             let resC;
             if (this.esMasivo()) {
                 const datosConsumoMasivo = {
-                    Detalle: insumosFiltrados.map(i => ({ CodigoProducto: i.CodigoProducto, Utilizada: i.Utilizada }))
+                    Detalle: insumosFiltrados.map(i => ({ CodigoProducto: i.CodigoProducto, Utilizada: i.Utilizada })),
+                    // TC-811: acota el consumo masivo a los pedidos del rango de fecha de entrega.
+                    fechaInicio: this.fechaInicioMasivo(),
+                    fechaFin: this.fechaFinMasivo()
                 };
                 resC = await this.servicioProduccion.abastecerInsumosMasivo(datosConsumoMasivo);
             } else {

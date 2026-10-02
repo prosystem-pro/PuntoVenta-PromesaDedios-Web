@@ -143,12 +143,14 @@ export class EstadoPedidos implements OnInit {
     });
 
     // --- Mapeo de estado de producción a etiqueta + color (prototipo) ---
+    // Produccion.Estatus: 6 = ENTREGADO (nuevo, Roberto 2-oct) al entregar el pedido.
     etiquetaProduccion(p: string | null): string {
         switch (p) {
             case 'PENDIENTE': return 'En espera';
             case 'EN_PROCESO': return 'En proceso';
             case 'PENDIENTE_AUTORIZACION': return 'Pend. autorización';
             case 'FINALIZADO': return 'Finalizado';
+            case 'ENTREGADO': return 'Entregado';
             default: return '—';
         }
     }
@@ -159,15 +161,19 @@ export class EstadoPedidos implements OnInit {
             case 'EN_PROCESO': return 'prod-proceso';
             case 'PENDIENTE_AUTORIZACION': return 'prod-autorizacion';
             case 'FINALIZADO': return 'prod-finalizado';
+            case 'ENTREGADO': return 'prod-entregado';
             default: return 'text-muted';
         }
     }
 
     // --- Estado de pago: PENDIENTE (por cobrar) / CANCELADO (pagado) ---
+    // Venta.Estatus 3 = 'ENTREGADO / FACTURADO' (tras entregar el pedido).
     etiquetaEstado(e: string | null): string {
         switch (e) {
             case 'PENDIENTE': return 'Pendiente';
             case 'CANCELADO': return 'Cancelado';
+            case 'ENTREGADO / FACTURADO': return 'Entregado';
+            case 'ANULADO': return 'Anulado';
             default: return '—';
         }
     }
@@ -176,6 +182,8 @@ export class EstadoPedidos implements OnInit {
         switch (e) {
             case 'PENDIENTE': return 'estado-pendiente';
             case 'CANCELADO': return 'estado-cancelado';
+            case 'ENTREGADO / FACTURADO': return 'estado-entregado';
+            case 'ANULADO': return 'estado-anulado';
             default: return 'estado-neutro';
         }
     }
@@ -187,10 +195,10 @@ export class EstadoPedidos implements OnInit {
     //   4 FINALIZADO             = producción finalizada + inventario abastecido
     //                              (botón "Abastecer" del módulo Productos = AbastecerInventarioProducto).
     // "Listo para entregar" es el Estatus 4 (ya se abasteció el inventario), NO el 3.
-    // DEPENDENCIA DE API (acoplado): hoy EntregarPedido RECHAZA Estatus 4 ("ya FINALIZADO")
-    // y lo setea al entregar; Roberto debe cambiarlo para que EXIJA Estatus 4 y marque la
-    // entrega por otra vía (Venta 2->3 / inventario). Hasta que ese cambio esté desplegado,
-    // este flip rompería la entrega -> deben salir JUNTOS. No subir el front solo.
+    // API (desplegado por Roberto 2-oct, commit 7cf789b): EntregarPedido ahora EXIGE
+    // Produccion.Estatus === 4 y Venta.Estatus === 2, descuenta inventario (StockActual)
+    // por detalle, y al entregar deja Produccion.Estatus = 6 (ENTREGADO) y Venta.Estatus = 3
+    // (ENTREGADO / FACTURADO). Al cumplirse eso el botón se oculta solo (ya no es CANCELADO+FINALIZADO).
     puedeEntregar(pedido: EstadoPedido): boolean {
         return pedido.Estado === 'CANCELADO' && pedido.Produccion === 'FINALIZADO';
     }

@@ -107,6 +107,11 @@
     color: var(--color-success);
 }
 
+.estado-entregado {
+    color: #0b7285;
+    font-weight: 600;
+}
+
 .btn-accion {
     border-radius: 8px;
     padding: 0.4rem 1.5rem;

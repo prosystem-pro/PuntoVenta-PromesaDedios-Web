@@ -88,14 +88,15 @@
                     </td>
                     <td>{{ pedido.FechaEntrega | date:'dd/MM/yyyy HH:mm' }}</td>
                     <td class="text-center">
-                        @if (!esModoMasivo()) {
-                            @if (pedido.Estado === 'PENDIENTE' || pedido.Estatus === 1) {
-                            <button class="btn-accion btn-iniciar"
-                                (click)="iniciarPedido(pedido.CodigoPedidoProduccion)">Iniciar</button>
-                            } @else if (pedido.Estado === 'EN_PROCESO' || pedido.Estatus === 2) {
-                            <button class="btn-accion btn-ingresar" [style.background-color]="colorSistema"
-                                (click)="ingresarProduccion(pedido.CodigoPedidoProduccion)">Ingresar</button>
-                            }
+                        <!-- TC-812: el boton por pedido SIEMPRE disponible (trabajo individual).
+                             "Trabajar todo" (produccion unificada por producto) queda como opcion
+                             aparte en el footer; ya no se fuerza ni se oculta el trabajo por pedido. -->
+                        @if (pedido.Estado === 'PENDIENTE' || pedido.Estatus === 1) {
+                        <button class="btn-accion btn-iniciar"
+                            (click)="iniciarPedido(pedido.CodigoPedidoProduccion)">Iniciar</button>
+                        } @else if (pedido.Estado === 'EN_PROCESO' || pedido.Estatus === 2) {
+                        <button class="btn-accion btn-ingresar" [style.background-color]="colorSistema"
+                            (click)="ingresarProduccion(pedido.CodigoPedidoProduccion)">Ingresar</button>
                         }
                     </td>
                 </tr>
@@ -119,10 +120,11 @@
 
         <div class="flex-grow-1 text-center">
             @if (esModoMasivo()) {
+            <!-- TC-812: entrada al flujo unificado por producto (todos los pedidos del rango). -->
             <button class="btn btn-naranja shadow px-5 py-2 fw-bold text-white fs-5"
                 (click)="ingresarProduccionMasiva()" [style.background-color]="colorSistema"
                 style="border-radius: 12px; min-width: 250px; border: none;">
-                Ingresar
+                <i class="bi bi-check-lg me-2"></i> Trabajar todo
             </button>
             } @else if (hayPendientes()) {
             <button class="btn btn-trabajar-todo shadow-sm" (click)="trabajarTodo()">

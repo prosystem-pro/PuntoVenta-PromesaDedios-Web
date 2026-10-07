@@ -23,16 +23,6 @@ export class MenuLateral {
   // Estado del menu: true = abierto, false = colapsado
   estaExpandido = signal(true);
 
-  constructor() {
-    // En pantallas de poca altura (equipo Sunmi V3 MIX Plus en landscape) el menú arranca
-    // colapsado para ganar ancho. El usuario puede expandirlo manualmente con el botón.
-    if (typeof window !== 'undefined' && window.matchMedia) {
-      const mq = window.matchMedia('(max-height: 500px)');
-      this.estaExpandido.set(!mq.matches);
-      mq.addEventListener('change', e => this.estaExpandido.set(!e.matches));
-    }
-  }
-
   // Lleva a la pantalla de Caja y le pide abrir el formulario de cierre.
   cerrarCaja(): void {
     this.cajaEstado.solicitarCierre();

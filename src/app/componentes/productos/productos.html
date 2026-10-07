@@ -100,14 +100,15 @@
                 </thead>
                 <tbody>
                     <tr *ngFor="let producto of productosPaginados(); let i = index"
-                        [class.inactive-row]="producto.Estatus === 0 || (producto.Stock || 0) <= 0">
+                        [class.cocina-row]="producto.TipoProducto === 'COCINA' && producto.Estatus !== 0"
+                        [class.inactive-row]="producto.Estatus === 0 || (producto.TipoProducto !== 'COCINA' && (producto.Stock || 0) <= 0)">
                         <td class="text-latin">{{ (paginaActual() - 1) * itemsPorPagina + i + 1 | number:'2.0-0' }}</td>
                         <td class="text-latin">{{ producto.NombreCategoria || 'Sin categoria' }}</td>
                         <td class="text-latin">{{ producto.NombreProducto }}</td>
                         <td class="td-unidad text-latin">{{ producto.NombreUnidad || 'Unidad' }}</td>
                         <td class="text-latin">
                             <ng-container *ngIf="modoEdicion() !== 'ajustar'">
-                                <span [ngClass]="{'text-danger': (producto.Stock || 0) <= 0}">
+                                <span [ngClass]="{'text-danger': producto.TipoProducto !== 'COCINA' && (producto.Stock || 0) <= 0}">
                                     {{ (producto.Stock || 0) === 0 ? '0' : producto.Stock }}
                                 </span>
                             </ng-container>

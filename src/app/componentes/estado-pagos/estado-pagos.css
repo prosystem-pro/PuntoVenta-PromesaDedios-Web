@@ -4,7 +4,7 @@
     --color-bg-light: #fafafa;
     --color-white: #fff;
     display: block;
-    height: calc(100vh - 70px - 1rem);
+    height: calc(100vh - var(--navbar-height) - 1rem);
     overflow: hidden;
 }
 

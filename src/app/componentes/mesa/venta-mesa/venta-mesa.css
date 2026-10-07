@@ -1,12 +1,12 @@
 .venta-container {
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 70px - 3rem);
+    height: calc(100vh - var(--navbar-height) - 3rem);
 }
 
 :host {
     display: block;
-    height: calc(100vh - 70px - 3rem);
+    height: calc(100vh - var(--navbar-height) - 3rem);
     overflow: hidden;
 }
 

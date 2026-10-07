@@ -13,25 +13,6 @@ body {
     overflow-x: hidden;
 }
 
-/* ===== Responsivo equipo Sunmi V3 MIX Plus (landscape, viewport bajo ~360-410px de alto) =====
-   Se activa por ALTO para no chocar con los breakpoints por ancho existentes (max-width:768px…)
-   ni afectar laptops/escritorio (alto > 500px). Primera pasada: aprovechar el alto y el ancho. */
-@media (max-height: 500px) {
-    :root {
-        --navbar-height: 50px;
-    }
-
-    /* Escala global: baja los rem ~12% (paddings, gaps, fuentes en rem) */
-    html {
-        font-size: 14px;
-    }
-
-    /* Menos padding del contenedor principal */
-    main.p-2 {
-        padding: 0.25rem !important;
-    }
-}
-
 /* SweetAlert2 debe quedar por encima de todos los modales del sistema (modal-proveedor usa z-index: 5000) */
 .swal2-container {
     z-index: 20000 !important;

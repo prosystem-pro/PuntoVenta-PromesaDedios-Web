@@ -111,31 +111,3 @@
         transform: translateY(0);
     }
 }
-
-/* Equipo Sunmi V3 MIX Plus (landscape): navbar más bajo para ganar alto */
-@media (max-height: 500px) {
-    .navbar {
-        height: 50px !important;
-    }
-
-    .gear-stack {
-        width: 110px;
-        height: 50px;
-    }
-
-    .gear-stack::before {
-        width: 64px;
-        height: 64px;
-    }
-
-    .gear-stack::after {
-        width: 86px;
-        height: 86px;
-    }
-
-    .btn-gear {
-        width: 38px;
-        height: 38px;
-        font-size: 1.2rem;
-    }
-}

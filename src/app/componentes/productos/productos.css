@@ -168,6 +168,16 @@
     color: inherit;
 }
 
+/* Productos de cocina: se diferencian en azul (su stock 0 es normal, no un faltante) */
+.cocina-row td {
+    color: #0d6efd !important;
+}
+
+.cocina-row .td-unidad,
+.cocina-row .badge {
+    color: inherit;
+}
+
 .td-unidad {
     color: #555;
 }

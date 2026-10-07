@@ -24,6 +24,7 @@ export const routes: Routes = [
       { path: 'productos/nuevo', data: { recurso: 'Producto' }, canActivate: [guardPermiso], loadComponent: () => import('./componentes/productos/producto-detalle/producto-detalle').then(m => m.ProductoDetalle) },
       { path: 'productos/editar/:id', data: { recurso: 'Producto' }, canActivate: [guardPermiso], loadComponent: () => import('./componentes/productos/producto-detalle/producto-detalle').then(m => m.ProductoDetalle) },
       { path: 'caja', data: { recurso: 'Caja' }, canActivate: [guardPermiso], loadComponent: () => import('./componentes/caja/caja').then(m => m.Caja) },
+      { path: 'caja/historial', data: { recurso: 'Caja' }, canActivate: [guardPermiso], loadComponent: () => import('./componentes/historial-caja/historial-caja').then(m => m.HistorialCaja) },
       { path: 'compras', data: { recurso: 'Compra' }, canActivate: [guardPermiso], loadComponent: () => import('./componentes/compras/compras').then(m => m.Compras) },
       { path: 'facturar', data: { recurso: 'Facturar' }, canActivate: [guardPermiso], loadComponent: () => import('./componentes/facturar/facturar').then(m => m.Facturar) },
       { path: 'historial-ventas', data: { recurso: 'HistorialVenta' }, canActivate: [guardPermiso], loadComponent: () => import('./componentes/historial-ventas/historial-ventas').then(m => m.HistorialVentas) },

@@ -3,7 +3,7 @@
     --color-border: #dee2e6;
     --color-text-dark: #333;
     display: block;
-    height: calc(100vh - 70px - 1rem); /* 70px de navbar + 1rem (16px) de padding de main */
+    height: calc(100vh - var(--navbar-height) - 1rem); /* 70px de navbar + 1rem (16px) de padding de main */
     overflow: hidden;
 }
 

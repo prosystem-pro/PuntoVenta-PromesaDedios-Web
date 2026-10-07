@@ -6,7 +6,7 @@
     --color-white: #fff;
     --color-danger: #dc3545;
     display: block;
-    height: calc(100vh - 70px - 1rem); /* 70px de navbar + 1rem (16px) de padding de main */
+    height: calc(100vh - var(--navbar-height) - 1rem); /* 70px de navbar + 1rem (16px) de padding de main */
     overflow: hidden;
 }
 

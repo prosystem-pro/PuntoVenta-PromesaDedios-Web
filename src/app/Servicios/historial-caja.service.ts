@@ -14,6 +14,7 @@ import { CierreCajaHistorial, DetalleCierreHistorial } from '../Modelos/historia
  * Contrato esperado del API:
  *  - Listado:  GET  caja/historial-cierres?fechaInicio=YYYY-MM-DD&fechaFin=YYYY-MM-DD
  *              -> RespuestaAPI<CierreCajaHistorial[]>  (paginado del lado del cliente por ahora)
+ *              incluye FechaApertura y FechaCierre (ambas fecha/hora)
  *  - Detalle:  GET  caja/detalle-cierre/:CodigoAperturaCaja
  *              -> RespuestaAPI<DetalleCierreHistorial>
  */
@@ -47,36 +48,38 @@ export class HistorialCajaServicio {
 
     private listadoMock(): CierreCajaHistorial[] {
         // 20 filas (2 páginas de 10) para ejercitar la paginación como en la maqueta.
-        const base: Array<[string, string, number]> = [
-            ['01/10/2026 08:00', 'Victor Samines', 10000],
-            ['01/10/2026 12:01', 'Roberto Yoxon', 8500],
-            ['02/10/2026 08:00', 'Victor Samines', 10000],
-            ['02/10/2026 12:30', 'Victor Samines', 9200],
-            ['02/10/2026 17:30', 'Victor Samines', 11300],
-            ['03/10/2026 08:00', 'Victor Samines', 10000],
-            ['03/10/2026 12:20', 'Luis Castro', 7600],
-            ['04/10/2026 08:00', 'Victor Samines', 10000],
-            ['05/10/2026 08:00', 'Victor Samines', 10000],
-            ['05/10/2026 14:10', 'Luis Castro', 9800],
-            ['06/10/2026 08:00', 'Victor Samines', 10400],
-            ['06/10/2026 13:15', 'Roberto Yoxon', 7900],
-            ['07/10/2026 08:00', 'Victor Samines', 10000],
-            ['07/10/2026 17:45', 'Luis Castro', 12100],
-            ['08/10/2026 08:00', 'Victor Samines', 9600],
-            ['08/10/2026 12:50', 'Victor Samines', 8800],
-            ['09/10/2026 08:00', 'Luis Castro', 10000],
-            ['09/10/2026 16:20', 'Victor Samines', 11500],
-            ['10/10/2026 08:00', 'Victor Samines', 10000],
-            ['10/10/2026 14:05', 'Roberto Yoxon', 9300],
+        // [FechaApertura, FechaCierre, Usuario, MontoCierre]
+        const base: Array<[string, string, string, number]> = [
+            ['01/10/2026 08:00', '01/10/2026 18:00', 'Victor Samines', 10000],
+            ['01/10/2026 12:01', '01/10/2026 20:30', 'Roberto Yoxon', 8500],
+            ['02/10/2026 08:00', '02/10/2026 18:00', 'Victor Samines', 10000],
+            ['02/10/2026 12:30', '02/10/2026 19:45', 'Victor Samines', 9200],
+            ['02/10/2026 17:30', '02/10/2026 22:00', 'Victor Samines', 11300],
+            ['03/10/2026 08:00', '03/10/2026 18:00', 'Victor Samines', 10000],
+            ['03/10/2026 12:20', '03/10/2026 20:10', 'Luis Castro', 7600],
+            ['04/10/2026 08:00', '04/10/2026 18:00', 'Victor Samines', 10000],
+            ['05/10/2026 08:00', '05/10/2026 18:00', 'Victor Samines', 10000],
+            ['05/10/2026 14:10', '05/10/2026 21:30', 'Luis Castro', 9800],
+            ['06/10/2026 08:00', '06/10/2026 18:00', 'Victor Samines', 10400],
+            ['06/10/2026 13:15', '06/10/2026 20:40', 'Roberto Yoxon', 7900],
+            ['07/10/2026 08:00', '07/10/2026 18:00', 'Victor Samines', 10000],
+            ['07/10/2026 17:45', '07/10/2026 23:00', 'Luis Castro', 12100],
+            ['08/10/2026 08:00', '08/10/2026 18:00', 'Victor Samines', 9600],
+            ['08/10/2026 12:50', '08/10/2026 19:20', 'Victor Samines', 8800],
+            ['09/10/2026 08:00', '09/10/2026 18:00', 'Luis Castro', 10000],
+            ['09/10/2026 16:20', '09/10/2026 22:15', 'Victor Samines', 11500],
+            ['10/10/2026 08:00', '10/10/2026 18:00', 'Victor Samines', 10000],
+            ['10/10/2026 14:05', '10/10/2026 21:05', 'Roberto Yoxon', 9300],
         ];
-        return base.map(([fecha, usuario, cierre], i) => ({
+        return base.map(([apertura, cierre, usuario, montoCierre], i) => ({
             CodigoAperturaCaja: i + 1,
-            FechaApertura: fecha,
+            FechaApertura: apertura,
+            FechaCierre: cierre,
             NombreUsuario: usuario,
             MontoInicial: 500,
             TotalIngresos: 17000,
             TotalEgresos: 5500,
-            MontoCierre: cierre,
+            MontoCierre: montoCierre,
         }));
     }
 

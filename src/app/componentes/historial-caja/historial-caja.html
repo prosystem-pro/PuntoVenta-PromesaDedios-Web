@@ -53,6 +53,10 @@
                             Apertura
                             <i [class]="columnaActiva() === 'FechaApertura' ? (ordenAscendente() ? 'bi bi-arrow-up' : 'bi bi-arrow-down') : 'bi bi-arrow-down-up'" class="ms-1 small text-muted"></i>
                         </th>
+                        <th (click)="ordenarPor('FechaCierre')" style="cursor: pointer;">
+                            Cierre
+                            <i [class]="columnaActiva() === 'FechaCierre' ? (ordenAscendente() ? 'bi bi-arrow-up' : 'bi bi-arrow-down') : 'bi bi-arrow-down-up'" class="ms-1 small text-muted"></i>
+                        </th>
                         <th (click)="ordenarPor('NombreUsuario')" style="cursor: pointer;">
                             Usuario
                             <i [class]="columnaActiva() === 'NombreUsuario' ? (ordenAscendente() ? 'bi bi-arrow-up' : 'bi bi-arrow-down') : 'bi bi-arrow-down-up'" class="ms-1 small text-muted"></i>
@@ -80,6 +84,7 @@
                     @for (c of cierresPaginados(); track c.CodigoAperturaCaja) {
                     <tr>
                         <td>{{ fechaCorta(c.FechaApertura) }}</td>
+                        <td>{{ fechaCorta(c.FechaCierre) }}</td>
                         <td>{{ c.NombreUsuario }}</td>
                         <td class="text-end">Q {{ c.MontoInicial | number:'1.2-2' }}</td>
                         <td class="text-end">Q {{ c.TotalIngresos | number:'1.2-2' }}</td>
@@ -98,7 +103,7 @@
                     </tr>
                     } @empty {
                     <tr>
-                        <td colspan="7" class="text-center py-5 text-muted">
+                        <td colspan="8" class="text-center py-5 text-muted">
                             <i class="bi bi-inbox d-block fs-3 mb-2 opacity-50"></i>
                             No hay cierres de caja en el rango seleccionado.
                         </td>
@@ -222,13 +227,17 @@
                     <input type="text" class="form-control campo-bloqueado mb-3" [value]="d.NombreUsuario" disabled>
 
                     <div class="row g-3 mb-3">
-                        <div class="col-6">
+                        <div class="col-md-4 col-12">
                             <label class="form-label fw-semibold mb-1">Caja</label>
                             <input type="text" class="form-control campo-bloqueado" [value]="d.NombreCaja" disabled>
                         </div>
-                        <div class="col-6">
-                            <label class="form-label fw-semibold mb-1">Turno</label>
+                        <div class="col-md-4 col-6">
+                            <label class="form-label fw-semibold mb-1">Apertura</label>
                             <input type="text" class="form-control campo-bloqueado" [value]="d.FechaApertura" disabled>
+                        </div>
+                        <div class="col-md-4 col-6">
+                            <label class="form-label fw-semibold mb-1">Cierre</label>
+                            <input type="text" class="form-control campo-bloqueado" [value]="d.FechaCierre" disabled>
                         </div>
                     </div>
 

@@ -6,6 +6,7 @@ import { ResumenIngresosCaja, ResumenEgresosCaja, ResumenFormasPagoCaja } from '
 export interface CierreCajaHistorial {
     CodigoAperturaCaja: number;
     FechaApertura: string;   // "dd/MM/yyyy HH:mm" (o ISO; el front lo muestra tal cual con fechaCorta)
+    FechaCierre: string;     // fecha/hora en que se cerró la caja
     NombreUsuario: string;
     MontoInicial: number;
     TotalIngresos: number;

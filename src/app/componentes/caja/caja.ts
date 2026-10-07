@@ -1,6 +1,7 @@
 import { Component, OnInit, signal, computed, inject, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { Entorno } from '../../Entorno/Entorno';
 import { ServicioConfiguracion } from '../../Servicios/configuracion.service';
 import { DenominacionServicio } from '../../Servicios/denominacion.service';
@@ -29,7 +30,7 @@ interface FilaDenominacion {
 @Component({
     selector: 'app-caja',
     standalone: true,
-    imports: [CommonModule, FormsModule, ComprobanteVentaModal, FacturaCompraModal, ComprobanteAbonoModal, ComprobantePagoModal],
+    imports: [CommonModule, FormsModule, RouterLink, ComprobanteVentaModal, FacturaCompraModal, ComprobanteAbonoModal, ComprobantePagoModal],
     templateUrl: './caja.html',
     styleUrl: './caja.css'
 })

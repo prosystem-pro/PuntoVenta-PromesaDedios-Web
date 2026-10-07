@@ -1,0 +1,255 @@
+@if (vista() === 'listado') {
+<!-- ===================== LISTADO (estilo estado-pedidos) ===================== -->
+<div class="pedidos-container" [style.--color-sistema]="colorSistema">
+
+    <!-- Header -->
+    <div class="pedidos-header">
+        <span class="header-spacer"></span>
+        <h2 class="pedidos-titulo flex-grow-1 text-center" [style.color]="colorSistema">
+            Historial de cierre de caja
+        </h2>
+        <span class="header-spacer"></span>
+    </div>
+
+    <!-- Filtros -->
+    <div class="row align-items-center filters-row">
+        <div class="col-md-7 d-flex gap-3 align-items-center flex-wrap">
+            <div class="d-flex align-items-center gap-2">
+                <label class="small fw-bold text-muted">Fecha Inicio</label>
+                <input type="date" class="form-control form-control-sm" style="width: 160px;"
+                    [ngModel]="fechaInicioInput()" (ngModelChange)="fechaInicioInput.set($event)">
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <label class="small fw-bold text-muted">Fecha Final</label>
+                <input type="date" class="form-control form-control-sm" style="width: 160px;"
+                    [ngModel]="fechaFinalInput()" (ngModelChange)="fechaFinalInput.set($event)">
+            </div>
+            <button class="btn btn-sm px-4 text-white shadow-sm" [style.background-color]="colorSistema"
+                (click)="buscar()">Buscar</button>
+        </div>
+        <div class="col-md-5 d-flex justify-content-end">
+            <div class="search-box">
+                <input type="text" class="search-input" placeholder="Buscar por usuario o fecha..."
+                    [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event); paginaActual.set(1)">
+                <i class="bi bi-search search-icon"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla -->
+    <div class="users-card table-card shadow-sm border-0">
+        <div class="table-container p-0">
+            @if (cargando()) {
+            <div class="text-center py-5">
+                <div class="spinner-border" [style.color]="colorSistema" role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+            </div>
+            } @else {
+            <table class="pedidos-table">
+                <thead>
+                    <tr>
+                        <th (click)="ordenarPor('FechaApertura')" style="cursor: pointer;">
+                            Apertura
+                            <i [class]="columnaActiva() === 'FechaApertura' ? (ordenAscendente() ? 'bi bi-arrow-up' : 'bi bi-arrow-down') : 'bi bi-arrow-down-up'" class="ms-1 small text-muted"></i>
+                        </th>
+                        <th (click)="ordenarPor('NombreUsuario')" style="cursor: pointer;">
+                            Usuario
+                            <i [class]="columnaActiva() === 'NombreUsuario' ? (ordenAscendente() ? 'bi bi-arrow-up' : 'bi bi-arrow-down') : 'bi bi-arrow-down-up'" class="ms-1 small text-muted"></i>
+                        </th>
+                        <th class="text-end" (click)="ordenarPor('MontoInicial')" style="cursor: pointer;">
+                            Monto Inicial
+                            <i [class]="columnaActiva() === 'MontoInicial' ? (ordenAscendente() ? 'bi bi-arrow-up' : 'bi bi-arrow-down') : 'bi bi-arrow-down-up'" class="ms-1 small text-muted"></i>
+                        </th>
+                        <th class="text-end" (click)="ordenarPor('TotalIngresos')" style="cursor: pointer;">
+                            Ingresos
+                            <i [class]="columnaActiva() === 'TotalIngresos' ? (ordenAscendente() ? 'bi bi-arrow-up' : 'bi bi-arrow-down') : 'bi bi-arrow-down-up'" class="ms-1 small text-muted"></i>
+                        </th>
+                        <th class="text-end" (click)="ordenarPor('TotalEgresos')" style="cursor: pointer;">
+                            Egresos
+                            <i [class]="columnaActiva() === 'TotalEgresos' ? (ordenAscendente() ? 'bi bi-arrow-up' : 'bi bi-arrow-down') : 'bi bi-arrow-down-up'" class="ms-1 small text-muted"></i>
+                        </th>
+                        <th class="text-end" (click)="ordenarPor('MontoCierre')" style="cursor: pointer;">
+                            Cierre de caja
+                            <i [class]="columnaActiva() === 'MontoCierre' ? (ordenAscendente() ? 'bi bi-arrow-up' : 'bi bi-arrow-down') : 'bi bi-arrow-down-up'" class="ms-1 small text-muted"></i>
+                        </th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (c of cierresPaginados(); track c.CodigoAperturaCaja) {
+                    <tr>
+                        <td>{{ fechaCorta(c.FechaApertura) }}</td>
+                        <td>{{ c.NombreUsuario }}</td>
+                        <td class="text-end">Q {{ c.MontoInicial | number:'1.2-2' }}</td>
+                        <td class="text-end">Q {{ c.TotalIngresos | number:'1.2-2' }}</td>
+                        <td class="text-end">Q {{ c.TotalEgresos | number:'1.2-2' }}</td>
+                        <td class="text-end fw-bold text-success">Q {{ c.MontoCierre | number:'1.2-2' }}</td>
+                        <td class="acciones-cell">
+                            <button class="btn btn-detalle" (click)="verDetalle(c)" title="Ver detalle del cierre"
+                                [disabled]="cargandoDetalle() !== null">
+                                @if (cargandoDetalle() === c.CodigoAperturaCaja) {
+                                <span class="spinner-border spinner-border-sm"></span>
+                                } @else {
+                                <i class="bi bi-search"></i>
+                                }
+                            </button>
+                        </td>
+                    </tr>
+                    } @empty {
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            <i class="bi bi-inbox d-block fs-3 mb-2 opacity-50"></i>
+                            No hay cierres de caja en el rango seleccionado.
+                        </td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+            }
+        </div>
+    </div>
+
+    <!-- Footer / paginación (igual que estado-pedidos) -->
+    <div class="pagination-footer footer-row d-flex align-items-center justify-content-between">
+        <div class="pagination-info text-muted small">
+            Mostrando <strong>{{ rangoInicio() }}</strong> al <strong>{{ rangoFin() }}</strong> de <strong>{{
+                totalRegistros() }}</strong> registros
+        </div>
+        <nav aria-label="Page navigation">
+            <ul class="pagination pagination-sm mb-0">
+                <li class="page-item" [class.disabled]="paginaActual() === 1">
+                    <button class="page-link" (click)="paginaAnterior()">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                </li>
+                @for (p of paginasVisibles(); track $index) {
+                <li class="page-item" [class.active]="paginaActual() === p" [class.disabled]="p === '...'">
+                    <button class="page-link" (click)="p !== '...' && irAPagina($any(p))"
+                        [style.backgroundColor]="paginaActual() === p ? colorSistema : ''"
+                        [style.borderColor]="paginaActual() === p ? colorSistema : ''"
+                        [style.cursor]="p === '...' ? 'default' : 'pointer'">
+                        {{ p }}
+                    </button>
+                </li>
+                }
+                <li class="page-item" [class.disabled]="paginaActual() === totalPaginas() || totalPaginas() === 0">
+                    <button class="page-link" (click)="paginaSiguiente()">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>
+
+} @else if (detalle(); as d) {
+<!-- ===================== DETALLE (vista completa, estilo pantalla de cierre /caja) ===================== -->
+<div class="caja-wrapper p-3" [style.--color-sistema]="colorSistema">
+
+    <!-- Cabecera con volver -->
+    <div class="d-flex align-items-center mb-3">
+        <button class="btn btn-sm btn-outline-secondary" (click)="volverAlListado()">
+            <i class="bi bi-chevron-left me-1"></i> Regresar
+        </button>
+    </div>
+
+    <!-- Tarjetas de totales por método de pago -->
+    <div class="row g-3 mb-3">
+        <div class="col-6 col-lg-3">
+            <div class="card-metodo text-center p-3 rounded-3 h-100">
+                <div class="fw-bold">Efectivo</div>
+                <div class="fs-5 text-muted">Q {{ d.ResumenFormasPago.Efectivo }}</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card-metodo text-center p-3 rounded-3 h-100">
+                <div class="fw-bold">Tarjeta</div>
+                <div class="fs-5 text-muted">Q {{ d.ResumenFormasPago.Tarjeta }}</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card-metodo text-center p-3 rounded-3 h-100">
+                <div class="fw-bold">Transferencia</div>
+                <div class="fs-5 text-muted">Q {{ d.ResumenFormasPago.Transferencia }}</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card-metodo text-center p-3 rounded-3 h-100">
+                <div class="fw-bold">Cheque</div>
+                <div class="fs-5 text-muted">Q {{ d.ResumenFormasPago.Cheque }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <!-- Panel izquierdo: resumen -->
+        <div class="col-12 col-lg-5">
+            <div class="panel-resumen p-3 rounded-3 h-100 d-flex flex-column">
+                <div class="text-center fw-bold mb-2">INGRESOS</div>
+                <div class="bloque-lista mb-3">
+                    <div class="d-flex justify-content-between py-1"><span>Apertura de Caja</span><span class="text-muted">Q {{ d.ResumenIngresos.MontoApertura }}</span></div>
+                    <div class="d-flex justify-content-between py-1"><span>Ventas</span><span class="text-muted">Q {{ d.ResumenIngresos.Ventas }}</span></div>
+                    <div class="d-flex justify-content-between py-1"><span>Abono de pedido</span><span class="text-muted">Q {{ d.ResumenIngresos.Abonos_Pedidos }}</span></div>
+                    <div class="d-flex justify-content-between py-1"><span>Propinas</span><span class="text-muted">Q {{ d.ResumenIngresos.Propinas }}</span></div>
+                    <div class="d-flex justify-content-between py-1"><span>Compras anuladas</span><span class="text-muted">Q {{ d.ResumenIngresos.Compras_Anuladas }}</span></div>
+                    <div class="d-flex justify-content-between py-1"><span>Abonos prov. anulados</span><span class="text-muted">Q {{ d.ResumenIngresos.Abonos_Proveedores_Anulados }}</span></div>
+                    <div class="d-flex justify-content-between py-1 border-top mt-1 fw-bold"><span>Total</span><span>Q {{ d.ResumenIngresos.Total }}</span></div>
+                </div>
+
+                <div class="text-center fw-bold mb-2">EGRESOS</div>
+                <div class="bloque-lista mb-3">
+                    <div class="d-flex justify-content-between py-1"><span>Compra insumos</span><span class="text-muted">Q {{ d.ResumenEgresos.Compras }}</span></div>
+                    <div class="d-flex justify-content-between py-1"><span>Pago Proveedores</span><span class="text-muted">Q {{ d.ResumenEgresos.Pago_Proveedores }}</span></div>
+                    <div class="d-flex justify-content-between py-1"><span>Ventas anuladas</span><span class="text-muted">Q {{ d.ResumenEgresos.Ventas_Anuladas }}</span></div>
+                    <div class="d-flex justify-content-between py-1"><span>Abonos anulados</span><span class="text-muted">Q {{ d.ResumenEgresos.Abonos_Anulados }}</span></div>
+                    <div class="d-flex justify-content-between py-1 border-top mt-1 fw-bold"><span>Total</span><span>Q {{ d.ResumenEgresos.Total }}</span></div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mt-auto pt-2 border-top">
+                    <span class="fw-bold">Disponible en caja</span>
+                    <span class="disponible fw-bold px-3 py-1 rounded">Q {{ d.DisponibleEnCaja | number:'1.2-2' }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel derecho: datos del cierre (solo lectura) -->
+        <div class="col-12 col-lg-7">
+            <div class="panel-apertura rounded-3 h-100 d-flex flex-column overflow-hidden">
+                <div class="apertura-header" [style.background-color]="colorSistema"></div>
+                <div class="p-3 flex-grow-1 d-flex flex-column">
+                    <label class="form-label fw-semibold mb-1">Responsable</label>
+                    <input type="text" class="form-control campo-bloqueado mb-3" [value]="d.NombreUsuario" disabled>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-semibold mb-1">Caja</label>
+                            <input type="text" class="form-control campo-bloqueado" [value]="d.NombreCaja" disabled>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold mb-1">Turno</label>
+                            <input type="text" class="form-control campo-bloqueado" [value]="d.FechaApertura" disabled>
+                        </div>
+                    </div>
+
+                    <label class="form-label fw-semibold mb-1">Monto cierre</label>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text">Q</span>
+                        <input type="text" class="form-control campo-bloqueado" [value]="(d.MontoCierre | number:'1.2-2')" disabled>
+                    </div>
+
+                    <label class="form-label fw-semibold mb-2">Denominación de Efectivo</label>
+                    <div class="denominaciones-grid mb-2">
+                        @for (de of d.Denominaciones; track de.CodigoDenominacion) {
+                        <div class="input-group input-group-sm denom-item">
+                            <span class="input-group-text denom-valor">Q {{ de.Valor | number:'1.2-2' }}</span>
+                            <input type="text" class="form-control campo-bloqueado text-center" [value]="de.Cantidad || ''" disabled>
+                        </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+}

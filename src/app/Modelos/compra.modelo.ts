@@ -26,6 +26,7 @@ export interface PagoRealizado {
 export interface CompraDetalleCompleto {
     CodigoCompra: number;
     NumeroCompra: number;
+    FechaCompra?: string | null;        // fecha en que se hizo la compra (API debe incluirla en compra/detalle)
     FechaVencimiento: string;
     SaldoPendiente: number;
     Proveedor: {

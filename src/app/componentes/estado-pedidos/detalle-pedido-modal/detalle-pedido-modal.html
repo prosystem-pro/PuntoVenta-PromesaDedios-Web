@@ -24,7 +24,7 @@
                         <tr>
                             <th>Producto</th>
                             <th class="text-center">Unidad</th>
-                            <th class="text-end">Cantidad solicitada</th>
+                            <th class="text-center">Cantidad solicitada</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -32,7 +32,7 @@
                         <tr>
                             <td>{{ p.NombreProducto }}</td>
                             <td class="text-center">{{ p.AbreviaturaUnidad || p.NombreUnidadMedida }}</td>
-                            <td class="text-end fw-semibold">{{ p.CantidadSolicitada | number:'1.0-2' }}</td>
+                            <td class="text-center fw-semibold">{{ p.CantidadSolicitada | number:'1.0-2' }}</td>
                         </tr>
                         } @empty {
                         <tr>

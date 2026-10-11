@@ -22,17 +22,28 @@
 .titulo-pagina {
     color: var(--color-sistema);
     font-size: 1.5rem;
-    letter-spacing: 2px;
+    font-weight: 700;
     text-align: center;
+    margin: 0;
+    position: relative;
+    padding-bottom: 0.75rem;
 }
 
-.header-line {
-    flex: 0 0 auto;
+/* Subrayado pegado al título (igual que hv-titulo), no una línea suelta debajo de los botones. */
+.titulo-pagina::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 300px;
     height: 3px;
-    background-color: var(--color-sistema);
-    width: 40%;
-    margin: 0.5rem auto 0.75rem;
-    opacity: 0.7;
+    background-color: currentColor;
+}
+
+/* Separación bajo el bloque del título antes de los filtros. */
+.header-row {
+    margin-bottom: 0.75rem !important;
 }
 
 .filters-row {
@@ -69,6 +80,20 @@
     transform: translateY(-1px);
     opacity: 0.9;
     color: white;
+}
+
+/* Botón Exportar a Excel: mismo tamaño que en Compras (uniforme en todas las listas). */
+.btn-export {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    border-radius: 6px;
+}
+
+/* Botón Buscar del filtro: mismo tamaño que el resto de listas (Compras). */
+.filters-row .btn-buscar {
+    padding: 0.25rem 1rem;
+    font-size: 0.875rem;
+    border-radius: 6px;
 }
 
 .custom-table {

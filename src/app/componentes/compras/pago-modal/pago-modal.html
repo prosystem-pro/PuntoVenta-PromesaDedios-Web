@@ -21,7 +21,7 @@
                 <div class="col-md-6 mb-3">
                     <label class="small fw-bold text-muted mb-1">Fecha</label>
                     <div class="info-box p-2 bg-light border border-secondary-subtle rounded-3 small">
-                        {{ detalle()?.FechaVencimiento | date:'dd/MM/yyyy':'UTC' }}
+                        {{ (detalle()?.FechaCompra | date:'dd/MM/yyyy':'UTC') || '—' }}
                     </div>
                 </div>
                 <div class="col-md-6 mb-3">

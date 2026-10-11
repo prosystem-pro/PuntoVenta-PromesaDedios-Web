@@ -36,7 +36,7 @@ export class ProduccionListado implements OnInit {
 
     // Paginación
     paginaActual = signal(1);
-    itemsPorPagina = signal(6);
+    itemsPorPagina = signal(7);
 
     // Ordenamiento
     columnaOrden = signal<string>('');
@@ -220,6 +220,13 @@ export class ProduccionListado implements OnInit {
     }
 
     async trabajarTodo() {
+        const confirmado = await this.servicioAlerta.Confirmacion(
+            '¿Trabajar todos los pedidos?',
+            'Se iniciará la producción de todos los pedidos pendientes del rango seleccionado.',
+            'Sí, trabajar todo',
+            'Cancelar'
+        );
+        if (!confirmado) return;
         try {
             // TC-811: solo iniciar los pedidos dentro del rango de fecha de entrega filtrado.
             const res = await this.servicioProduccion.iniciarProduccionMasiva(

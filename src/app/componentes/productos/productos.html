@@ -5,7 +5,7 @@
         <div class="header-side">
             <button *ngIf="modoEdicion() === 'lectura'" class="btn btn-export shadow-sm"
                 [style.background-color]="colorSistema" (click)="exportarExcel()">
-                <i class="bi bi-file-earmark-spreadsheet me-2"></i> Exportar a exel
+                <i class="bi bi-file-earmark-spreadsheet me-2"></i> Exportar a Excel
             </button>
             <button *ngIf="modoEdicion() !== 'lectura'" class="btn btn-regresar shadow-sm"
                 [style.background-color]="colorSistema" (click)="cancelarEdicion()">
@@ -84,7 +84,7 @@
                             Unidad <i class="bi ms-1"
                                 [ngClass]="columnaOrden() === 'NombreUnidad' ? (ordenAscendente() ? 'bi-sort-alpha-down' : 'bi-sort-alpha-up') : 'bi-arrow-down-up opacity-25'"></i>
                         </th>
-                        <th class="py-3 text-muted small text-latin" style="cursor: pointer;"
+                        <th class="py-3 text-muted small text-latin text-center" style="cursor: pointer;"
                             (click)="ordenar('Stock')">
                             Stock <i class="bi ms-1"
                                 [ngClass]="columnaOrden() === 'Stock' ? (ordenAscendente() ? 'bi-sort-numeric-down' : 'bi-sort-numeric-up') : 'bi-arrow-down-up opacity-25'"></i>
@@ -106,14 +106,14 @@
                         <td class="text-latin">{{ producto.NombreCategoria || 'Sin categoria' }}</td>
                         <td class="text-latin">{{ producto.NombreProducto }}</td>
                         <td class="td-unidad text-latin">{{ producto.NombreUnidad || 'Unidad' }}</td>
-                        <td class="text-latin">
+                        <td class="text-latin text-center">
                             <ng-container *ngIf="modoEdicion() !== 'ajustar'">
                                 <span [ngClass]="{'text-danger': producto.TipoProducto !== 'COCINA' && (producto.Stock || 0) <= 0}">
                                     {{ (producto.Stock || 0) === 0 ? '0' : producto.Stock }}
                                 </span>
                             </ng-container>
                             <input *ngIf="modoEdicion() === 'ajustar'" type="number" min="0" step="1"
-                                class="form-control form-control-sm stock-input"
+                                class="form-control form-control-sm stock-input text-center"
                                 [class.is-invalid]="tieneError(producto.CodigoProducto)"
                                 [value]="cambiosPendientes()[producto.CodigoProducto || 0] ?? 0"
                                 (input)="alCambiarValorStock(producto.CodigoProducto, $any($event.target).value)">

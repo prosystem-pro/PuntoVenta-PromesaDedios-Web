@@ -16,14 +16,14 @@
 
     <!-- Barra de busqueda y filtros -->
     <div class="row align-items-center filters-row">
-        <div class="col-md-6 d-flex gap-3 align-items-center">
+        <div class="col-auto d-flex gap-3 align-items-center">
             <div class="d-flex align-items-center gap-2">
-                <label class="small fw-bold text-muted">Inicio</label>
+                <label class="small fw-bold text-muted text-nowrap">Fecha Inicio</label>
                 <input type="date" class="form-control form-control-sm" [ngModel]="fechaInicioInput()"
                     (ngModelChange)="fechaInicioInput.set($event)">
             </div>
             <div class="d-flex align-items-center gap-2">
-                <label class="small fw-bold text-muted">Final</label>
+                <label class="small fw-bold text-muted text-nowrap">Fecha Final</label>
                 <input type="date" class="form-control form-control-sm" [ngModel]="fechaFinalInput()"
                     (ngModelChange)="fechaFinalInput.set($event)">
             </div>
@@ -40,7 +40,7 @@
                 }
             </div>
         </div>
-        <div class="col-md-6 d-flex justify-content-end">
+        <div class="col d-flex justify-content-end">
             <div class="search-box">
                 <input type="text" class="search-input" placeholder="Buscar por proveedor o No. compra..."
                     [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event)">

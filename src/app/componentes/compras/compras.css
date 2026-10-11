@@ -84,6 +84,13 @@
     color: white;
 }
 
+/* Botones dentro de la fila de filtros (Buscar/Cancelar): igualar altura con los
+   inputs de fecha form-control-sm, que son más bajos que un .btn normal. */
+.filters-row .btn {
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+}
+
 .search-box {
     position: relative;
     width: 300px;

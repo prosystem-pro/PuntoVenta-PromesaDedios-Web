@@ -33,14 +33,14 @@
 .productos-titulo {
     color: var(--color-sistema);
     font-size: 1.5rem;
-    letter-spacing: 2px;
+    font-weight: 700;
 }
 
 .title-underline {
     height: 3px;
-    width: 40%;
+    width: 300px;
+    max-width: 100%;
     margin: 0.5rem auto 0;
-    opacity: 0.7;
     border-radius: 2px;
 }
 
@@ -90,6 +90,14 @@
     transform: translateY(-2px);
     color: white;
     box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+}
+
+/* Botón Exportar a Excel: mismo tamaño que en Compras (uniforme en todas las listas). */
+.btn-export {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: 6px;
 }
 
 

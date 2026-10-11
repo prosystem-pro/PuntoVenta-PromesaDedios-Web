@@ -68,7 +68,7 @@
                                 [ngClass]="columnaOrden() === 'NombreUnidad' ? (ordenAscendente() ? 'bi-sort-alpha-down' : 'bi-sort-alpha-up') : 'bi-arrow-down-up opacity-25'"></i>
                         </th>
 
-                        <th class="py-3 text-muted small" style="cursor: pointer;" (click)="ordenar('Stock')">
+                        <th class="py-3 text-muted small text-center" style="cursor: pointer;" (click)="ordenar('Stock')">
                             Stock <i class="bi ms-1"
                                 [ngClass]="columnaOrden() === 'Stock' ? (ordenAscendente() ? 'bi-sort-numeric-down' : 'bi-sort-numeric-up') : 'bi-arrow-down-up opacity-25'"></i>
                         </th>
@@ -99,7 +99,7 @@
                         <td class="small">{{ p.NombreProducto }}</td>
                         <td class="small">{{ p.NombreUnidad }}</td>
 
-                        <td class="small">
+                        <td class="small text-center">
                             @if (modo() === 'ajustar') {
                             <input type="number" min="0" class="form-control form-control-sm text-center fw-bold border-success"
                                 style="width: 80px; margin: 0 auto;" [value]="p.Stock"

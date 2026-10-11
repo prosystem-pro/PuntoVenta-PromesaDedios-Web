@@ -35,7 +35,7 @@ export class Proveedores implements OnInit {
 
     // Paginacion fija
     paginaActual = signal(1);
-    itemsPorPagina = 6;
+    itemsPorPagina = 7;
 
     // Ordenamiento
     columnaOrden = signal<string>('');

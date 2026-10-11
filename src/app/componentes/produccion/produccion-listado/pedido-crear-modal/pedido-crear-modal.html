@@ -26,53 +26,47 @@
 
     <div class="header-line mb-4"></div>
 
-    <!-- Controls Row -->
-    <div class="row align-items-center mb-4 g-3 bg-white p-2 px-0 mx-0">
-        <div class="col-auto">
-            <span class="fw-bold fs-5">Agregar producto</span>
-        </div>
-        <div class="col-auto">
-            <div class="search-box position-relative" style="width: 250px;">
-                <input type="text" class="form-control border-light-subtle rounded shadow-xs"
-                    placeholder="Nombre producto" [ngModel]="busquedaProducto()"
-                    (ngModelChange)="busquedaProducto.set($event)" autocomplete="off">
+    <!-- Controls Row: todo en una sola fila (como el prototipo) -->
+    <div class="d-flex align-items-center mb-4 gap-3 flex-wrap controls-row">
+        <span class="fw-bold fs-5 me-1">Agregar producto</span>
 
-                <!-- Autocomplete Dropdown -->
-                @if (sugerenciasBusqueda().length > 0) {
-                <div class="search-suggestions position-absolute bg-white shadow-lg rounded border mt-1">
-                    @for (s of sugerenciasBusqueda(); track s.CodigoProducto) {
-                    <div class="suggestion-item p-2 border-bottom" (click)="seleccionarProducto(s)">
-                        <div class="fw-bold">{{ s.Producto }}</div>
-                        <div class="small text-muted">{{ s.NombreCategoriaProducto }} - Stock: {{ s.StockActual }}</div>
-                    </div>
-                    }
+        <div class="search-box position-relative" style="width: 190px;">
+            <input type="text" class="form-control border-light-subtle rounded shadow-xs"
+                placeholder="Nombre producto" [ngModel]="busquedaProducto()"
+                (ngModelChange)="busquedaProducto.set($event)" autocomplete="off">
+
+            <!-- Autocomplete Dropdown -->
+            @if (sugerenciasBusqueda().length > 0) {
+            <div class="search-suggestions position-absolute bg-white shadow-lg rounded border mt-1">
+                @for (s of sugerenciasBusqueda(); track s.CodigoProducto) {
+                <div class="suggestion-item p-2 border-bottom" (click)="seleccionarProducto(s)">
+                    <div class="fw-bold">{{ s.Producto }}</div>
+                    <div class="small text-muted">{{ s.NombreCategoriaProducto }} - Stock: {{ s.StockActual }}</div>
                 </div>
                 }
             </div>
+            }
         </div>
-        <div class="col-auto">
-            <button class="btn btn-naranja px-4 shadow-sm text-white fw-bold" (click)="agregarProducto()"
-                style="background-color: var(--color-sistema); border: none;">
-                Agregar
-            </button>
+
+        <button class="btn btn-naranja px-4 shadow-sm text-white fw-bold" (click)="agregarProducto()"
+            style="background-color: var(--color-sistema); border: none;">
+            Agregar
+        </button>
+
+        <!-- Fecha de entrega compacta (como el prototipo) -->
+        <div class="fecha-entrega-box d-flex align-items-center border rounded shadow-xs px-2 position-relative"
+            title="Fecha de entrega del producto">
+            <input type="date" class="form-control border-0 fw-bold p-0"
+                style="width: 120px; outline: none; box-shadow: none; background: transparent;"
+                [ngModel]="fechaEntrega()" (ngModelChange)="fechaEntrega.set($event)">
+            <i class="bi bi-calendar3 ms-1 opacity-50"></i>
         </div>
-        <div class="col-auto ms-auto d-flex flex-column bg-white border rounded shadow-xs p-1 px-3 position-relative"
-            style="min-width: 220px;">
-            <label class="small fw-bold text-muted mb-1" style="font-size: 0.75rem;">Fecha de entrega del
-                producto</label>
-            <div class="d-flex align-items-center">
-                <input type="date" class="form-control border-0 p-0 fs-5 fw-bold position-relative"
-                    style="width: 100%; outline: none; box-shadow: none; background: transparent; z-index: 2;"
-                    [ngModel]="fechaEntrega()" (ngModelChange)="fechaEntrega.set($event)">
-                <i class="bi bi-calendar3 ms-2 opacity-50 position-absolute end-0 me-3" style="z-index: 1;"></i>
-            </div>
-        </div>
-        <div class="col-auto">
-            <div class="search-box position-relative" style="width: 300px;">
-                <input type="text" class="form-control pe-5 border-light-subtle rounded-pill shadow-sm"
-                    placeholder="Buscar" [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event)">
-                <i class="bi bi-search position-absolute top-50 end-0 translate-middle-y me-3 text-muted"></i>
-            </div>
+
+        <!-- Buscador de la tabla: crece para llenar el espacio restante (no se baja) -->
+        <div class="search-box position-relative" style="flex: 1 1 180px; min-width: 180px;">
+            <input type="text" class="form-control pe-5 border-light-subtle rounded-pill shadow-sm"
+                placeholder="Buscar" [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event)">
+            <i class="bi bi-search position-absolute top-50 end-0 translate-middle-y me-3 text-muted"></i>
         </div>
     </div>
 
@@ -81,7 +75,7 @@
     <!-- Table -->
     <div class="flex-grow-1 overflow-auto border-top">
         <table class="table table-hover align-middle custom-table mb-0">
-            <thead>
+            <thead class="sticky-top bg-white shadow-sm">
                 <tr>
                     <th style="width: 80px;">No. <i class="bi bi-arrow-down-up small opacity-50 ms-1"></i></th>
                     <th>Categoría <i class="bi bi-arrow-down-up small opacity-50 ms-1"></i></th>

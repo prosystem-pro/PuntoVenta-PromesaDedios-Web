@@ -36,7 +36,7 @@ export class Clientes implements OnInit {
 
     // Paginacion
     paginaActual = signal(1);
-    itemsPorPagina = 6;
+    itemsPorPagina = 7;
 
     // Ordenamiento
     columnaOrden = signal<string>('');

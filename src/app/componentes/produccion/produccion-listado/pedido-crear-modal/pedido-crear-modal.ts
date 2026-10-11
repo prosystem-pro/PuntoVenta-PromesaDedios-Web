@@ -22,7 +22,9 @@ export class PedidoCrearModal implements OnInit {
     catalogoProductos = signal<any[]>([]);
     colorSistema = Entorno.ColorSistema;
 
-    fechaEntrega = signal<string>(new Date().toISOString().split('T')[0]);
+    // Fecha local (yyyy-MM-dd) SIN pasar por UTC: toISOString() devolvería la fecha UTC,
+    // que de noche en Guatemala (UTC-6) ya es el día siguiente. Esto arrancaba en "mañana".
+    fechaEntrega = signal<string>(this.fechaHoyLocal());
     observaciones = signal<string>('');
     mostrarConfirmacion = signal(false);
 
@@ -33,10 +35,16 @@ export class PedidoCrearModal implements OnInit {
 
     // Paginación
     paginaActual = signal(1);
-    itemsPorPagina = 10;
+    itemsPorPagina = 7;
 
     ngOnInit() {
         this.cargarProductos();
+    }
+
+    // Fecha de hoy en formato yyyy-MM-dd según la hora LOCAL del equipo (no UTC).
+    private fechaHoyLocal(): string {
+        const d = new Date();
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     }
 
     async cargarProductos() {

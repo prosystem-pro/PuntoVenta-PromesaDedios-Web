@@ -45,7 +45,7 @@ export class EstadoPagos implements OnInit {
 
     // Paginación
     paginaActual = signal(1);
-    itemsPorPagina = signal(10);
+    itemsPorPagina = signal(7);
 
     // Ordenamiento
     columnaActiva = signal<string | null>(null);

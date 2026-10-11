@@ -18,6 +18,16 @@
     color: #333;
 }
 
+/* Caja de fecha de entrega: misma altura que inputs/botón, en la fila de controles */
+.controls-row .fecha-entrega-box {
+    height: 38px;
+    background: #fff;
+}
+
+.controls-row .fecha-entrega-box input[type="date"] {
+    font-size: 0.95rem;
+}
+
 .input-sugerido:focus {
     border-color: #28a745;
     box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
@@ -25,31 +35,46 @@
 
 .crear-pedido-container .titulo-pagina {
     color: var(--color-sistema);
-    font-size: 2rem;
-    letter-spacing: 2px;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+    position: relative;
+    padding-bottom: 0.75rem;
 }
 
-.header-line {
+/* Subrayado pegado al título (igual que hv-titulo). */
+.crear-pedido-container .titulo-pagina::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 300px;
     height: 3px;
-    background-color: var(--color-sistema);
-    width: 40%;
-    margin: 0.5rem auto 2rem;
-    opacity: 0.7;
+    background-color: currentColor;
 }
 
+/* Separación bajo el bloque del título antes de los controles. */
+.header-line {
+    height: 0;
+    margin: 0 0 1.5rem;
+}
+
+/* Igual que el resto de las listas (ver produccion-listado.css): header gris pequeño. */
 .custom-table thead th {
-    border-bottom: 2px solid #333;
-    padding: 1.2rem 0.5rem;
-    font-weight: 800;
+    background-color: #fff;
+    border-bottom: 2px solid #eee;
+    padding: 0.75rem 0.5rem;
+    font-weight: 600;
     text-transform: none;
-    font-size: 1.1rem;
-    color: #333;
+    font-size: 0.8rem;
+    color: #6c757d;
 }
 
 .custom-table tbody td {
     padding: 1rem 0.5rem;
-    border-bottom: 1.5px solid #f0f0f0;
-    font-size: 1rem;
+    border-bottom: 1px solid #dee2e6;
+    font-size: 0.875rem;
 }
 
 input[type="date"]::-webkit-calendar-picker-indicator {

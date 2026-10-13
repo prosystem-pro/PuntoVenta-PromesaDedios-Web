@@ -180,6 +180,9 @@ export class Facturar implements OnInit {
     // Límite de stock para la venta (TC-749): número finito disponible, o null si no
     // aplica control (stock no informado, o producto de cocina que no maneja stock físico).
     private limiteStock(prod: { Stock?: number | null; TipoProducto?: string | null }): number | null {
+        // En el flujo de PEDIDO el stock no limita: se puede pedir por encima de lo disponible
+        // (se produce/abastece después). El tope de stock solo aplica al facturar una venta.
+        if (this.flujo() === 'pedido') return null;
         if (prod.TipoProducto === 'COCINA') return null;
         return (prod.Stock === null || prod.Stock === undefined) ? null : Number(prod.Stock);
     }

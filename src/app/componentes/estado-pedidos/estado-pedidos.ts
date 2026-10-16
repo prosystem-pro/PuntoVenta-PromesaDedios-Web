@@ -78,8 +78,16 @@ export class EstadoPedidos implements OnInit {
     fechaCorta(fecha: string | null): string {
         if (!fecha) return '—';
         const f = fecha.trim();
+        // El API ahora manda FechaEntrega como DATEONLY ("YYYY-MM-DD"): se reformatea a dd/MM/yyyy.
+        const iso = f.match(/^(\d{4})-(\d{2})-(\d{2})/);
+        if (iso) {
+            const [, y, m, d] = iso;
+            const hora = f.substring(11, 16); // "HH:mm" si viniera con hora
+            return hora ? `${d}/${m}/${y} ${hora}` : `${d}/${m}/${y}`;
+        }
+        // Compatibilidad: ya viene formateado "dd/MM/yyyy HH:mm".
         const fechaParte = f.substring(0, 10);
-        const horaParte = f.substring(11, 16); // "HH:mm"
+        const horaParte = f.substring(11, 16);
         return horaParte ? `${fechaParte} ${horaParte}` : fechaParte;
     }
 

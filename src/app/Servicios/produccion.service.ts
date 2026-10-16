@@ -59,7 +59,10 @@ export class ProduccionServicio {
         return res.data;
     }
 
-    async registrarConsumoInsumos(datos: { CodigoProduccion: number, Insumos: any[] }): Promise<RespuestaAPI<any>> {
+    // Observacion: nota general por pedido al guardar los insumos utilizados (pedido de Walter).
+    // El API debe aceptarla/guardarla (columna Observacion en Op.ProduccionConsumoInsumo) y
+    // devolverla en listadoinsumos para mostrarla al reabrir.
+    async registrarConsumoInsumos(datos: { CodigoProduccion: number, Insumos: any[], Observacion?: string | null }): Promise<RespuestaAPI<any>> {
         const res = await axiosInstance.post('/produccion/registrarconsumoinsumos', datos);
         return res.data;
     }

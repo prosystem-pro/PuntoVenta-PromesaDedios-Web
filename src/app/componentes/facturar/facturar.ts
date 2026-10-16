@@ -207,8 +207,8 @@ export class Facturar implements OnInit {
         if (limite !== null && this.cantidadEnCarrito(producto.CodigoProducto) >= limite) {
             this.servicioAlerta.MostrarToast(
                 limite <= 0
-                    ? `${producto.NombreProducto}: sin stock disponible`
-                    : `Stock disponible: ${limite}`,
+                    ? `Stock insuficiente: ${producto.NombreProducto} sin stock disponible`
+                    : `Stock insuficiente. Disponible: ${limite}`,
                 'warning');
             return;
         }
@@ -261,7 +261,7 @@ export class Facturar implements OnInit {
         let cant = nuevaCant;
         if (item && item.Stock !== null && cant > item.Stock) {
             cant = item.Stock;
-            this.servicioAlerta.MostrarToast(`Stock disponible: ${item.Stock}`, 'warning');
+            this.servicioAlerta.MostrarToast(`Stock insuficiente. Disponible: ${item.Stock}`, 'warning');
         }
         if (cant <= 0) {
             this.carrito.update(items => items.filter(it => it.CodigoProducto !== codigo));

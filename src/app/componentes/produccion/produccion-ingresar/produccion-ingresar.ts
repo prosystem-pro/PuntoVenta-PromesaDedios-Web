@@ -38,6 +38,9 @@ export class ProduccionIngresar implements OnInit {
     detalles = signal<any[]>([]);
     insumos = signal<any[]>([]);
 
+    // Nota general del pedido al guardar insumos utilizados (pedido de Walter).
+    observacionInsumos = signal<string>('');
+
     cargando = signal(false);
     guardando = signal(false);
     insumosGuardados = signal(false);
@@ -205,6 +208,10 @@ export class ProduccionIngresar implements OnInit {
             if (resInsumos.success && resInsumos.data) {
                 // El masivo devuelve un array; el de un pedido devuelve { CodigoProduccion, Insumos: [...] }.
                 const listaRaw = Array.isArray(resInsumos.data) ? resInsumos.data : (resInsumos.data as any).Insumos || [];
+
+                // Nota general guardada (cuando el API la devuelva en Observacion).
+                const obs = Array.isArray(resInsumos.data) ? '' : ((resInsumos.data as any).Observacion || '');
+                this.observacionInsumos.set(obs || '');
 
                 this.insumos.set(listaRaw.map((i: any) => ({
                     ...i,
@@ -430,7 +437,8 @@ export class ProduccionIngresar implements OnInit {
             } else {
                 const datosConsumo = {
                     CodigoProduccion: this.codigoProduccion(),
-                    Insumos: insumosFiltrados
+                    Insumos: insumosFiltrados,
+                    Observacion: this.observacionInsumos().trim() || null
                 };
                 resC = await this.servicioProduccion.registrarConsumoInsumos(datosConsumo);
             }

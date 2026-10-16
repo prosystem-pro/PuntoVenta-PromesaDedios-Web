@@ -177,6 +177,18 @@
         }
     </div>
 
+    <!-- Nota general del pedido (solo en insumos utilizados de un pedido; no aplica al masivo) -->
+    @if (vistaActiva() === 'insumos' && !esMasivo()) {
+    <div class="mb-4">
+        <label class="form-label fw-bold mb-1">Nota del pedido</label>
+        <textarea class="form-control" rows="2"
+            placeholder="Agregue una nota para este pedido (opcional)..."
+            [ngModel]="observacionInsumos()" (ngModelChange)="observacionInsumos.set($event)"
+            [readonly]="insumosGuardados()"
+            [style.background-color]="insumosGuardados() ? '#f8f9fa' : 'white'"></textarea>
+    </div>
+    }
+
     <!-- Footer Controls -->
     <div class="row align-items-center g-3 mt-2">
         <div class="col">

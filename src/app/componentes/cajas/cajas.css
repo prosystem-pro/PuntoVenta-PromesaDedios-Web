@@ -168,6 +168,18 @@
     color: #d42c2c;
 }
 
+/* Switch activar/desactivar en la lista */
+.switch-estado {
+    cursor: pointer;
+    width: 2.4em;
+    height: 1.25em;
+}
+
+.switch-estado:focus {
+    box-shadow: none;
+    border-color: var(--color-sistema);
+}
+
 /* Footer */
 .pagination-footer {
     flex: 0 0 auto;

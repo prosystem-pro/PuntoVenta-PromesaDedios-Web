@@ -90,6 +90,15 @@ export class CajaAdminServicio {
         return { success: true, tipo: 'Éxito', message: 'Caja inactivada (MOCK).', data: null };
     }
 
+    // PUT caja/admin/activar/:CodigoCaja  (reactivar una caja inactivada; Estatus 0 -> 1)
+    async activar(codigoCaja: number): Promise<RespuestaAPI<null>> {
+        // const res = await axiosInstance.put(`caja/admin/activar/${codigoCaja}`); return res.data;
+        await this.latencia();
+        const caja = this.mock.find(c => c.CodigoCaja === codigoCaja);
+        if (caja) caja.Estatus = 1;
+        return { success: true, tipo: 'Éxito', message: 'Caja activada (MOCK).', data: null };
+    }
+
     // ---------------------------------------------------------------------------
     private latencia(ms = 250): Promise<void> {
         return new Promise(resolve => setTimeout(resolve, ms));

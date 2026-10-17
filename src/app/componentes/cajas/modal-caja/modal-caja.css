@@ -1,0 +1,108 @@
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1060;
+    padding: 1rem;
+}
+
+.modal-caja-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 1.5rem;
+    width: 480px;
+    max-width: 100%;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.form-control {
+    border-radius: 10px;
+    border: 1px solid #e0e0e0;
+}
+
+.form-control:focus {
+    border-color: var(--color-sistema);
+    box-shadow: 0 0 0 3px rgba(137, 89, 234, 0.08);
+}
+
+/* Buscador */
+.search-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-box .search-icon {
+    position: absolute;
+    left: 12px;
+    color: #999;
+}
+
+.search-input {
+    width: 100%;
+    padding: 0.5rem 0.75rem 0.5rem 2.1rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    outline: none;
+}
+
+.search-input:focus {
+    border-color: var(--color-sistema);
+}
+
+/* Lista de usuarios */
+.usuarios-lista {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    border: 1px solid #f0f0f0;
+    border-radius: 10px;
+    padding: 0.5rem 0.75rem;
+    min-height: 120px;
+    max-height: 240px;
+}
+
+.usuario-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.35rem 0;
+    cursor: pointer;
+    font-size: 0.95rem;
+}
+
+.usuario-item input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--color-sistema);
+    cursor: pointer;
+}
+
+/* Botones */
+.btn-cancelar {
+    background: #6c757d;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 0.5rem 1.25rem;
+    font-weight: 600;
+}
+
+.btn-cancelar:hover {
+    background: #5c636a;
+    color: #fff;
+}
+
+.btn-guardar {
+    border: none;
+    border-radius: 8px;
+    padding: 0.5rem 1.25rem;
+    font-weight: 600;
+}
+
+.btn-guardar:hover {
+    filter: brightness(1.05);
+    color: #fff;
+}

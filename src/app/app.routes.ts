@@ -14,6 +14,7 @@ export const routes: Routes = [
     children: [
       { path: 'usuario', data: { recurso: 'Administrativo' }, canActivate: [guardPermiso], loadComponent: () => import('./componentes/usuarios/usuarios').then(m => m.Usuarios) },
       { path: 'rol', data: { recurso: 'Administrativo' }, canActivate: [guardPermiso], loadComponent: () => import('./componentes/roles/roles').then(m => m.Roles) },
+      { path: 'cajas', data: { recurso: 'Administrativo' }, canActivate: [guardPermiso], loadComponent: () => import('./componentes/cajas/cajas').then(m => m.Cajas) },
       { path: 'terminal', loadComponent: () => import('./componentes/terminales/terminales').then(m => m.Terminales) },
       { path: 'proveedor', data: { recurso: 'Proveedor' }, canActivate: [guardPermiso], loadComponent: () => import('./componentes/proveedores/proveedores').then(m => m.Proveedores) },
       { path: 'cliente', data: { recurso: 'Cliente' }, canActivate: [guardPermiso], loadComponent: () => import('./componentes/clientes/clientes').then(m => m.Clientes) },

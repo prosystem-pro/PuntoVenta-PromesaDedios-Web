@@ -71,7 +71,7 @@ export class ImpresionService {
      */
     private async precargarLogo(): Promise<void> {
         try {
-            const img = await this.cargarImagen(Entorno.Logo);
+            const img = await this.cargarImagen(Entorno.LogoFactura);
 
             // El bitmap se genera al ANCHO COMPLETO del cabezal (80mm ≈ 576 dots) con
             // la P centrada dentro sobre blanco. Motivo: en modo buffer el V3 MIX no

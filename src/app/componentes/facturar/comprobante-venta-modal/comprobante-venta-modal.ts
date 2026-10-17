@@ -53,7 +53,7 @@ export class ComprobanteVentaModal implements OnChanges {
 
     @ViewChild('ticket') ticket!: ElementRef<HTMLElement>;
 
-    logoUrl = Entorno.Logo;
+    logoUrl = Entorno.LogoFactura;
     generandoPdf = signal(false);
 
     ngOnChanges(changes: SimpleChanges): void {

@@ -26,7 +26,7 @@ export class ComprobantePagoModal {
 
     @ViewChild('ticket') ticket!: ElementRef<HTMLElement>;
 
-    logoUrl = Entorno.Logo;
+    logoUrl = Entorno.LogoFactura;
     generandoPdf = signal(false);
 
     imprimir() {

@@ -3,10 +3,11 @@
 
 export interface CajaAdmin {
     CodigoCaja: number;
-    Nombre: string;        // nombre/descripción de la caja (ej. "Caja principal")
-    NoUsuarios: number;    // cantidad de usuarios asignados
-    Estatus: number;       // 1 = Activo, 0 = Desactivado (inactivar, no borrar)
-    Usuarios?: number[];   // CodigoUsuario asignados (se usa al editar)
+    Nombre: string;              // nombre/descripción de la caja (ej. "Caja principal")
+    NoUsuarios: number;          // cantidad de usuarios asignados
+    Estatus: number;             // 1 = Activo, 0 = Desactivado (inactivar, no borrar)
+    Usuarios?: number[];         // CodigoUsuario asignados (se usa al editar)
+    TieneTurnoAbierto?: boolean; // el API lo informa; bloquea inactivar si hay turno abierto
 }
 
 // Usuario mostrado en la lista de checkboxes del modal "Nueva/Editar caja".

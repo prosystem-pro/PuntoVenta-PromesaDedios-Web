@@ -91,6 +91,14 @@ export class Cajas implements OnInit {
     }
 
     async guardarCaja(ev: { codigoCaja: number | null; payload: GuardarCajaPayload }) {
+        // Validación front: nombre único (el API igual lo valida).
+        const nombre = ev.payload.Nombre.trim().toLowerCase();
+        const duplicado = this.cajas().some(c =>
+            c.Nombre.trim().toLowerCase() === nombre && c.CodigoCaja !== ev.codigoCaja);
+        if (duplicado) {
+            this.servicioAlerta.MostrarError('Ya existe una caja con ese nombre');
+            return;
+        }
         try {
             const res = ev.codigoCaja
                 ? await this.servicio.editar(ev.codigoCaja, ev.payload)
@@ -110,6 +118,11 @@ export class Cajas implements OnInit {
     async inactivarCaja(caja: CajaAdmin) {
         if (caja.Estatus === 0) {
             this.servicioAlerta.MostrarAlerta('La caja ya está desactivada');
+            return;
+        }
+        // Validación front: no desactivar una caja con turno abierto (el API igual lo valida).
+        if (caja.TieneTurnoAbierto) {
+            this.servicioAlerta.MostrarAlerta('No se puede desactivar: la caja tiene un turno abierto. Ciérrelo primero.');
             return;
         }
         const confirmado = await this.servicioAlerta.Confirmacion(

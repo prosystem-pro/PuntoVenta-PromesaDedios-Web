@@ -23,8 +23,8 @@ export class CajaAdminServicio {
 
     // En memoria solo para la maqueta (simula persistencia mientras no hay API).
     private mock: CajaAdmin[] = [
-        { CodigoCaja: 1, Nombre: 'Caja principal', NoUsuarios: 5, Estatus: 0, Usuarios: [1, 2, 3, 4, 5] },
-        { CodigoCaja: 2, Nombre: 'Caja secundaria', NoUsuarios: 2, Estatus: 1, Usuarios: [6, 7] },
+        { CodigoCaja: 1, Nombre: 'Caja principal', NoUsuarios: 5, Estatus: 0, Usuarios: [1, 2, 3, 4, 5], TieneTurnoAbierto: false },
+        { CodigoCaja: 2, Nombre: 'Caja secundaria', NoUsuarios: 2, Estatus: 1, Usuarios: [6, 7], TieneTurnoAbierto: true },
     ];
     private secuencia = 3;
 

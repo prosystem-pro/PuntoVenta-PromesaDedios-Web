@@ -25,7 +25,7 @@ export class ComprobanteAbonoModal implements OnChanges {
     @Output() cerrar = new EventEmitter<void>();
 
     colorSistema = Entorno.ColorSistema;
-    logoUrl = Entorno.Logo;
+    logoUrl = Entorno.LogoFactura;
     cargando = signal(false);
     data = signal<any>(null);
 

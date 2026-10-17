@@ -32,7 +32,7 @@ export class FacturaCompraModal implements OnChanges {
 
     @ViewChild('ticket') ticket!: ElementRef<HTMLElement>;
 
-    logoUrl = Entorno.Logo;
+    logoUrl = Entorno.LogoFactura;
     data = signal<FacturaCompra | null>(null);
     cargando = signal(false);
     generandoPdf = signal(false);

@@ -12,20 +12,17 @@
     box-sizing: border-box;
 }
 
-/* Header: título centrado + botón crear a la derecha */
+/* Header: título centrado en la página (grid 1fr auto 1fr) + botón crear a la derecha */
 .cajas-header {
     flex: 0 0 auto;
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
     margin-bottom: 0.75rem;
 }
 
-.header-spacer {
-    flex: 1 1 0;
-}
-
 .cajas-titulo {
-    flex: 1 1 auto;
+    grid-column: 2;
     text-align: center;
     font-size: 1.5rem;
     font-weight: 700;
@@ -47,9 +44,8 @@
 }
 
 .btn-crear {
-    flex: 1 1 0;
-    max-width: fit-content;
-    margin-left: auto;
+    grid-column: 3;
+    justify-self: end;
     color: white;
     border: none;
     border-radius: 8px;

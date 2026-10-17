@@ -115,33 +115,55 @@ export class Cajas implements OnInit {
         }
     }
 
-    async inactivarCaja(caja: CajaAdmin) {
-        if (caja.Estatus === 0) {
-            this.servicioAlerta.MostrarAlerta('La caja ya está desactivada');
-            return;
-        }
-        // Validación front: no desactivar una caja con turno abierto (el API igual lo valida).
-        if (caja.TieneTurnoAbierto) {
-            this.servicioAlerta.MostrarAlerta('No se puede desactivar: la caja tiene un turno abierto. Ciérrelo primero.');
-            return;
-        }
-        const confirmado = await this.servicioAlerta.Confirmacion(
-            `¿Desactivar la caja "${caja.Nombre}"?`,
-            'No se elimina (se conserva el histórico), solo queda inactiva.',
-            'Sí, desactivar',
-            'Cancelar'
-        );
-        if (!confirmado) return;
-        try {
-            const res = await this.servicio.inactivar(caja.CodigoCaja);
-            if (res.success) {
-                this.servicioAlerta.MostrarExito('Caja desactivada');
-                await this.cargar();
-            } else {
-                this.servicioAlerta.MostrarError(res.message, 'No se pudo desactivar');
+    // Switch de la lista: activa o desactiva la caja según su estado actual.
+    async alternarEstado(caja: CajaAdmin, ev: Event) {
+        const input = ev.target as HTMLInputElement;
+        // El switch vuelve a reflejar el estado real si la acción se bloquea/cancela.
+        const resetSwitch = () => { input.checked = caja.Estatus === 1; };
+
+        if (caja.Estatus === 1) {
+            // --- Desactivar ---
+            // Validación front: no desactivar una caja con turno abierto (el API igual lo valida).
+            if (caja.TieneTurnoAbierto) {
+                this.servicioAlerta.MostrarAlerta('No se puede desactivar: la caja tiene un turno abierto. Ciérrelo primero.');
+                resetSwitch();
+                return;
             }
-        } catch (e: any) {
-            this.servicioAlerta.MostrarError(e, 'No se pudo desactivar');
+            const confirmado = await this.servicioAlerta.Confirmacion(
+                `¿Desactivar la caja "${caja.Nombre}"?`,
+                'No se elimina (se conserva el histórico), solo queda inactiva.',
+                'Sí, desactivar',
+                'Cancelar'
+            );
+            if (!confirmado) { resetSwitch(); return; }
+            try {
+                const res = await this.servicio.inactivar(caja.CodigoCaja);
+                if (res.success) {
+                    this.servicioAlerta.MostrarExito('Caja desactivada');
+                    await this.cargar();
+                } else {
+                    this.servicioAlerta.MostrarError(res.message, 'No se pudo desactivar');
+                    resetSwitch();
+                }
+            } catch (e: any) {
+                this.servicioAlerta.MostrarError(e, 'No se pudo desactivar');
+                resetSwitch();
+            }
+        } else {
+            // --- Reactivar ---
+            try {
+                const res = await this.servicio.activar(caja.CodigoCaja);
+                if (res.success) {
+                    this.servicioAlerta.MostrarExito('Caja activada');
+                    await this.cargar();
+                } else {
+                    this.servicioAlerta.MostrarError(res.message, 'No se pudo activar');
+                    resetSwitch();
+                }
+            } catch (e: any) {
+                this.servicioAlerta.MostrarError(e, 'No se pudo activar');
+                resetSwitch();
+            }
         }
     }
 }

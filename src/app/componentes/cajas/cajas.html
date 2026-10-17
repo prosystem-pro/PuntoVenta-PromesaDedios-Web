@@ -51,9 +51,13 @@
                             <button class="btn-accion btn-editar" (click)="editarCaja(caja)" title="Editar">
                                 <i class="bi bi-pencil-square"></i>
                             </button>
-                            <button class="btn-accion btn-eliminar" (click)="inactivarCaja(caja)" title="Desactivar">
-                                <i class="bi bi-trash-fill"></i>
-                            </button>
+                            <span class="form-check form-switch d-inline-flex align-items-center ms-2 mb-0"
+                                [title]="caja.Estatus === 1 ? 'Desactivar caja' : 'Activar caja'">
+                                <input class="form-check-input switch-estado" type="checkbox" role="switch"
+                                    [checked]="caja.Estatus === 1" (change)="alternarEstado(caja, $event)"
+                                    [style.background-color]="caja.Estatus === 1 ? colorSistema : ''"
+                                    [style.border-color]="caja.Estatus === 1 ? colorSistema : ''">
+                            </span>
                         </td>
                     </tr>
                     } @empty {

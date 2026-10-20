@@ -3,10 +3,11 @@
 
 export interface CajaAdmin {
     CodigoCaja: number;
-    Nombre: string;              // nombre/descripción de la caja (ej. "Caja principal")
-    NoUsuarios: number;          // cantidad de usuarios asignados
+    NumeroCaja?: number;         // número correlativo de la caja (API: NumeroCaja)
+    Nombre: string;              // nombre/descripción de la caja (API: Descripcion)
+    NoUsuarios: number;          // cantidad de usuarios asignados (API: CantidadUsuarios)
     Estatus: number;             // 1 = Activo, 0 = Desactivado (inactivar, no borrar)
-    Usuarios?: number[];         // CodigoUsuario asignados (se usa al editar)
+    Usuarios?: number[];         // CodigoUsuario asignados (API: CodigosUsuarios; se usa al editar)
     TieneTurnoAbierto?: boolean; // el API lo informa; bloquea inactivar si hay turno abierto
 }
 
@@ -17,8 +18,9 @@ export interface UsuarioAsignable {
 }
 
 // Payload para crear/editar una caja con sus usuarios asignados.
+// NumeroCaja lo autogenera el API, no se envía desde el front.
 export interface GuardarCajaPayload {
-    Nombre: string;
-    Usuarios: number[];    // CodigoUsuario seleccionados
+    Nombre: string;        // -> Descripcion
+    Usuarios: number[];    // -> CodigosUsuarios
     Estatus?: number;      // al editar
 }

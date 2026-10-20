@@ -80,8 +80,15 @@ export class Cajas implements OnInit {
         this.mostrarModal.set(true);
     }
 
-    editarCaja(caja: CajaAdmin) {
-        this.cajaSeleccionada.set(caja);
+    async editarCaja(caja: CajaAdmin) {
+        // La lista no trae los usuarios asignados (solo el conteo): se pide la info completa
+        // para precargar los checkboxes del modal.
+        try {
+            const res = await this.servicio.obtener(caja.CodigoCaja);
+            this.cajaSeleccionada.set(res.success && res.data ? res.data : caja);
+        } catch {
+            this.cajaSeleccionada.set(caja);
+        }
         this.mostrarModal.set(true);
     }
 

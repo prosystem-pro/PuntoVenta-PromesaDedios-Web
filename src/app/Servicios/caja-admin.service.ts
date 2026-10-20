@@ -1,121 +1,106 @@
 import { Injectable } from '@angular/core';
-// import axiosInstance from './axios.config';
+import axiosInstance from './axios.config';
 import { RespuestaAPI } from '../Modelos/producto.modelo';
 import { CajaAdmin, UsuarioAsignable, GuardarCajaPayload } from '../Modelos/caja-admin.modelo';
 
 /**
  * Administración de cajas (pedido de Walter) — crear cajas y asignar usuarios.
+ * Cableado al API real de Roberto (prefijo administrativo/). Ver ANALISIS-API-Caja-Turnos.md §3.3.
  *
- * ⚠️ MOCK: el API todavía NO expone estos endpoints (Roberto los tiene en análisis;
- * ver ANALISIS-API-Caja-Turnos.md §3.3). Cuando estén, se reemplaza el cuerpo de cada
- * método por la llamada axios comentada. Las firmas ya quedan como se van a consumir.
+ * Endpoints:
+ *  - Listar admin:  GET    administrativo/caja-lista-admin
+ *                   -> [{ CodigoCaja, NumeroCaja, Descripcion, CantidadUsuarios, TieneTurnoAbierto, Estatus('Activo'|'Desactivado') }]
+ *  - Usuarios:      GET    administrativo/usuario-listado
+ *  - Detalle:       GET    administrativo/caja-obtener-informacion/:CodigoCaja
+ *                   -> { CodigoCaja, NumeroCaja, Descripcion, Estatus, CodigosUsuarios[] }
+ *  - Crear:         POST   administrativo/caja-crear-con-usuarios        { NumeroCaja, Descripcion, Estatus, CodigosUsuarios }
+ *  - Editar:        PUT    administrativo/:CodigoCaja/caja-editar-con-usuarios  (mismo body)
+ *  - Desactivar:    DELETE administrativo/caja-eliminar-con-usuarios/:CodigoCaja  (soft-delete, Estatus->0)
  *
- * Contrato esperado (paths finales los define Roberto):
- *  - Listar:      GET  caja/admin/listar                 -> RespuestaAPI<CajaAdmin[]>
- *  - Usuarios:    GET  caja/admin/usuarios-asignables    -> RespuestaAPI<UsuarioAsignable[]>
- *  - Detalle:     GET  caja/admin/:CodigoCaja            -> RespuestaAPI<CajaAdmin> (con Usuarios[])
- *  - Crear:       POST caja/admin                        body GuardarCajaPayload
- *  - Editar:      PUT  caja/admin/:CodigoCaja            body GuardarCajaPayload
- *  - Inactivar:   PUT  caja/admin/inactivar/:CodigoCaja  (Estatus -> 0; no se borra)
+ * PENDIENTE: el API pide `NumeroCaja` obligatorio y no hay endpoint "activar". Mientras:
+ *  - NumeroCaja se calcula en el front (correlativo) — se quita cuando Roberto lo autogenere.
+ *  - Reactivar se hace vía editar con Estatus=1.
  */
 @Injectable({ providedIn: 'root' })
 export class CajaAdminServicio {
 
-    // En memoria solo para la maqueta (simula persistencia mientras no hay API).
-    private mock: CajaAdmin[] = [
-        { CodigoCaja: 1, Nombre: 'Caja principal', NoUsuarios: 5, Estatus: 0, Usuarios: [1, 2, 3, 4, 5], TieneTurnoAbierto: false },
-        { CodigoCaja: 2, Nombre: 'Caja secundaria', NoUsuarios: 2, Estatus: 1, Usuarios: [6, 7], TieneTurnoAbierto: true },
-    ];
-    private secuencia = 3;
+    private base = 'administrativo/';
 
-    // GET caja/admin/listar
+    // GET caja-lista-admin
     async listar(): Promise<RespuestaAPI<CajaAdmin[]>> {
-        // const res = await axiosInstance.get('caja/admin/listar'); return res.data;
-        await this.latencia();
-        const data = this.mock.map(c => ({ ...c, NoUsuarios: c.Usuarios?.length ?? c.NoUsuarios }));
-        return { success: true, tipo: 'Éxito', message: 'Cajas obtenidas (MOCK).', data };
+        const res = await axiosInstance.get(this.base + 'caja-lista-admin');
+        const data: CajaAdmin[] = (res.data?.data || []).map((c: any) => ({
+            CodigoCaja: c.CodigoCaja,
+            NumeroCaja: c.NumeroCaja,
+            Nombre: c.Descripcion,
+            NoUsuarios: c.CantidadUsuarios ?? 0,
+            Estatus: c.Estatus === 'Activo' || c.Estatus === 1 ? 1 : 0,
+            TieneTurnoAbierto: !!c.TieneTurnoAbierto,
+        }));
+        return { ...res.data, data };
     }
 
-    // GET caja/admin/usuarios-asignables
+    // GET usuario-listado (para los checkboxes del modal)
     async obtenerUsuariosAsignables(): Promise<RespuestaAPI<UsuarioAsignable[]>> {
-        // const res = await axiosInstance.get('caja/admin/usuarios-asignables'); return res.data;
-        await this.latencia();
-        return { success: true, tipo: 'Éxito', message: 'Usuarios (MOCK).', data: this.usuariosMock() };
+        const res = await axiosInstance.get(this.base + 'usuario-listado');
+        const data: UsuarioAsignable[] = (res.data?.data || []).map((u: any) => ({
+            CodigoUsuario: u.CodigoUsuario,
+            Nombre: u.NombreCompleto || u.NombreUsuario || `Usuario ${u.CodigoUsuario}`,
+        }));
+        return { ...res.data, data };
     }
 
-    // GET caja/admin/:CodigoCaja
+    // GET caja-obtener-informacion/:CodigoCaja (prefill del modal al editar)
     async obtener(codigoCaja: number): Promise<RespuestaAPI<CajaAdmin>> {
-        // const res = await axiosInstance.get(`caja/admin/${codigoCaja}`); return res.data;
-        await this.latencia();
-        const caja = this.mock.find(c => c.CodigoCaja === codigoCaja);
-        return caja
-            ? { success: true, tipo: 'Éxito', message: 'Caja (MOCK).', data: { ...caja } }
-            : { success: false, tipo: 'Error', message: 'Caja no encontrada', data: null as any };
+        const res = await axiosInstance.get(this.base + 'caja-obtener-informacion/' + codigoCaja);
+        const c = res.data?.data;
+        const data: CajaAdmin | null = c ? {
+            CodigoCaja: c.CodigoCaja,
+            NumeroCaja: c.NumeroCaja,
+            Nombre: c.Descripcion,
+            Estatus: typeof c.Estatus === 'string' ? (c.Estatus === 'Activo' ? 1 : 0) : c.Estatus,
+            Usuarios: c.CodigosUsuarios || [],
+            NoUsuarios: (c.CodigosUsuarios || []).length,
+        } : null;
+        return { ...res.data, data: data as any };
     }
 
-    // POST caja/admin
-    async crear(payload: GuardarCajaPayload): Promise<RespuestaAPI<CajaAdmin>> {
-        // const res = await axiosInstance.post('caja/admin', payload); return res.data;
-        await this.latencia();
-        const nueva: CajaAdmin = {
-            CodigoCaja: this.secuencia++,
-            Nombre: payload.Nombre,
-            Usuarios: [...payload.Usuarios],
-            NoUsuarios: payload.Usuarios.length,
+    // POST caja-crear-con-usuarios  (NumeroCaja lo autogenera el API)
+    async crear(payload: GuardarCajaPayload): Promise<RespuestaAPI<any>> {
+        const res = await axiosInstance.post(this.base + 'caja-crear-con-usuarios', {
+            Descripcion: payload.Nombre,
             Estatus: 1,
-        };
-        this.mock.push(nueva);
-        return { success: true, tipo: 'Éxito', message: 'Caja creada (MOCK).', data: nueva };
+            CodigosUsuarios: payload.Usuarios,
+        });
+        return res.data;
     }
 
-    // PUT caja/admin/:CodigoCaja
-    async editar(codigoCaja: number, payload: GuardarCajaPayload): Promise<RespuestaAPI<CajaAdmin>> {
-        // const res = await axiosInstance.put(`caja/admin/${codigoCaja}`, payload); return res.data;
-        await this.latencia();
-        const caja = this.mock.find(c => c.CodigoCaja === codigoCaja);
-        if (!caja) return { success: false, tipo: 'Error', message: 'Caja no encontrada', data: null as any };
-        caja.Nombre = payload.Nombre;
-        caja.Usuarios = [...payload.Usuarios];
-        caja.NoUsuarios = payload.Usuarios.length;
-        if (payload.Estatus !== undefined) caja.Estatus = payload.Estatus;
-        return { success: true, tipo: 'Éxito', message: 'Caja actualizada (MOCK).', data: { ...caja } };
+    // PUT :CodigoCaja/caja-editar-con-usuarios
+    async editar(codigoCaja: number, payload: GuardarCajaPayload): Promise<RespuestaAPI<any>> {
+        const res = await axiosInstance.put(this.base + codigoCaja + '/caja-editar-con-usuarios', {
+            Descripcion: payload.Nombre,
+            Estatus: payload.Estatus ?? 1,
+            CodigosUsuarios: payload.Usuarios,
+        });
+        return res.data;
     }
 
-    // PUT caja/admin/inactivar/:CodigoCaja  (inactivar, no borrar; conserva histórico)
-    async inactivar(codigoCaja: number): Promise<RespuestaAPI<null>> {
-        // const res = await axiosInstance.put(`caja/admin/inactivar/${codigoCaja}`); return res.data;
-        await this.latencia();
-        const caja = this.mock.find(c => c.CodigoCaja === codigoCaja);
-        if (caja) caja.Estatus = 0;
-        return { success: true, tipo: 'Éxito', message: 'Caja inactivada (MOCK).', data: null };
+    // DELETE caja-eliminar-con-usuarios/:CodigoCaja (soft-delete -> Estatus 0)
+    async inactivar(codigoCaja: number): Promise<RespuestaAPI<any>> {
+        const res = await axiosInstance.delete(this.base + 'caja-eliminar-con-usuarios/' + codigoCaja);
+        return res.data;
     }
 
-    // PUT caja/admin/activar/:CodigoCaja  (reactivar una caja inactivada; Estatus 0 -> 1)
-    async activar(codigoCaja: number): Promise<RespuestaAPI<null>> {
-        // const res = await axiosInstance.put(`caja/admin/activar/${codigoCaja}`); return res.data;
-        await this.latencia();
-        const caja = this.mock.find(c => c.CodigoCaja === codigoCaja);
-        if (caja) caja.Estatus = 1;
-        return { success: true, tipo: 'Éxito', message: 'Caja activada (MOCK).', data: null };
-    }
-
-    // ---------------------------------------------------------------------------
-    private latencia(ms = 250): Promise<void> {
-        return new Promise(resolve => setTimeout(resolve, ms));
-    }
-
-    private usuariosMock(): UsuarioAsignable[] {
-        return [
-            { CodigoUsuario: 1, Nombre: 'Jhon R' },
-            { CodigoUsuario: 2, Nombre: 'Oscar Test' },
-            { CodigoUsuario: 3, Nombre: 'Paty Forero' },
-            { CodigoUsuario: 4, Nombre: 'Jose Ramirez' },
-            { CodigoUsuario: 5, Nombre: 'Cajero1' },
-            { CodigoUsuario: 6, Nombre: 'Hamburguesas Ptt' },
-            { CodigoUsuario: 7, Nombre: 'Juan Perez' },
-            { CodigoUsuario: 8, Nombre: 'Prueba_1' },
-            { CodigoUsuario: 9, Nombre: 'Jhoan Villazar' },
-            { CodigoUsuario: 10, Nombre: 'Walter' },
-        ];
+    // No hay endpoint "activar": se reactiva vía editar con Estatus=1 (reusa los datos actuales).
+    async activar(codigoCaja: number): Promise<RespuestaAPI<any>> {
+        const info = await this.obtener(codigoCaja);
+        if (!info.success || !info.data) return info as RespuestaAPI<any>;
+        const c = info.data;
+        const res = await axiosInstance.put(this.base + codigoCaja + '/caja-editar-con-usuarios', {
+            Descripcion: c.Nombre,
+            Estatus: 1,
+            CodigosUsuarios: c.Usuarios || [],
+        });
+        return res.data;
     }
 }

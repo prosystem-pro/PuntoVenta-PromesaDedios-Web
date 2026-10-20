@@ -29,6 +29,7 @@ export class ModalRol implements OnChanges {
     // Usuarios + Roles y permisos + Configuración son un solo paquete: 'Administrativo'.
     modulos = [
         { id: 'caja', label: 'Caja', recurso: 'Caja' },
+        { id: 'abrir_cerrar_caja', label: 'Abrir y cerrar caja', recurso: 'AperturaCierreCaja' },
         { id: 'productos', label: 'Productos', recurso: 'Producto' },
         { id: 'usuarios', label: 'Usuarios', recurso: 'Administrativo' },
         { id: 'venta_mesa', label: 'Venta en mesa', recurso: 'VentaMesa' },

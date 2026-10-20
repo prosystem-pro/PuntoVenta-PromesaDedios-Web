@@ -5,6 +5,18 @@ export interface DenominacionCaja {
     Valor: number;
 }
 
+// Caja asignada al usuario (vía CajaUsuario) con su estado de turno.
+// GET administrativo/caja-lista-con-turno — para elegir qué caja abrir.
+export interface CajaConTurno {
+    CodigoCaja: number;
+    NumeroCaja: number;
+    Descripcion: string;
+    TieneTurnoAbierto: boolean;
+    CodigoAperturaCaja: number | null;
+    ResponsableApertura: string | null;
+    EtiquetaTurno: string | null;
+}
+
 export interface DatosInicialesCaja {
     CodigoUsuario: number;
     NombreUsuario: string;

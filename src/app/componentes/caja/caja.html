@@ -292,7 +292,21 @@
                     <div class="row g-3 mb-3">
                         <div class="col-6">
                             <label class="form-label fw-semibold mb-1">Caja</label>
+                            @if (hayVariasCajas()) {
+                            <select class="form-select" [ngModel]="codigoCaja()"
+                                (ngModelChange)="seleccionarCajaPorCodigo($event)" [disabled]="abriendo()">
+                                @for (c of cajasDisponibles(); track c.CodigoCaja) {
+                                <option [ngValue]="c.CodigoCaja" [disabled]="c.TieneTurnoAbierto">
+                                    {{ c.Descripcion || 'Caja ' + c.NumeroCaja }}{{ c.TieneTurnoAbierto ? ' (en uso)' : '' }}
+                                </option>
+                                }
+                            </select>
+                            } @else {
                             <input type="text" class="form-control campo-bloqueado" [value]="nombreCaja()" disabled>
+                            }
+                            @if (!cargandoCajas() && cajasDisponibles().length === 0) {
+                            <small class="text-danger">No tenés cajas asignadas.</small>
+                            }
                         </div>
                         <div class="col-6">
                             <label class="form-label fw-semibold mb-1">Turno</label>
@@ -330,7 +344,7 @@
 
                     <div class="mt-auto text-end">
                         <button class="btn text-white fw-bold px-4" [style.background-color]="colorSistema"
-                            (click)="aperturarCaja()" [disabled]="abriendo()">
+                            (click)="aperturarCaja()" [disabled]="abriendo() || !codigoCaja()">
                             @if (abriendo()) {
                             <span class="spinner-border spinner-border-sm me-2"></span> Aperturando...
                             } @else {

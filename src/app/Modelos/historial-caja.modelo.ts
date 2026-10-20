@@ -21,17 +21,31 @@ export interface DenominacionCierreHistorial {
     Cantidad: number;
 }
 
+// Desglose de efectivo por vendedor del turno (API: PorVendedor).
+// OJO: hoy el API solo manda CodigoUsuario (sin nombre); por eso no se pinta aún.
+export interface VendedorCierreHistorial {
+    CodigoUsuario: number;
+    IngresosEfectivo: string;
+    EgresosEfectivo: string;
+    TotalEfectivo: string;
+}
+
 // Detalle de un cierre (imagen #51) — se abre con la lupa.
 export interface DetalleCierreHistorial {
     CodigoAperturaCaja: number;
-    NombreUsuario: string;    // Responsable
-    NombreCaja: string;       // "Caja 1"
-    FechaApertura: string;    // Turno (apertura)
+    NombreUsuario: string;      // Responsable
+    NombreCaja: string;         // "Caja 1"
+    FechaApertura: string;      // Turno (apertura)
     FechaCierre: string;
-    MontoCierre: number;
-    DisponibleEnCaja: number;
+    MontoInicial: string;       // monto de apertura
+    MontoCierre: number;        // monto final contado al cerrar
+    IngresosEfectivo: string;
+    EgresosEfectivo: string;
+    EsperadoEfectivo: string;   // efectivo esperado = "Disponible en caja"
+    DiferenciaReal: string;     // sobrante (+) / faltante (-)
     ResumenFormasPago: ResumenFormasPagoCaja;
     ResumenIngresos: ResumenIngresosCaja;
     ResumenEgresos: ResumenEgresosCaja;
     Denominaciones: DenominacionCierreHistorial[];
+    PorVendedor?: VendedorCierreHistorial[];
 }

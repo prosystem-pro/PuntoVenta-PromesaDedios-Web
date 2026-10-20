@@ -4,7 +4,7 @@ import { Empresa } from '../Modelos/empresa.modelo';
 import { Mesa } from '../Modelos/mesa.modelo';
 import { ClasificacionMesa } from '../Modelos/clasificacion-mesa.modelo';
 import { RespuestaAPI } from '../Modelos/producto.modelo';
-import { EstadoCaja, AperturaCajaPayload, AperturaCajaResultado, DatosCaja, CierreCajaPayload, CierreCajaResultado } from '../Modelos/caja.modelo';
+import { EstadoCaja, AperturaCajaPayload, AperturaCajaResultado, DatosCaja, CierreCajaPayload, CierreCajaResultado, CajaConTurno } from '../Modelos/caja.modelo';
 
 @Injectable({
     providedIn: 'root'
@@ -128,6 +128,17 @@ export class ServicioConfiguracion {
         try {
             const params = (fechaInicio && fechaFin) ? { fechaInicio, fechaFin } : undefined;
             const respuesta = await api.get<RespuestaAPI<DatosCaja>>('caja/obtener-datos-iniciales', { params });
+            return respuesta.data;
+        } catch (error: any) {
+            return this.manejarError(error);
+        }
+    }
+
+    // Cajas asignadas al usuario (vía CajaUsuario) con su estado de turno, para elegir
+    // cuál abrir. Reemplaza el supuesto viejo de "la primera caja del sistema".
+    async obtenerCajasConTurno(): Promise<RespuestaAPI<CajaConTurno[]>> {
+        try {
+            const respuesta = await api.get<RespuestaAPI<CajaConTurno[]>>('administrativo/caja-lista-con-turno');
             return respuesta.data;
         } catch (error: any) {
             return this.manejarError(error);

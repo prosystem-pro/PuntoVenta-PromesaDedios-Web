@@ -9,7 +9,7 @@ import { AlertaServicio } from '../../Servicios/alerta.service';
 import { CajaEstadoService } from '../../Servicios/caja-estado.service';
 import {
     DesgloseEfectivoItem, DenominacionCaja, MovimientoCaja, DatosCaja,
-    ResumenIngresosCaja, ResumenEgresosCaja, ResumenFormasPagoCaja
+    ResumenIngresosCaja, ResumenEgresosCaja, ResumenFormasPagoCaja, CajaConTurno
 } from '../../Modelos/caja.modelo';
 import { Denominacion } from '../../Modelos/denominacion.modelo';
 import { ComprobanteVentaModal } from '../facturar/comprobante-venta-modal/comprobante-venta-modal';
@@ -55,6 +55,12 @@ export class Caja implements OnInit {
     // Caja (para aperturar / cerrar)
     codigoCaja = signal<number | null>(null);
     nombreCaja = signal<string>('');
+
+    // Cajas asignadas al usuario para abrir turno (caja-lista-con-turno).
+    // Si tiene varias, se muestra un selector; si tiene una, se usa directo.
+    cajasDisponibles = signal<CajaConTurno[]>([]);
+    cargandoCajas = signal(false);
+    hayVariasCajas = computed(() => this.cajasDisponibles().length > 1);
 
     // Formulario de apertura
     montoInicial = signal<number | null>(null);
@@ -236,7 +242,52 @@ export class Caja implements OnInit {
             this.turno.set(d.Turno ?? '');
             this.denominaciones.set(this.mapearDenominaciones(d.Denominaciones || []));
             this.estado.set('cerrado');
+            // Las cajas que el usuario puede abrir dependen de su asignación (CajaUsuario),
+            // no de la "primera caja del sistema" que devuelve datos-iniciales.
+            this.cargarCajasDisponibles(d.Caja?.CodigoCaja ?? null);
         }
+    }
+
+    // Trae las cajas asignadas al usuario y preselecciona una (preferentemente la que
+    // sugirió datos-iniciales si está libre, si no la primera libre).
+    private async cargarCajasDisponibles(cajaSugerida: number | null) {
+        this.cargandoCajas.set(true);
+        // Hasta resolver la lista real de cajas del usuario, no hay selección válida
+        // (evita abrir la caja "sugerida" por datos-iniciales si no está asignada).
+        this.codigoCaja.set(null);
+        try {
+            const res = await this.servicioConfig.obtenerCajasConTurno();
+            const cajas: CajaConTurno[] = res.success && res.data ? res.data : [];
+            this.cajasDisponibles.set(cajas);
+
+            const libres = cajas.filter(c => !c.TieneTurnoAbierto);
+            const preferida =
+                libres.find(c => c.CodigoCaja === cajaSugerida) ??
+                libres[0] ?? null;
+
+            if (preferida) {
+                this.seleccionarCaja(preferida);
+            } else {
+                // Sin cajas libres (ninguna asignada, o todas con turno abierto).
+                this.codigoCaja.set(null);
+                this.nombreCaja.set('');
+            }
+        } catch {
+            this.cajasDisponibles.set([]);
+        } finally {
+            this.cargandoCajas.set(false);
+        }
+    }
+
+    private seleccionarCaja(caja: CajaConTurno) {
+        this.codigoCaja.set(caja.CodigoCaja);
+        this.nombreCaja.set(this.etiquetaCaja(caja.NumeroCaja, caja.Descripcion));
+    }
+
+    // Desde el selector del template (se recibe el CodigoCaja elegido).
+    seleccionarCajaPorCodigo(codigo: number | null) {
+        const caja = this.cajasDisponibles().find(c => c.CodigoCaja === codigo);
+        if (caja && !caja.TieneTurnoAbierto) this.seleccionarCaja(caja);
     }
 
     private mapearDenominaciones(lista: (DenominacionCaja | Denominacion)[]): FilaDenominacion[] {
@@ -329,7 +380,18 @@ export class Caja implements OnInit {
 
         const codigoCaja = this.codigoCaja();
         if (!codigoCaja) {
-            this.servicioAlerta.MostrarAlerta('No hay una caja configurada para aperturar.');
+            const msg = this.cajasDisponibles().length === 0
+                ? 'No tenés cajas asignadas. Pedí al administrador que te asigne una.'
+                : 'Seleccioná una caja para aperturar.';
+            this.servicioAlerta.MostrarAlerta(msg);
+            return;
+        }
+        // No permitir abrir una caja que ya tiene un turno abierto (por otro usuario).
+        const seleccionada = this.cajasDisponibles().find(c => c.CodigoCaja === codigoCaja);
+        if (seleccionada?.TieneTurnoAbierto) {
+            this.servicioAlerta.MostrarAlerta(
+                `La ${this.nombreCaja()} ya tiene un turno abierto${seleccionada.ResponsableApertura ? ' por ' + seleccionada.ResponsableApertura : ''}.`
+            );
             return;
         }
 

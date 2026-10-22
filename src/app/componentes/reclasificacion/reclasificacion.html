@@ -1,0 +1,126 @@
+<div class="reclas-page p-3" [style.--color-sistema]="colorSistema">
+
+  @if (estado() === 'cargando') {
+  <div class="d-flex justify-content-center py-5">
+    <span class="spinner-border" [style.color]="colorSistema"></span>
+  </div>
+  }
+
+  @else if (estado() === 'sin-turno') {
+  <div class="text-center text-muted py-5">
+    <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+    No hay un turno abierto para reclasificar.
+  </div>
+  }
+
+  @else if (estado() === 'error') {
+  <div class="text-center text-muted py-5">
+    <i class="bi bi-exclamation-triangle fs-1 d-block mb-2"></i>
+    No se pudieron cargar los datos de reclasificación.
+    <div><button class="btn btn-sm btn-outline-secondary mt-3" (click)="recargar()">Reintentar</button></div>
+  </div>
+  }
+
+  @else {
+  <div class="row g-3">
+
+    <!-- Panel tabla -->
+    <div class="col-12 col-lg-8">
+      <div class="panel-reclas rounded-3 overflow-hidden h-100">
+        <div class="panel-header d-flex align-items-center gap-2" [style.background-color]="colorSistema">
+          <i class="bi bi-arrow-repeat"></i>
+          <span>Turno reclasificación</span>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table tabla-reclas mb-0 align-middle">
+            <thead>
+              <tr>
+                <th>Forma de pago</th>
+                <th class="text-end">Venta</th>
+                <th class="text-end">Diferencia</th>
+                <th class="text-end">Monto final</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (f of filas(); track f.clave) {
+              <tr>
+                <td>
+                  <i class="bi {{ f.icono }} me-2 text-muted"></i>
+                  <span class="fw-semibold">{{ f.label }}</span>
+                </td>
+                <td class="text-end">Q {{ f.sistema | number:'1.2-2' }}</td>
+                <td class="text-end">
+                  @if (diferencia(f) > 0) {
+                  <span class="text-success fw-semibold">+Q {{ diferencia(f) | number:'1.2-2' }}</span>
+                  } @else if (diferencia(f) < 0) {
+                  <span class="text-danger fw-semibold">−Q {{ -diferencia(f) | number:'1.2-2' }}</span>
+                  } @else {
+                  <span class="text-muted">Q 0.00</span>
+                  }
+                </td>
+                <td class="text-end">
+                  <div class="input-group input-group-sm monto-final ms-auto">
+                    <span class="input-group-text">Q</span>
+                    <input type="number" class="form-control text-end" min="0" step="0.01" inputmode="decimal"
+                      [ngModel]="f.declarado" (ngModelChange)="actualizarDeclarado(f.clave, $event)"
+                      (keydown)="bloquearTeclasInvalidas($event)" [disabled]="guardando()">
+                  </div>
+                </td>
+              </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <div class="p-3">
+          <label class="form-label fw-semibold mb-1">Observaciones <span class="text-muted">(opcional)</span></label>
+          <textarea class="form-control" rows="2" placeholder="Motivo o detalle de la reclasificación"
+            [ngModel]="observaciones()" (ngModelChange)="observaciones.set($event)" [disabled]="guardando()"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel resumen -->
+    <div class="col-12 col-lg-4">
+      <div class="panel-resumen rounded-3 p-3 h-100">
+        <div class="resumen-title d-flex align-items-center gap-2 mb-3">
+          <i class="bi bi-graph-up"></i>
+          <span>Resumen del turno</span>
+        </div>
+        <div class="d-flex justify-content-between py-2 border-bottom">
+          <span>Total de ventas</span>
+          <span class="fw-bold">Q {{ totalSistema() | number:'1.2-2' }}</span>
+        </div>
+        <div class="d-flex justify-content-between py-2 border-bottom">
+          <span>Diferencia</span>
+          @if (totalDiferencia() > 0) {
+          <span class="fw-bold text-success">+Q {{ totalDiferencia() | number:'1.2-2' }}</span>
+          } @else if (totalDiferencia() < 0) {
+          <span class="fw-bold text-danger">−Q {{ -totalDiferencia() | number:'1.2-2' }}</span>
+          } @else {
+          <span class="fw-bold text-success">Q 0.00</span>
+          }
+        </div>
+        <div class="d-flex justify-content-between py-2">
+          <span class="fw-semibold">Total monto final</span>
+          <span class="fw-bold">Q {{ totalFinal() | number:'1.2-2' }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="d-flex justify-content-end gap-2 mt-3">
+    <button class="btn btn-outline-secondary px-4" (click)="cancelar()" [disabled]="guardando()">Cancelar</button>
+    <button class="btn text-white fw-bold px-4" [style.background-color]="colorSistema"
+      (click)="guardar()" [disabled]="guardando()">
+      @if (guardando()) {
+      <span class="spinner-border spinner-border-sm me-2"></span> Guardando...
+      } @else {
+      <i class="bi bi-check-lg me-2"></i> Guardar
+      }
+    </button>
+  </div>
+  }
+</div>

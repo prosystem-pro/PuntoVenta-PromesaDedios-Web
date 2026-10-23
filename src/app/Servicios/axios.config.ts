@@ -33,12 +33,15 @@ api.interceptors.request.use(
     }
 );
 
-// Interceptor para manejar errores globales (como el 401)
+// Interceptor para manejar errores globales.
+// Solo el 401 (no autenticado / token vencido) cierra la sesión. El 403 significa
+// "autenticado pero sin permiso para esta acción" (p. ej. cerrar una caja no asignada):
+// NO debe desloguear, se deja que el componente muestre el mensaje del error.
 api.interceptors.response.use(
     (response) => response,
     (error) => {
-        if (error.response && [401, 403].includes(error.response.status)) {
-            // Redirigir al login si el token ha expirado o es invalido
+        if (error.response && error.response.status === 401) {
+            // Redirigir al login si el token ha expirado o es inválido.
             localStorage.removeItem('token');
             localStorage.removeItem('usuario');
             window.location.href = '/login';

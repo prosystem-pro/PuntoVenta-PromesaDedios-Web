@@ -1,7 +1,7 @@
 import { Component, OnInit, signal, computed, inject, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import { Entorno } from '../../Entorno/Entorno';
 import { ServicioConfiguracion } from '../../Servicios/configuracion.service';
 import { DenominacionServicio } from '../../Servicios/denominacion.service';
@@ -39,6 +39,7 @@ export class Caja implements OnInit {
     private servicioDenominacion = inject(DenominacionServicio);
     private servicioAlerta = inject(AlertaServicio);
     private cajaEstado = inject(CajaEstadoService);
+    private router = inject(Router);
 
     colorSistema = Entorno.ColorSistema;
     logo = Entorno.Logo;
@@ -516,10 +517,13 @@ export class Caja implements OnInit {
             return;
         }
 
+        // El cierre es en 2 pasos: este conteo inicia el cierre (la caja queda en
+        // etapa de reclasificación) y el cierre se completa en la pantalla de
+        // Reclasificación de turno. Recién ahí la caja queda cerrada.
         const confirmado = await this.servicioAlerta.Confirmacion(
-            '¿Desea cerrar la caja?',
-            `Se cerrará ${this.nombreCaja()} con un monto final declarado de Q ${Number(this.montoCierre()).toFixed(2)}.`,
-            'Cerrar caja'
+            '¿Continuar con el cierre?',
+            `Se registrará el conteo de efectivo de ${this.nombreCaja()} (Q ${Number(this.montoCierre()).toFixed(2)}) y seguís con la reclasificación de métodos de pago para completar el cierre.`,
+            'Continuar'
         );
         if (!confirmado) return;
 
@@ -535,12 +539,10 @@ export class Caja implements OnInit {
                 DesgloseEfectivoFinal: desglose
             });
             if (res.success) {
-                this.servicioAlerta.MostrarExito(res.message || 'Caja cerrada correctamente.');
-                this.vistaAbierta.set('movimientos');
-                await this.cargarEstado();
-                await this.cajaEstado.cargar();
+                // La caja aún NO está cerrada: pasa a la reclasificación para finalizar.
+                this.router.navigate(['/caja/reclasificacion']);
             } else {
-                this.servicioAlerta.MostrarError(res.message, 'No se pudo cerrar la caja');
+                this.servicioAlerta.MostrarError(res.message, 'No se pudo iniciar el cierre de la caja');
             }
         } catch (error: any) {
             this.servicioAlerta.MostrarError(error, 'No se pudo cerrar la caja');

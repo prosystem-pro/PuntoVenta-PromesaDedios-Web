@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { Entorno } from '../../Entorno/Entorno';
 import { AlertaServicio } from '../../Servicios/alerta.service';
 import { ServicioConfiguracion } from '../../Servicios/configuracion.service';
+import { CajaEstadoService } from '../../Servicios/caja-estado.service';
 import { ReclasificacionServicio } from '../../Servicios/reclasificacion.service';
 import { DatosReclasificacion, GuardarReclasificacionPayload } from '../../Modelos/reclasificacion.modelo';
 
@@ -28,6 +29,7 @@ interface FilaReclas {
 export class Reclasificacion implements OnInit {
     private servicio = inject(ReclasificacionServicio);
     private servicioConfig = inject(ServicioConfiguracion);
+    private cajaEstado = inject(CajaEstadoService);
     private servicioAlerta = inject(AlertaServicio);
     private router = inject(Router);
 
@@ -148,6 +150,8 @@ export class Reclasificacion implements OnInit {
             const res = await this.servicio.guardar(payload);
             if (res.success) {
                 this.servicioAlerta.MostrarExito(res.message || 'Reclasificación guardada');
+                // Guardar completa el cierre: refrescar el estado de caja del navbar.
+                await this.cajaEstado.cargar();
                 this.router.navigate(['/caja']);
             } else {
                 this.servicioAlerta.MostrarError(res.message, 'No se pudo guardar la reclasificación');

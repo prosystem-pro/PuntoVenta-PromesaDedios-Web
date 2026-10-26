@@ -86,7 +86,10 @@ export class ModalUsuario implements OnChanges, OnInit {
             const datosParaGuardar = {
                 ...formValue,
                 Correo: formValue.Correo?.trim() === '' ? null : formValue.Correo,
-                Estatus: formValue.Estatus ? 1 : 0
+                // Desactivar usa Estatus 2 (inactivo pero visible en el listado), no 0:
+                // el API lista IN(1,2) y el login exige ===1, así que queda visible en gris
+                // y sin poder ingresar. Reactivar = toggle Activo -> 1.
+                Estatus: formValue.Estatus ? 1 : 2
             };
 
             // Si estamos editando y no se puso clave, eliminamos el campo para no sobreescribir con vacio

@@ -136,9 +136,11 @@ export class ServicioConfiguracion {
 
     // Cajas asignadas al usuario (vía CajaUsuario) con su estado de turno, para elegir
     // cuál abrir. Reemplaza el supuesto viejo de "la primera caja del sistema".
+    // Ruta bajo caja/ (recurso Caja) para que un vendedor pueda listarlas sin
+    // necesitar permisos de Administrativo. Antes: administrativo/caja-lista-con-turno.
     async obtenerCajasConTurno(): Promise<RespuestaAPI<CajaConTurno[]>> {
         try {
-            const respuesta = await api.get<RespuestaAPI<CajaConTurno[]>>('administrativo/caja-lista-con-turno');
+            const respuesta = await api.get<RespuestaAPI<CajaConTurno[]>>('caja/caja-lista-con-turno');
             return respuesta.data;
         } catch (error: any) {
             return this.manejarError(error);

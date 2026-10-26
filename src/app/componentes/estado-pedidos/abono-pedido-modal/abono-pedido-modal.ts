@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Entorno } from '../../../Entorno/Entorno';
 import { AlertaServicio } from '../../../Servicios/alerta.service';
 import { EstadoPedidoServicio } from '../../../Servicios/estado-pedido.service';
+import { ServicioConfiguracion } from '../../../Servicios/configuracion.service';
 import { PagoPedido, ComprobantePago } from '../../../Modelos/estado-pedido.modelo';
 import { ComprobantePagoModal } from '../comprobante-pago-modal/comprobante-pago-modal';
 import { MotivoModal } from '../../compartidos/motivo-modal/motivo-modal';
@@ -42,6 +43,7 @@ interface PagoRealizado {
 export class AbonoPedidoModal implements OnChanges {
     private servicioAlerta = inject(AlertaServicio);
     private servicio = inject(EstadoPedidoServicio);
+    private servicioConfig = inject(ServicioConfiguracion);
 
     @Input() visible = false;
     @Input() colorSistema = Entorno.ColorSistema;
@@ -246,8 +248,17 @@ export class AbonoPedidoModal implements OnChanges {
 
         this.guardando.set(true);
         try {
+            // El API exige el CodigoCaja del turno abierto (registra el abono en esa caja).
+            const estadoCaja = await this.servicioConfig.obtenerCajaActual();
+            const codigoCaja = estadoCaja.success ? estadoCaja.data?.CajaAbierta?.CodigoCaja ?? null : null;
+            if (!codigoCaja) {
+                this.servicioAlerta.MostrarError('No hay una caja abierta. Abrí un turno de caja para registrar abonos.');
+                return;
+            }
+
             const res = await this.servicio.registrarAbono({
                 CodigoVenta: codigoVenta,
+                CodigoCaja: codigoCaja,
                 Monto: monto,
                 MetodoPago: this.medioPago(),
                 Referencia: referencia

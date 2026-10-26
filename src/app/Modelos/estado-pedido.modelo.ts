@@ -97,6 +97,7 @@ export interface ComprobantePago {
 // Registrar abono (POST /estadopedido/registrar-abono)
 export interface AbonoRequest {
     CodigoVenta: number;
+    CodigoCaja: number;             // caja del turno abierto (el API registra el abono ahí)
     Monto: number;
     MetodoPago: number;             // 1=Efectivo, 2=Tarjeta, 3=Transferencia, 4=Cheque
     Referencia?: string | null;

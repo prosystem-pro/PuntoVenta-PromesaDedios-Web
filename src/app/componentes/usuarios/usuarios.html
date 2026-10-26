@@ -45,9 +45,13 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let usuario of usuariosPaginados(); let i = index">
+          <tr *ngFor="let usuario of usuariosPaginados(); let i = index"
+            [class.fila-inactiva]="usuario.Estatus !== 1">
             <td>{{ (paginaActual() - 1) * itemsPorPagina + i + 1 }}</td>
-            <td>{{ usuario.NombreCompleto }}</td>
+            <td>
+              {{ usuario.NombreCompleto }}
+              <span *ngIf="usuario.Estatus !== 1" class="badge-inactivo">Inactivo</span>
+            </td>
             <td>{{ usuario.NombreUsuario }}</td>
             <td>{{ usuario.Telefono }}</td>
             <td class="text-truncate" style="max-width: 200px;">{{ usuario.Direccion }}</td>

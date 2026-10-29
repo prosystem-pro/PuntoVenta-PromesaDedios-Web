@@ -56,6 +56,8 @@ export interface PuntoAnual {
 export interface ConsolidadoReporte {
     TipoConsulta: string;
     Periodo: string;     // 'YYYY-MM'
+    FiltroTurno?: number | null;   // CodigoAperturaCaja aplicado (null = todos)
+    ListaTurnos?: number[];        // CodigoAperturaCaja de los turnos del período (para el selector)
     MetodosPago: MetodosPagoReporte;
     RankingTransacciones: RankingTransaccion[];
     RankingClientes: RankingEntidad[];

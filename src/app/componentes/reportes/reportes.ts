@@ -31,6 +31,11 @@ export class Reportes implements OnInit {
     data = signal<ConsolidadoReporte | null>(null);
     dataDia = signal<ConsolidadoDia | null>(null);
 
+    // Filtro por turno (CodigoAperturaCaja; null = todos). La lista de turnos del
+    // período viene en la misma respuesta del consolidado (ListaTurnos).
+    turnoSeleccionado = signal<number | null>(null);
+    listaTurnos = computed<number[]>(() => this.data()?.ListaTurnos ?? []);
+
     // En modo día no hay filtros ni gráficas; solo el resumen de 7 tarjetas.
     esDia = computed(() => this.seleccion() === 'DIA');
     // Para las etiquetas mensuales, el tipo efectivo (en DIA no aplica; cae en VENTA).
@@ -175,6 +180,19 @@ export class Reportes implements OnInit {
 
     async cambiarVista(valor: VistaReporte) {
         this.seleccion.set(valor);
+        this.turnoSeleccionado.set(null);
+        await this.cargar();
+    }
+
+    // Cambia el filtro de turno y recarga el consolidado del período.
+    async cambiarTurno(codigoApertura: number | null) {
+        this.turnoSeleccionado.set(codigoApertura);
+        await this.cargarMes();
+    }
+
+    // Al cambiar de período (año/mes) los turnos son otros: se limpia el filtro.
+    async cambiarPeriodo() {
+        this.turnoSeleccionado.set(null);
         await this.cargar();
     }
 
@@ -207,7 +225,7 @@ export class Reportes implements OnInit {
     private async cargarMes() {
         this.cargando.set(true);
         try {
-            const res = await this.servicio.obtenerConsolidado(this.tipo(), this.anio(), this.mes());
+            const res = await this.servicio.obtenerConsolidado(this.tipo(), this.anio(), this.mes(), this.turnoSeleccionado());
             if (res.success && res.data) {
                 this.data.set(res.data);
                 this.construirGraficas(res.data);

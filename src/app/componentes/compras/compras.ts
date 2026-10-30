@@ -9,6 +9,7 @@ import { PagoModal } from './pago-modal/pago-modal';
 import { MotivoModal } from '../compartidos/motivo-modal/motivo-modal';
 import { FacturaCompraModal } from './factura-compra-modal/factura-compra-modal';
 import { AlertaServicio } from '../../Servicios/alerta.service';
+import { ServicioConfiguracion } from '../../Servicios/configuracion.service';
 // xlsx se carga de forma dinamica dentro de exportarExcel() para no incluirlo en el bundle inicial.
 
 @Component({
@@ -21,6 +22,7 @@ import { AlertaServicio } from '../../Servicios/alerta.service';
 export class Compras implements OnInit {
     private servicioCompra = inject(CompraServicio);
     private servicioAlerta = inject(AlertaServicio);
+    private servicioConfig = inject(ServicioConfiguracion);
 
     colorSistema = Entorno.ColorSistema;
 
@@ -270,12 +272,17 @@ export class Compras implements OnInit {
         this.compraAnularId.set(null);
     }
 
-    async confirmarAnular(motivo: string) {
+    async confirmarAnular(ev: { motivo: string; metodo: number }) {
         const id = this.compraAnularId();
         if (!id) return;
         this.anulando.set(true);
         try {
-            const res = await this.servicioCompra.anularCompra(id, motivo);
+            const turno = await this.servicioConfig.resolverTurnoActual();
+            if (!turno) {
+                this.servicioAlerta.MostrarError('No hay una caja abierta para registrar la anulación.');
+                return;
+            }
+            const res = await this.servicioCompra.anularCompra(id, ev.motivo, turno.CodigoAperturaCaja, ev.metodo);
             if (res.success) {
                 this.servicioAlerta.MostrarExito(res.message || 'Compra anulada correctamente.');
                 this.mostrarAnular.set(false);

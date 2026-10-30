@@ -67,14 +67,14 @@ export class CompraServicio {
     }
 
     // Anula la compra completa (incluye sus pagos y ajusta inventario/caja/saldo).
-    async anularCompra(CodigoCompra: number, MotivoAnulacion: string): Promise<RespuestaAPI<any>> {
-        const res = await axiosInstance.post('compra/anular', { CodigoCompra, MotivoAnulacion });
+    async anularCompra(CodigoCompra: number, MotivoAnulacion: string, CodigoAperturaCaja: number, MetodoPago: number): Promise<RespuestaAPI<any>> {
+        const res = await axiosInstance.post('compra/anular', { CodigoCompra, MotivoAnulacion, CodigoAperturaCaja, MetodoPago });
         return res.data;
     }
 
     // Anula (soft-delete contable) un pago de proveedor: deja motivo, revierte caja y recalcula saldo.
-    async anularPago(CodigoPagoProveedor: number, MotivoAnulacion: string): Promise<RespuestaAPI<any>> {
-        const res = await axiosInstance.post('compra/anular-pago', { CodigoPagoProveedor, MotivoAnulacion });
+    async anularPago(CodigoPagoProveedor: number, MotivoAnulacion: string, CodigoAperturaCaja: number, MetodoPago: number): Promise<RespuestaAPI<any>> {
+        const res = await axiosInstance.post('compra/anular-pago', { CodigoPagoProveedor, MotivoAnulacion, CodigoAperturaCaja, MetodoPago });
         return res.data;
     }
 }

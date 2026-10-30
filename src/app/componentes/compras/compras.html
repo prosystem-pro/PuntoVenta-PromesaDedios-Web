@@ -191,8 +191,10 @@
     mensaje="Se anulará la compra junto con todos sus pagos y se revertirá el inventario."
     etiquetaMotivo="Motivo de anulación"
     etiquetaConfirmar="Anular compra"
+    [pedirMetodo]="true"
+    etiquetaMetodo="Método de devolución"
     (alCerrar)="cerrarAnular()"
-    (alConfirmar)="confirmarAnular($event)">
+    (alConfirmarMetodo)="confirmarAnular($event)">
 </app-motivo-modal>
 
 <!-- Factura de la compra (comprobante) -->

@@ -210,7 +210,9 @@
     mensaje="Se anulará el pago, se revertirá el movimiento de caja y aumentará el saldo pendiente."
     etiquetaMotivo="Motivo de anulación"
     etiquetaConfirmar="Anular pago"
+    [pedirMetodo]="true"
+    etiquetaMetodo="Método de devolución"
     (alCerrar)="cerrarAnularPago()"
-    (alConfirmar)="confirmarAnularPago($event)">
+    (alConfirmarMetodo)="confirmarAnularPago($event)">
 </app-motivo-modal>
 }

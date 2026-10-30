@@ -305,7 +305,10 @@
                             <input type="text" class="form-control campo-bloqueado" [value]="nombreCaja()" disabled>
                             }
                             @if (!cargandoCajas() && cajasDisponibles().length === 0) {
-                            <small class="text-danger">No tenés cajas asignadas.</small>
+                            <small class="text-danger">No tiene cajas asignadas.</small>
+                            }
+                            @if (cajaYaAbierta()) {
+                            <small class="text-primary d-block">Ya tiene un turno abierto. Puede vender desde Facturar.</small>
                             }
                         </div>
                         <div class="col-6">
@@ -314,6 +317,9 @@
                         </div>
                     </div>
 
+                    <!-- Formulario de apertura: solo si hay una caja libre para abrir
+                         (se oculta si la caja asignada ya tiene turno abierto). -->
+                    @if (!cajaYaAbierta()) {
                     <!-- Monto inicial (obligatorio) -->
                     <label class="form-label fw-semibold mb-1">Monto Inicial <span class="text-danger">*</span></label>
                     <div class="input-group mb-3">
@@ -352,6 +358,7 @@
                             }
                         </button>
                     </div>
+                    }
                     }
                 </div>
             </div>

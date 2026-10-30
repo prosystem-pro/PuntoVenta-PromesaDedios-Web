@@ -252,7 +252,7 @@ export class AbonoPedidoModal implements OnChanges {
             const estadoCaja = await this.servicioConfig.obtenerCajaActual();
             const codigoCaja = estadoCaja.success ? estadoCaja.data?.CajaAbierta?.CodigoCaja ?? null : null;
             if (!codigoCaja) {
-                this.servicioAlerta.MostrarError('No hay una caja abierta. Abrí un turno de caja para registrar abonos.');
+                this.servicioAlerta.MostrarError('No hay una caja abierta. Abra un turno de caja para registrar abonos.');
                 return;
             }
 

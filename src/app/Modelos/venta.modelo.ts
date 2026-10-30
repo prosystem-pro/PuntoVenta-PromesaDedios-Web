@@ -35,6 +35,7 @@ export interface ProductoVentaRequest {
 
 export interface FacturarVentanillaRequest {
     CodigoCliente: number | null;
+    CodigoAperturaCaja?: number;   // turno abierto en el que se trabaja (lo resuelve el front)
     Productos: ProductoVentaRequest[];
     Pagos: PagoVenta[];
     Propina?: number;
@@ -42,6 +43,7 @@ export interface FacturarVentanillaRequest {
 
 export interface CrearVentaPedidoRequest {
     CodigoCliente: number | null;
+    CodigoAperturaCaja?: number;   // turno abierto en el que se trabaja
     FechaEntrega: string;
     Observaciones?: string | null;
     Productos: ProductoVentaRequest[];

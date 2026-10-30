@@ -24,11 +24,14 @@ export class HistorialVentaServicio {
         return res.data;
     }
 
-    // Anula una venta al contado (contado o mesa) con motivo.
-    async anularVenta(codigoVenta: number, motivoAnulacion: string): Promise<RespuestaAPI<any>> {
+    // Anula una venta al contado (contado o mesa). El API exige el turno abierto
+    // (CodigoAperturaCaja) y el método de devolución (MetodoPago) para el reverso.
+    async anularVenta(codigoVenta: number, motivoAnulacion: string, codigoAperturaCaja: number, metodoPago: number): Promise<RespuestaAPI<any>> {
         const res = await axiosInstance.post('historialventa/anular-ventapedido-completa', {
             CodigoVenta: codigoVenta,
-            MotivoAnulacion: motivoAnulacion
+            MotivoAnulacion: motivoAnulacion,
+            CodigoAperturaCaja: codigoAperturaCaja,
+            MetodoPago: metodoPago
         });
         return res.data;
     }

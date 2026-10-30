@@ -8,6 +8,7 @@ import { ComprobanteVenta, FacturarVentanillaRequest, CrearVentaPedidoRequest } 
 import { ProductoServicio } from '../../Servicios/producto.service';
 import { VentaServicio } from '../../Servicios/venta.service';
 import { AlertaServicio } from '../../Servicios/alerta.service';
+import { ServicioConfiguracion } from '../../Servicios/configuracion.service';
 import { Entorno } from '../../Entorno/Entorno';
 import { ClienteFacturaModal } from './cliente-factura-modal/cliente-factura-modal';
 import { MontoPagoModal, ResultadoPago } from './monto-pago-modal/monto-pago-modal';
@@ -47,6 +48,7 @@ export class Facturar implements OnInit {
     private servicioProducto = inject(ProductoServicio);
     private servicioVenta = inject(VentaServicio);
     private servicioAlerta = inject(AlertaServicio);
+    private servicioConfig = inject(ServicioConfiguracion);
     private router = inject(Router);
 
     colorSistema = Entorno.ColorSistema;
@@ -405,8 +407,15 @@ export class Facturar implements OnInit {
     private async procesarFactura(resultado: ResultadoPago) {
         this.procesandoPago.set(true);
         try {
+            // Turno/caja en el que se trabaja (resuelve apertura propia o caja asignada abierta).
+            const turno = await this.servicioConfig.resolverTurnoActual();
+            if (!turno) {
+                this.servicioAlerta.MostrarError('No hay una caja abierta para trabajar. Pedí que abran el turno de tu caja asignada.');
+                return;
+            }
             const request: FacturarVentanillaRequest = {
                 CodigoCliente: this.clienteSeleccionado()?.CodigoCliente ?? null,
+                CodigoAperturaCaja: turno.CodigoAperturaCaja,
                 Productos: this.carrito().map(it => ({
                     CodigoProducto: it.CodigoProducto,
                     Cantidad: it.Cantidad,
@@ -444,11 +453,17 @@ export class Facturar implements OnInit {
     private async procesarPedido(resultado: ResultadoPago) {
         this.procesandoPago.set(true);
         try {
+            const turno = await this.servicioConfig.resolverTurnoActual();
+            if (!turno) {
+                this.servicioAlerta.MostrarError('No hay una caja abierta para trabajar. Pedí que abran el turno de tu caja asignada.');
+                return;
+            }
             const itemsSnapshot = this.carrito();
             const pago = resultado.pago;
 
             const request: CrearVentaPedidoRequest = {
                 CodigoCliente: this.clienteSeleccionado()?.CodigoCliente ?? null,
+                CodigoAperturaCaja: turno.CodigoAperturaCaja,
                 FechaEntrega: this.fechaEntrega() ?? '',
                 Productos: itemsSnapshot.map(it => ({
                     CodigoProducto: it.CodigoProducto,

@@ -27,15 +27,30 @@ export class MotivoModal implements OnChanges {
     @Input() placeholder = 'Describa el motivo...';
     @Input() obligatorio = true;                   // exige texto para confirmar
 
+    // Para anulaciones con reverso: además del motivo, pide el método con que se
+    // devuelve el dinero. Cuando está activo, confirmar emite alConfirmarMetodo.
+    @Input() pedirMetodo = false;
+    @Input() etiquetaMetodo = 'Método de devolución';
+
     @Output() alCerrar = new EventEmitter<void>();
     @Output() alConfirmar = new EventEmitter<string>();
+    @Output() alConfirmarMetodo = new EventEmitter<{ motivo: string; metodo: number }>();
 
     motivo = signal<string>('');
+    metodo = signal<number>(1);   // 1=Efectivo, 2=Tarjeta, 3=Transferencia, 4=Cheque
+
+    mediosPago = [
+        { valor: 1, nombre: 'Efectivo' },
+        { valor: 2, nombre: 'Tarjeta' },
+        { valor: 3, nombre: 'Transferencia' },
+        { valor: 4, nombre: 'Cheque' },
+    ];
 
     ngOnChanges(changes: SimpleChanges): void {
         // Limpia el campo cada vez que se abre para no arrastrar el motivo anterior.
         if (changes['visible'] && this.visible) {
             this.motivo.set('');
+            this.metodo.set(1);
         }
     }
 
@@ -46,7 +61,11 @@ export class MotivoModal implements OnChanges {
             this.servicioAlerta.MostrarAlerta('Debe ingresar el motivo.');
             return;
         }
-        this.alConfirmar.emit(texto);
+        if (this.pedirMetodo) {
+            this.alConfirmarMetodo.emit({ motivo: texto, metodo: this.metodo() });
+        } else {
+            this.alConfirmar.emit(texto);
+        }
     }
 
     cerrar() {

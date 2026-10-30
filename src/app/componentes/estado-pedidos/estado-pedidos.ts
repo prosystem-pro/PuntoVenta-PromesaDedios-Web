@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { EstadoPedido } from '../../Modelos/estado-pedido.modelo';
 import { EstadoPedidoServicio } from '../../Servicios/estado-pedido.service';
 import { AlertaServicio } from '../../Servicios/alerta.service';
+import { ServicioConfiguracion } from '../../Servicios/configuracion.service';
 import { Entorno } from '../../Entorno/Entorno';
 import { AbonoPedidoModal, PedidoAbono } from './abono-pedido-modal/abono-pedido-modal';
 import { DetallePedidoModal } from './detalle-pedido-modal/detalle-pedido-modal';
@@ -20,6 +21,7 @@ import { MotivoModal } from '../compartidos/motivo-modal/motivo-modal';
 export class EstadoPedidos implements OnInit {
     private servicio = inject(EstadoPedidoServicio);
     private servicioAlerta = inject(AlertaServicio);
+    private servicioConfig = inject(ServicioConfiguracion);
     private router = inject(Router);
 
     colorSistema = Entorno.ColorSistema;
@@ -339,12 +341,17 @@ export class EstadoPedidos implements OnInit {
         this.mostrarAnular.set(false);
         this.anularCodigoVenta.set(null);
     }
-    async confirmarAnular(motivo: string) {
+    async confirmarAnular(ev: { motivo: string; metodo: number }) {
         const codigo = this.anularCodigoVenta();
         if (!codigo) return;
         this.anulando.set(true);
         try {
-            const res = await this.servicio.anularVentaPedido(codigo, motivo);
+            const turno = await this.servicioConfig.resolverTurnoActual();
+            if (!turno) {
+                this.servicioAlerta.MostrarError('No hay una caja abierta para registrar la anulación.');
+                return;
+            }
+            const res = await this.servicio.anularVentaPedido(codigo, ev.motivo, turno.CodigoAperturaCaja, ev.metodo);
             if (res.success) {
                 this.servicioAlerta.MostrarExito(res.message || 'Pedido anulado correctamente.');
                 this.mostrarAnular.set(false);

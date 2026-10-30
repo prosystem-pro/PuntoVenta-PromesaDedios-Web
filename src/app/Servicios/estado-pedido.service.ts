@@ -66,8 +66,8 @@ export class EstadoPedidoServicio {
     }
 
     // Anula la venta/pedido completo de ventanilla (devuelve inventario, anula pagos y producción).
-    async anularVentaPedido(CodigoVenta: number, MotivoAnulacion: string): Promise<RespuestaAPI<any>> {
-        const res = await axiosInstance.post('estadopedido/venta-anular-ventapedido-completa', { CodigoVenta, MotivoAnulacion });
+    async anularVentaPedido(CodigoVenta: number, MotivoAnulacion: string, CodigoAperturaCaja: number, MetodoPago: number): Promise<RespuestaAPI<any>> {
+        const res = await axiosInstance.post('estadopedido/venta-anular-ventapedido-completa', { CodigoVenta, MotivoAnulacion, CodigoAperturaCaja, MetodoPago });
         return res.data;
     }
 

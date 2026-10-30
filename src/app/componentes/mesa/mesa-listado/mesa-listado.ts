@@ -322,8 +322,14 @@ export class MesaListado implements OnInit, OnDestroy {
 
         this.procesando.set(true);
         try {
+            const turno = await this.servicioConfig.resolverTurnoActual();
+            if (!turno) {
+                this.servicioAlerta.MostrarError('No hay una caja abierta para cobrar. Solicite que abran el turno de su caja asignada.');
+                return;
+            }
             const request: FacturarMesaRequest = {
                 CodigoMesa: mesa.CodigoMesa,
+                CodigoAperturaCaja: turno.CodigoAperturaCaja,
                 Propina: resultado.propina,
                 Pagos: [resultado.pago]
             };

@@ -22,6 +22,7 @@ export interface GuardarProductosMesaRequest {
 
 export interface FacturarMesaRequest {
     CodigoMesa: number;
+    CodigoAperturaCaja?: number;   // turno abierto en el que se cobra
     Propina: number;
     Pagos: PagoVenta[];
 }

@@ -216,8 +216,10 @@
     mensaje="Se anulará la venta con sus pagos, se devolverá el inventario y se anularán los pedidos de producción asociados."
     etiquetaMotivo="Motivo de anulación"
     etiquetaConfirmar="Anular pedido"
+    [pedirMetodo]="true"
+    etiquetaMetodo="Método de devolución"
     (alCerrar)="cerrarAnular()"
-    (alConfirmar)="confirmarAnular($event)">
+    (alConfirmarMetodo)="confirmarAnular($event)">
 </app-motivo-modal>
 
 <!-- Eliminar pedido de producción (fila SOLO_PRODUCCION) -->

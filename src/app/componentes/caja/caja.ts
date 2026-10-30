@@ -62,6 +62,9 @@ export class Caja implements OnInit {
     cajasDisponibles = signal<CajaConTurno[]>([]);
     cargandoCajas = signal(false);
     hayVariasCajas = computed(() => this.cajasDisponibles().length > 1);
+    // La caja asignada ya tiene un turno abierto (lo abrió otro usuario): un rol sin
+    // apertura (ej. Ventas Apoyo) no la abre, solo vende desde Facturar.
+    cajaYaAbierta = signal(false);
 
     // Formulario de apertura
     montoInicial = signal<number | null>(null);
@@ -267,9 +270,19 @@ export class Caja implements OnInit {
                 libres[0] ?? null;
 
             if (preferida) {
+                // Hay una caja libre para abrir turno.
+                this.cajaYaAbierta.set(false);
                 this.seleccionarCaja(preferida);
+            } else if (cajas.length > 0) {
+                // La(s) caja(s) asignada(s) ya tienen turno abierto (lo abrió otro usuario).
+                // No se blanquea el nombre (evita el parpadeo) y no se habilita aperturar.
+                const abierta = cajas[0];
+                this.cajaYaAbierta.set(true);
+                this.codigoCaja.set(null);
+                this.nombreCaja.set(this.etiquetaCaja(abierta.NumeroCaja, abierta.Descripcion));
             } else {
-                // Sin cajas libres (ninguna asignada, o todas con turno abierto).
+                // No tiene cajas asignadas.
+                this.cajaYaAbierta.set(false);
                 this.codigoCaja.set(null);
                 this.nombreCaja.set('');
             }
@@ -382,8 +395,8 @@ export class Caja implements OnInit {
         const codigoCaja = this.codigoCaja();
         if (!codigoCaja) {
             const msg = this.cajasDisponibles().length === 0
-                ? 'No tenés cajas asignadas. Pedí al administrador que te asigne una.'
-                : 'Seleccioná una caja para aperturar.';
+                ? 'No tiene cajas asignadas. Solicite al administrador que le asigne una.'
+                : 'Seleccione una caja para aperturar.';
             this.servicioAlerta.MostrarAlerta(msg);
             return;
         }

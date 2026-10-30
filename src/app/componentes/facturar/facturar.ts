@@ -410,7 +410,7 @@ export class Facturar implements OnInit {
             // Turno/caja en el que se trabaja (resuelve apertura propia o caja asignada abierta).
             const turno = await this.servicioConfig.resolverTurnoActual();
             if (!turno) {
-                this.servicioAlerta.MostrarError('No hay una caja abierta para trabajar. Pedí que abran el turno de tu caja asignada.');
+                this.servicioAlerta.MostrarError('No hay una caja abierta para trabajar. Solicite que abran el turno de su caja asignada.');
                 return;
             }
             const request: FacturarVentanillaRequest = {
@@ -455,7 +455,7 @@ export class Facturar implements OnInit {
         try {
             const turno = await this.servicioConfig.resolverTurnoActual();
             if (!turno) {
-                this.servicioAlerta.MostrarError('No hay una caja abierta para trabajar. Pedí que abran el turno de tu caja asignada.');
+                this.servicioAlerta.MostrarError('No hay una caja abierta para trabajar. Solicite que abran el turno de su caja asignada.');
                 return;
             }
             const itemsSnapshot = this.carrito();

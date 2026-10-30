@@ -147,6 +147,31 @@ export class ServicioConfiguracion {
         }
     }
 
+    // Resuelve el turno/caja en el que está trabajando el usuario, para las operaciones
+    // que exigen CodigoCaja/CodigoAperturaCaja (facturar, abono, anular). Contempla:
+    //  1) la apertura propia del usuario (si él abrió la caja), y
+    //  2) el turno abierto de una caja asignada (caso Ventas Apoyo: otro abrió la caja).
+    // Devuelve null si no hay ninguna caja abierta para trabajar.
+    async resolverTurnoActual(): Promise<{ CodigoCaja: number; CodigoAperturaCaja: number } | null> {
+        try {
+            const actual = await this.obtenerCajaActual();
+            const ab = actual.success ? actual.data?.CajaAbierta : null;
+            if (ab?.CodigoCaja && ab?.CodigoAperturaCaja) {
+                return { CodigoCaja: ab.CodigoCaja, CodigoAperturaCaja: ab.CodigoAperturaCaja };
+            }
+            // No hay apertura propia: buscar una caja asignada con turno abierto.
+            const cajas = await this.obtenerCajasConTurno();
+            const lista: CajaConTurno[] = cajas.success && cajas.data ? cajas.data : [];
+            const conTurno = lista.find(c => c.TieneTurnoAbierto && c.CodigoAperturaCaja);
+            if (conTurno?.CodigoCaja && conTurno?.CodigoAperturaCaja) {
+                return { CodigoCaja: conTurno.CodigoCaja, CodigoAperturaCaja: conTurno.CodigoAperturaCaja };
+            }
+            return null;
+        } catch {
+            return null;
+        }
+    }
+
     async abrirCaja(payload: AperturaCajaPayload): Promise<RespuestaAPI<AperturaCajaResultado>> {
         try {
             const respuesta = await api.post<RespuestaAPI<AperturaCajaResultado>>('caja/abrir-caja', payload);

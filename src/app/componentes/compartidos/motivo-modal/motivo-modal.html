@@ -24,6 +24,16 @@
         <textarea class="form-control mb-3" rows="3" [placeholder]="placeholder"
             [ngModel]="motivo()" (ngModelChange)="motivo.set($event)" [disabled]="procesando"></textarea>
 
+        <!-- Método de devolución (solo anulaciones con reverso) -->
+        @if (pedirMetodo) {
+        <label class="form-label fw-semibold mb-1">{{ etiquetaMetodo }} <span class="text-danger">*</span></label>
+        <select class="form-select mb-3" [ngModel]="metodo()" (ngModelChange)="metodo.set(+$event)" [disabled]="procesando">
+            @for (m of mediosPago; track m.valor) {
+            <option [value]="m.valor">{{ m.nombre }}</option>
+            }
+        </select>
+        }
+
         <!-- Acciones -->
         <div class="d-flex justify-content-end gap-2">
             <button class="btn btn-outline-secondary px-3" (click)="cerrar()" [disabled]="procesando">

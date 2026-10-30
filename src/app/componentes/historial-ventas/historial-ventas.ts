@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Entorno } from '../../Entorno/Entorno';
 import { AlertaServicio } from '../../Servicios/alerta.service';
 import { HistorialVentaServicio } from '../../Servicios/historial-venta.service';
+import { ServicioConfiguracion } from '../../Servicios/configuracion.service';
 import { VentaHistorial } from '../../Modelos/historial-venta.modelo';
 import { ComprobanteVenta } from '../../Modelos/venta.modelo';
 import { ComprobanteVentaModal } from '../facturar/comprobante-venta-modal/comprobante-venta-modal';
@@ -19,6 +20,7 @@ import { MotivoModal } from '../compartidos/motivo-modal/motivo-modal';
 export class HistorialVentas implements OnInit {
     private servicio = inject(HistorialVentaServicio);
     private servicioAlerta = inject(AlertaServicio);
+    private servicioConfig = inject(ServicioConfiguracion);
 
     colorSistema = Entorno.ColorSistema;
 
@@ -267,12 +269,17 @@ export class HistorialVentas implements OnInit {
         this.anularCodigoVenta.set(null);
     }
 
-    async confirmarAnular(motivo: string) {
+    async confirmarAnular(ev: { motivo: string; metodo: number }) {
         const codigo = this.anularCodigoVenta();
         if (!codigo) return;
         this.anulando.set(true);
         try {
-            const res = await this.servicio.anularVenta(codigo, motivo);
+            const turno = await this.servicioConfig.resolverTurnoActual();
+            if (!turno) {
+                this.servicioAlerta.MostrarError('No hay una caja abierta para registrar la anulación.');
+                return;
+            }
+            const res = await this.servicio.anularVenta(codigo, ev.motivo, turno.CodigoAperturaCaja, ev.metodo);
             if (res.success) {
                 this.servicioAlerta.MostrarExito(res.message || 'Venta anulada correctamente.');
                 this.mostrarAnular.set(false);

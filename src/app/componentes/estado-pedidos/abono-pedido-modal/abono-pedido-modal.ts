@@ -293,12 +293,17 @@ export class AbonoPedidoModal implements OnChanges {
         this.pagoAnularId.set(null);
     }
 
-    async confirmarAnularPago(motivo: string) {
+    async confirmarAnularPago(ev: { motivo: string; metodo: number }) {
         const id = this.pagoAnularId();
         if (!id) return;
         this.anulandoPago.set(true);
         try {
-            const res = await this.servicio.anularPago(id, motivo);
+            const turno = await this.servicioConfig.resolverTurnoActual();
+            if (!turno) {
+                this.servicioAlerta.MostrarError('No hay una caja abierta para registrar la anulación.');
+                return;
+            }
+            const res = await this.servicio.anularPago(id, ev.motivo, turno.CodigoAperturaCaja, ev.metodo);
             if (res.success) {
                 this.servicioAlerta.MostrarToast(res.message || 'Pago anulado correctamente', 'success');
                 this.mostrarAnularPago.set(false);

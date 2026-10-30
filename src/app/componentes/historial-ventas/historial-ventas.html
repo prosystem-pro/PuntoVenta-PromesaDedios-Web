@@ -159,6 +159,8 @@
     mensaje="Se anulará la venta con sus pagos y se devolverá el inventario."
     etiquetaMotivo="Motivo de anulación"
     etiquetaConfirmar="Anular venta"
+    [pedirMetodo]="true"
+    etiquetaMetodo="Método de devolución"
     (alCerrar)="cerrarAnular()"
-    (alConfirmar)="confirmarAnular($event)">
+    (alConfirmarMetodo)="confirmarAnular($event)">
 </app-motivo-modal>

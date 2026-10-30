@@ -78,8 +78,8 @@ export class EstadoPedidoServicio {
     }
 
     // Anula (soft-delete contable) un pago del pedido: deja motivo, revierte caja y recalcula saldo.
-    async anularPago(CodigoPagoVenta: number, MotivoAnulacion: string): Promise<RespuestaAPI<any>> {
-        const res = await axiosInstance.post('estadopedido/venta-anular-pago', { CodigoPagoVenta, MotivoAnulacion });
+    async anularPago(CodigoPagoVenta: number, MotivoAnulacion: string, CodigoAperturaCaja: number, MetodoPago: number): Promise<RespuestaAPI<any>> {
+        const res = await axiosInstance.post('estadopedido/venta-anular-pago', { CodigoPagoVenta, MotivoAnulacion, CodigoAperturaCaja, MetodoPago });
         return res.data;
     }
 

@@ -1,0 +1,28 @@
+@if (visible) {
+<div class="op-overlay">
+    <div class="op-content">
+        <div class="op-header" [style.--color-sistema]="colorSistema">
+            <h5 class="fw-bold mb-0">Observaciones</h5>
+            <button class="op-close" [style.background-color]="colorSistema" (click)="cerrar()">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+
+        <div class="op-body">
+            @for (o of observaciones; track o.NumeroPedido) {
+            <div class="op-linea">
+                <span class="op-pedido">{{ o.NumeroPedido }}</span> - {{ o.Observaciones }}
+            </div>
+            } @empty {
+            <div class="text-muted">Sin observaciones.</div>
+            }
+        </div>
+
+        <div class="op-acciones">
+            <button class="btn text-white fw-semibold px-4" [style.background-color]="colorSistema" (click)="cerrar()">
+                Ok
+            </button>
+        </div>
+    </div>
+</div>
+}

@@ -11,6 +11,10 @@
                 [style.background-color]="colorSistema" (click)="cancelarEdicion()">
                 <i class="bi bi-chevron-left me-2"></i> Regresar
             </button>
+            <button *ngIf="modoEdicion() === 'abastecer' && observaciones().length > 0"
+                class="btn btn-outline-secondary shadow-sm ms-2" (click)="mostrarObservaciones.set(true)">
+                <i class="bi bi-chat-left-text me-2"></i> Observaciones
+            </button>
         </div>
 
         <div class="title-container text-center flex-grow-1">
@@ -204,3 +208,9 @@
             </nav>
         </div>
     </div>
+<app-observaciones-pedidos-modal
+    [visible]="mostrarObservaciones()"
+    [colorSistema]="colorSistema"
+    [observaciones]="observaciones()"
+    (alCerrar)="mostrarObservaciones.set(false)">
+</app-observaciones-pedidos-modal>

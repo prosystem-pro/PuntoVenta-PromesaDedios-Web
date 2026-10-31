@@ -17,6 +17,11 @@
             <button class="btn btn-dark shadow-sm px-4" (click)="regresarNormal()">
                 <i class="bi bi-chevron-left me-2"></i> Regresar
             </button>
+            @if (modo() === 'abastecer' && observaciones().length > 0) {
+            <button class="btn btn-outline-secondary shadow-sm px-3" (click)="mostrarObservaciones.set(true)">
+                <i class="bi bi-chat-left-text me-2"></i> Observaciones
+            </button>
+            }
         </div>
         <div class="position-absolute end-0 top-0 me-4 mt-3">
             <button class="btn btn-save shadow-sm px-4" [style.background-color]="colorSistema"
@@ -185,3 +190,9 @@
         </div>
     </div>
 </div>
+<app-observaciones-pedidos-modal
+    [visible]="mostrarObservaciones()"
+    [colorSistema]="colorSistema"
+    [observaciones]="observaciones()"
+    (alCerrar)="mostrarObservaciones.set(false)">
+</app-observaciones-pedidos-modal>

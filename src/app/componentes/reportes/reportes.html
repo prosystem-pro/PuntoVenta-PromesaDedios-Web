@@ -51,6 +51,19 @@
 
     @if (esDia()) {
 
+    <!-- Filtro por turno del día -->
+    <div class="rp-controls">
+        <div class="rp-pill">
+            <select class="rp-pill-select" [ngModel]="turnoSeleccionado()" (ngModelChange)="cambiarTurno($event)">
+                <option [ngValue]="null">Todos los turnos</option>
+                @for (t of turnosDia(); track t.CodigoAperturaCaja) {
+                <option [ngValue]="t.CodigoAperturaCaja">Turno N° {{ t.CodigoAperturaCaja }} · {{ t.Responsable }}</option>
+                }
+            </select>
+            <i class="bi bi-chevron-down"></i>
+        </div>
+    </div>
+
     <!-- Vista de día: 7 tarjetas de resumen (sin filtros ni gráficas) -->
     <div class="rp-cards rp-cards-dia">
         @for (c of tarjetasDia(); track c.nombre; let i = $index) {

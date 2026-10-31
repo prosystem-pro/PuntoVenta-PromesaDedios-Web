@@ -53,6 +53,14 @@ export interface PuntoAnual {
 }
 
 // Respuesta cruda del API. Los bloques mensual/anual cambian de nombre según el Tipo.
+// Turno del día para el selector de "Movimientos del día" (GET reporte/listar-turnos).
+export interface TurnoReporte {
+    CodigoAperturaCaja: number;
+    Responsable: string;
+    FechaApertura: string;
+    FechaCierre: string;   // 'En curso' si sigue abierto
+}
+
 export interface ConsolidadoReporte {
     TipoConsulta: string;
     Periodo: string;     // 'YYYY-MM'

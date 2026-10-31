@@ -6,7 +6,7 @@ import { ChartData, ChartOptions } from 'chart.js';
 import { Entorno } from '../../Entorno/Entorno';
 import { AlertaServicio } from '../../Servicios/alerta.service';
 import { ReporteServicio } from '../../Servicios/reporte.service';
-import { ConsolidadoReporte, ConsolidadoDia, TipoReporte, VistaReporte, RankingEntidad } from '../../Modelos/reporte.modelo';
+import { ConsolidadoReporte, ConsolidadoDia, TipoReporte, VistaReporte, RankingEntidad, TurnoReporte } from '../../Modelos/reporte.modelo';
 
 @Component({
     selector: 'app-reportes',
@@ -35,6 +35,8 @@ export class Reportes implements OnInit {
     // período viene en la misma respuesta del consolidado (ListaTurnos).
     turnoSeleccionado = signal<number | null>(null);
     listaTurnos = computed<number[]>(() => this.data()?.ListaTurnos ?? []);
+    // Turnos del día (para el selector en "Movimientos del día"), con etiqueta.
+    turnosDia = signal<TurnoReporte[]>([]);
 
     // En modo día no hay filtros ni gráficas; solo el resumen de 7 tarjetas.
     esDia = computed(() => this.seleccion() === 'DIA');
@@ -184,10 +186,14 @@ export class Reportes implements OnInit {
         await this.cargar();
     }
 
-    // Cambia el filtro de turno y recarga el consolidado del período.
+    // Cambia el filtro de turno y recarga el consolidado (del día o del mes según la vista).
     async cambiarTurno(codigoApertura: number | null) {
         this.turnoSeleccionado.set(codigoApertura);
-        await this.cargarMes();
+        if (this.esDia()) {
+            await this.cargarDia();
+        } else {
+            await this.cargarMes();
+        }
     }
 
     // Al cambiar de período (año/mes) los turnos son otros: se limpia el filtro.
@@ -207,7 +213,13 @@ export class Reportes implements OnInit {
     private async cargarDia() {
         this.cargando.set(true);
         try {
-            const res = await this.servicio.obtenerConsolidadoDia();
+            // Turnos de hoy para el selector (se recargan por si abrieron/cerraron turnos).
+            const hoy = new Date();
+            this.servicio.listarTurnos(hoy.getFullYear(), hoy.getMonth() + 1, hoy.getDate())
+                .then(r => this.turnosDia.set(r.success && r.data ? r.data : []))
+                .catch(() => this.turnosDia.set([]));
+
+            const res = await this.servicio.obtenerConsolidadoDia(this.turnoSeleccionado());
             if (res.success && res.data) {
                 this.dataDia.set(res.data);
             } else {

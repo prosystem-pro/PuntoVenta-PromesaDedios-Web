@@ -68,3 +68,10 @@ export interface RespuestaAPI<T> {
         message: string;
     };
 }
+
+// Observación de un pedido, mostrada al entrar a Abastecer (Materia Prima / Productos).
+// El API la devuelve en PedidosObservaciones del listado de abastecer.
+export interface PedidoObservacion {
+    NumeroPedido: string;
+    Observaciones: string;
+}

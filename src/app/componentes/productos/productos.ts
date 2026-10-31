@@ -2,17 +2,18 @@ import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { Producto, CategoriaProducto, UnidadMedida } from '../../Modelos/producto.modelo';
+import { Producto, CategoriaProducto, UnidadMedida, PedidoObservacion } from '../../Modelos/producto.modelo';
 import { Entorno } from '../../Entorno/Entorno';
 import { ProductoServicio } from '../../Servicios/producto.service';
 import { AlertaServicio } from '../../Servicios/alerta.service';
 import { manejarErrorApi } from '../../Utils/error-parser';
+import { ObservacionesPedidosModal } from '../compartidos/observaciones-pedidos-modal/observaciones-pedidos-modal';
 // xlsx se carga de forma dinamica dentro de exportarExcel() para no incluirlo en el bundle inicial.
 
 @Component({
     selector: 'app-productos',
     standalone: true,
-    imports: [FormsModule, CommonModule],
+    imports: [FormsModule, CommonModule, ObservacionesPedidosModal],
     templateUrl: './productos.html',
     styleUrl: './productos.css'
 })
@@ -29,6 +30,10 @@ export class Productos implements OnInit {
     categorias = signal<CategoriaProducto[]>([]);
     unidades = signal<UnidadMedida[]>([]);
     cargando = signal(false);
+
+    // Observaciones de los pedidos (se muestran al entrar a Abastecer).
+    observaciones = signal<PedidoObservacion[]>([]);
+    mostrarObservaciones = signal(false);
 
     // Modos de edicion de stock
     modoEdicion = signal<'lectura' | 'ajustar' | 'abastecer'>('lectura');
@@ -167,6 +172,11 @@ export class Productos implements OnInit {
             }));
 
             this.productos.set(listadoMapeado);
+
+            // Observaciones de los pedidos (se muestran al entrar a Abastecer).
+            const obs: PedidoObservacion[] = (res.data?.PedidosObservaciones || [])
+                .filter((o: PedidoObservacion) => o.Observaciones && o.Observaciones.trim() !== '' && o.Observaciones !== 'Sin observaciones');
+            this.observaciones.set(obs);
         } catch (error) {
             this.servicioAlerta.MostrarError({ error: { message: 'Error al conectar con el servidor' } });
         } finally {
@@ -227,6 +237,8 @@ export class Productos implements OnInit {
             this.cancelarEdicion();
         } else {
             this.modoEdicion.set('abastecer');
+            // Al entrar a abastecer, mostrar las observaciones de los pedidos (si hay).
+            if (this.observaciones().length > 0) this.mostrarObservaciones.set(true);
             // Prellenar con las cantidades efectivamente producidas (no editables manualmente)
             const inicial: Record<number, number> = {};
             this.productos().forEach(p => {

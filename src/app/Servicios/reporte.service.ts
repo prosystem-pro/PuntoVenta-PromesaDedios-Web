@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import axiosInstance from './axios.config';
 import { RespuestaAPI } from '../Modelos/producto.modelo';
-import { ConsolidadoReporte, ConsolidadoDia, TipoReporte } from '../Modelos/reporte.modelo';
+import { ConsolidadoReporte, ConsolidadoDia, TipoReporte, TurnoReporte } from '../Modelos/reporte.modelo';
 
 @Injectable({
     providedIn: 'root'
@@ -17,9 +17,19 @@ export class ReporteServicio {
         return res.data;
     }
 
-    // Consolidado del día (7 totales del día de hoy). No recibe parámetros.
-    async obtenerConsolidadoDia(): Promise<RespuestaAPI<ConsolidadoDia>> {
-        const res = await axiosInstance.get('reporte/consolidado-dia');
+    // Consolidado del día (7 totales del día de hoy). Acepta filtro por turno.
+    async obtenerConsolidadoDia(codigoApertura?: number | null): Promise<RespuestaAPI<ConsolidadoDia>> {
+        const params: any = {};
+        if (codigoApertura) params.CodigoAperturaCaja = codigoApertura;
+        const res = await axiosInstance.get('reporte/consolidado-dia', { params });
+        return res.data;
+    }
+
+    // Turnos por fecha (día/mes/año) para poblar el selector de turnos.
+    async listarTurnos(anio: number, mes: number, dia?: number): Promise<RespuestaAPI<TurnoReporte[]>> {
+        const params: any = { Anio: anio, Mes: mes };
+        if (dia) params.Dia = dia;
+        const res = await axiosInstance.get('reporte/listar-turnos', { params });
         return res.data;
     }
 }

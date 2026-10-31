@@ -2,11 +2,12 @@ import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Producto, CategoriaProducto, UnidadMedida } from '../../Modelos/producto.modelo';
+import { Producto, CategoriaProducto, UnidadMedida, PedidoObservacion } from '../../Modelos/producto.modelo';
 import { Entorno } from '../../Entorno/Entorno';
 import { ProductoServicio } from '../../Servicios/producto.service';
 import { AlertaServicio } from '../../Servicios/alerta.service';
 import { manejarErrorApi } from '../../Utils/error-parser';
+import { ObservacionesPedidosModal } from '../compartidos/observaciones-pedidos-modal/observaciones-pedidos-modal';
 // xlsx se carga de forma dinamica dentro de exportarExcel() para no incluirlo en el bundle inicial.
 
 type ViewMode = 'normal' | 'ajustar' | 'abastecer';
@@ -14,7 +15,7 @@ type ViewMode = 'normal' | 'ajustar' | 'abastecer';
 @Component({
     selector: 'app-materia-prima',
     standalone: true,
-    imports: [CommonModule, FormsModule],
+    imports: [CommonModule, FormsModule, ObservacionesPedidosModal],
     templateUrl: './materia-prima.html',
     styleUrl: './materia-prima.css'
 })
@@ -30,6 +31,10 @@ export class MateriaPrima implements OnInit {
     categorias = signal<CategoriaProducto[]>([]);
     unidades = signal<UnidadMedida[]>([]);
     cargando = signal(false);
+
+    // Observaciones de los pedidos (se muestran al entrar a abastecer).
+    observaciones = signal<PedidoObservacion[]>([]);
+    mostrarObservaciones = signal(false);
 
     // Estado de la Vista
     modo = signal<ViewMode>('normal');
@@ -161,6 +166,11 @@ export class MateriaPrima implements OnInit {
             }));
 
             this.insumos.set(insumosMapeados);
+
+            // Observaciones de los pedidos: se muestran al entrar (filtrando el placeholder "Sin observaciones").
+            const obs: PedidoObservacion[] = (res.data?.PedidosObservaciones || [])
+                .filter((o: PedidoObservacion) => o.Observaciones && o.Observaciones.trim() !== '' && o.Observaciones !== 'Sin observaciones');
+            this.observaciones.set(obs);
         } catch (error) {
             this.servicioAlerta.MostrarError({ error: { message: 'Error al cargar insumos' } });
         } finally {
@@ -177,6 +187,8 @@ export class MateriaPrima implements OnInit {
     activarAbastecer() {
         this.modo.set('abastecer');
         this.cambiosAbastecer.clear();
+        // Al entrar a abastecer, mostrar las observaciones de los pedidos (si hay).
+        if (this.observaciones().length > 0) this.mostrarObservaciones.set(true);
     }
 
     async regresarNormal(forzar = false) {

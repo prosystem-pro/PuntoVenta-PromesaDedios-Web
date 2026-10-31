@@ -249,10 +249,12 @@ export class AbonoPedidoModal implements OnChanges {
         this.guardando.set(true);
         try {
             // El API exige el CodigoCaja del turno abierto (registra el abono en esa caja).
-            const estadoCaja = await this.servicioConfig.obtenerCajaActual();
-            const codigoCaja = estadoCaja.success ? estadoCaja.data?.CajaAbierta?.CodigoCaja ?? null : null;
+            // Se resuelve con el helper para soportar caja compartida: el turno pudo abrirlo
+            // otro usuario asignado a la misma caja.
+            const turno = await this.servicioConfig.resolverTurnoActual();
+            const codigoCaja = turno?.CodigoCaja ?? null;
             if (!codigoCaja) {
-                this.servicioAlerta.MostrarError('No hay una caja abierta. Abra un turno de caja para registrar abonos.');
+                this.servicioAlerta.MostrarError('No hay una caja abierta. Solicite que abran el turno de su caja asignada.');
                 return;
             }
 

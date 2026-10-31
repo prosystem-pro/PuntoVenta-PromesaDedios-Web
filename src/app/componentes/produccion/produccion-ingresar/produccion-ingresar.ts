@@ -111,6 +111,14 @@ export class ProduccionIngresar implements OnInit {
 
     async cargarDatos() {
         this.cargando.set(true);
+        // El componente se reutiliza al navegar de un pedido a otro: limpiamos el estado
+        // por-pedido para no arrastrar la nota ni el "guardado" (campo bloqueado) del anterior.
+        this.insumosGuardados.set(false);
+        this.observacionInsumos.set('');
+        this.insumos.set([]);
+        this.vistaActiva.set('productos');
+        this.busqueda.set('');
+        this.paginaActual.set(1);
         try {
             if (this.esMasivo()) {
                 // TC-811: el listado masivo se acota al rango de fecha de entrega heredado.
@@ -224,9 +232,10 @@ export class ProduccionIngresar implements OnInit {
                     (i.Utilizado !== null && i.Utilizado !== undefined) || 
                     (i.Utilizada !== null && i.Utilizada !== undefined)
                 );
-                if (yaGuardados) {
-                    this.insumosGuardados.set(true);
-                }
+                // OR con el estado previo: overlayConsumoGuardado (en cargarDatos) ya pudo
+                // detectarlo; aquí nunca lo volvemos a dejar en true "pegado" porque
+                // cargarDatos lo reseteó a false al entrar al pedido.
+                this.insumosGuardados.set(this.insumosGuardados() || yaGuardados);
             }
         } finally {
             this.cargando.set(false);

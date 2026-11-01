@@ -35,7 +35,7 @@ export class PagoModal implements OnChanges {
     nuevoNumeroReferencia = '';
     nuevoBanco = '';
     // Apertura de caja activa del usuario. null = no hay caja abierta (bloquea el abono).
-    nuevoCodigoAperturaCaja: number | null = null;
+    nuevoCodigoCaja: number | null = null;
 
     abonosTemporales = signal<any[]>([]);
 
@@ -83,12 +83,10 @@ export class PagoModal implements OnChanges {
                 this.detalle.set(null);
             }
 
-            // Cargar Caja Actual
-            const resCaja = await this.servicioConfig.obtenerCajaActual();
-            if (resCaja.success && resCaja.data) {
-                // El API devuelve el código anidado bajo CajaAbierta (null si no hay caja abierta).
-                this.nuevoCodigoAperturaCaja = resCaja.data.CajaAbierta?.CodigoAperturaCaja ?? null;
-            }
+            // Resolver la caja del turno abierto con el helper (soporta caja compartida:
+            // el turno pudo abrirlo otro usuario asignado). El API compra/abonar espera CodigoCaja.
+            const turno = await this.servicioConfig.resolverTurnoActual();
+            this.nuevoCodigoCaja = turno?.CodigoCaja ?? null;
         } finally {
             this.cargando.set(false);
         }
@@ -108,8 +106,8 @@ export class PagoModal implements OnChanges {
         if (!this.compraId) return;
 
         // Sin caja abierta no se puede registrar el abono.
-        if (!this.nuevoCodigoAperturaCaja) {
-            this.servicioAlerta.MostrarAlerta('Debe abrir una caja antes de registrar el abono.');
+        if (!this.nuevoCodigoCaja) {
+            this.servicioAlerta.MostrarAlerta('No hay una caja abierta. Solicite que abran el turno de su caja asignada.');
             return;
         }
 
@@ -143,7 +141,7 @@ export class PagoModal implements OnChanges {
             MontoAbono: this.nuevoValor,
             MetodoPago: medioPagoMap[this.nuevoMedioPago] || 1,
             NombreMedioPago: this.nuevoMedioPago,
-            CodigoAperturaCaja: this.nuevoCodigoAperturaCaja,
+            CodigoCaja: this.nuevoCodigoCaja,
             NumeroReferencia: this.nuevoNumeroReferencia,
             Banco: this.nuevoBanco,
             FechaPago: new Date().toLocaleDateString(), // Solo para previsualización
@@ -189,7 +187,7 @@ export class PagoModal implements OnChanges {
                     CodigoCompra: abono.CodigoCompra,
                     MontoAbono: abono.MontoAbono,
                     MetodoPago: abono.MetodoPago,
-                    CodigoAperturaCaja: abono.CodigoAperturaCaja,
+                    CodigoCaja: abono.CodigoCaja,
                     NumeroReferencia: abono.NumeroReferencia,
                     Banco: abono.Banco
                 };

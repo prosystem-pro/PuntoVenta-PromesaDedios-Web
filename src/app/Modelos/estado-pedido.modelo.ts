@@ -15,6 +15,7 @@ export interface EstadoPedido {
     MotivoAnulacion?: string | null;
     FechaAnulacion?: string | null;
     UsuarioAnulacion?: string | null;
+    NombreUsuario?: string | null;   // Responsable (usuario que creó/operó el pedido), cuando el API lo devuelva
 }
 
 // Detalle de productos de un pedido de producción (GET /estadopedido/detalle-productos/:CodigoPedidoProduccion)

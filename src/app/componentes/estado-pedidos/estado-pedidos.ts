@@ -29,6 +29,9 @@ export class EstadoPedidos implements OnInit {
     pedidos = signal<EstadoPedido[]>([]);
     cargando = signal(false);
 
+    // Columna "Responsable" (usuario que operó): solo se muestra cuando el API la devuelve.
+    mostrarResponsable = computed(() => this.pedidos().some(p => !!p.NombreUsuario));
+
     // Filtros
     fechaInicioInput = signal('');
     fechaFinalInput = signal('');

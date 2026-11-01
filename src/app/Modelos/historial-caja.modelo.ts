@@ -48,4 +48,5 @@ export interface DetalleCierreHistorial {
     ResumenEgresos: ResumenEgresosCaja;
     Denominaciones: DenominacionCierreHistorial[];
     PorVendedor?: VendedorCierreHistorial[];
+    Observaciones?: string;     // Observación de la reclasificación (cuando el API la devuelva)
 }

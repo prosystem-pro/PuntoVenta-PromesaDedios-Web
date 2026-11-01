@@ -95,6 +95,7 @@
                             <tr>
                                 <th class="small py-2 border-bottom">Fecha de pago</th>
                                 <th class="small py-2 border-bottom">Medio de pago</th>
+                                <th class="small py-2 border-bottom">Responsable</th>
                                 <th class="small py-2 border-bottom text-end">Valor pagado</th>
                                 <th class="small py-2 border-bottom text-center">Acciones</th>
                             </tr>
@@ -109,6 +110,7 @@
                                     <span class="badge bg-danger-subtle text-danger ms-1">Anulado</span>
                                     }
                                 </td>
+                                <td class="small">{{ p.NombreUsuario || '—' }}</td>
                                 <td class="small fw-bold text-end">Q {{ p.Valor | number:'1.2-2' }}</td>
                                 <td class="text-center">
                                     <div class="d-flex justify-content-center gap-2">

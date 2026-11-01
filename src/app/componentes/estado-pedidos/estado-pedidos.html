@@ -81,6 +81,9 @@
                             Fecha Entrega
                             <i [class]="columnaActiva() === 'FechaEntrega' ? (ordenAscendente() ? 'bi bi-arrow-up' : 'bi bi-arrow-down') : 'bi bi-arrow-down-up'" class="ms-1 small text-muted"></i>
                         </th>
+                        @if (mostrarResponsable()) {
+                        <th class="text-center">Responsable</th>
+                        }
                         <th class="text-center">Acciones</th>
                     </tr>
                 </thead>
@@ -98,6 +101,9 @@
                             {{ etiquetaProduccion(p.Produccion) }}
                         </td>
                         <td class="text-center">{{ fechaCorta(p.FechaEntrega) }}</td>
+                        @if (mostrarResponsable()) {
+                        <td class="text-center small">{{ p.NombreUsuario || '—' }}</td>
+                        }
                         <td class="acciones-cell">
                             <div class="d-flex align-items-center justify-content-center gap-2">
                                 <button class="btn btn-detalle" (click)="abrirDetalle(p)" title="Ver contenido del pedido">

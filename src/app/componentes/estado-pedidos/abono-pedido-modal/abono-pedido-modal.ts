@@ -31,6 +31,7 @@ interface PagoRealizado {
     MotivoAnulacion?: string | null;
     FechaAnulacion?: string | null;
     UsuarioAnulacion?: string | null;
+    NombreUsuario?: string | null;   // Responsable del abono (cuando el API lo devuelva)
 }
 
 @Component({
@@ -141,7 +142,9 @@ export class AbonoPedidoModal implements OnChanges {
                 // TC-809: solo llegan cuando el API los agregue al listado de pagos.
                 MotivoAnulacion: (p as any).MotivoAnulacion ?? null,
                 FechaAnulacion: (p as any).FechaAnulacion ?? null,
-                UsuarioAnulacion: (p as any).UsuarioAnulacion ?? null
+                UsuarioAnulacion: (p as any).UsuarioAnulacion ?? null,
+                // Responsable del abono: llega cuando el API lo agregue al listado de pagos.
+                NombreUsuario: (p as any).NombreUsuario ?? null
             })));
         } catch (error: any) {
             // El API responde 404 cuando no hay abonos: lista vacía.

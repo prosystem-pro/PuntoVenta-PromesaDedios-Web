@@ -256,6 +256,11 @@
                         </div>
                         }
                     </div>
+
+                    @if (d.Observaciones) {
+                    <label class="form-label fw-semibold mb-1 mt-2">Observación de la reclasificación</label>
+                    <div class="campo-bloqueado p-2 rounded" style="white-space: pre-wrap;">{{ d.Observaciones }}</div>
+                    }
                 </div>
             </div>
         </div>

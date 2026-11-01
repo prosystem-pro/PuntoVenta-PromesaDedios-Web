@@ -49,7 +49,7 @@ export class CompraModal implements OnInit {
     itemForm: FormGroup; // Formulario para la fila superior de "edición"
     cargando = signal(false);
     // Apertura de caja activa del usuario. null = no hay caja abierta (bloquea el registro).
-    nuevoCodigoAperturaCaja: number | null = null;
+    nuevoCodigoCaja: number | null = null;
 
     // Listados reales
     listadoProveedores = signal<any[]>([]);
@@ -192,13 +192,12 @@ export class CompraModal implements OnInit {
                 if (res.success) this.listadoUnidades.set(res.data || []);
             }).catch(e => console.error('Error cargando unidades:', e));
 
-            // Cargar Caja Actual
-            this.servicioConfig.obtenerCajaActual().then(res => {
-                if (res.success && res.data) {
-                    // El API devuelve el código anidado bajo CajaAbierta (null si no hay caja abierta).
-                    this.nuevoCodigoAperturaCaja = res.data.CajaAbierta?.CodigoAperturaCaja ?? null;
-                }
-            }).catch(e => console.error('Error cargando caja actual:', e));
+            // Cargar la caja del turno abierto. Se usa el helper para soportar caja
+            // compartida (el turno pudo abrirlo otro usuario asignado a la misma caja).
+            // El API crear compra espera CodigoCaja y resuelve la apertura internamente.
+            this.servicioConfig.resolverTurnoActual().then(turno => {
+                this.nuevoCodigoCaja = turno?.CodigoCaja ?? null;
+            }).catch(e => console.error('Error resolviendo turno:', e));
 
         } finally {
             this.cargando.set(false);
@@ -396,9 +395,9 @@ export class CompraModal implements OnInit {
             return;
         }
 
-        // Sin caja abierta no se puede registrar la compra (evita mandar una apertura inventada).
-        if (!this.nuevoCodigoAperturaCaja) {
-            this.servicioAlerta.MostrarAlerta('Debe abrir una caja antes de registrar la compra.');
+        // Sin caja abierta no se puede registrar la compra (evita mandar una caja inválida).
+        if (!this.nuevoCodigoCaja) {
+            this.servicioAlerta.MostrarAlerta('No hay una caja abierta. Solicite que abran el turno de su caja asignada.');
             return;
         }
 
@@ -427,7 +426,7 @@ export class CompraModal implements OnInit {
 
             // Lógica unificada según el ejemplo exitoso de Postman
             payload.MetodoPago = medioPagoMap[val.MedioPago] || 1;
-            payload.CodigoAperturaCaja = Number(this.nuevoCodigoAperturaCaja);
+            payload.CodigoCaja = Number(this.nuevoCodigoCaja);
             payload.Referencia = val.Referencia || 'S/N';
 
             if (payload.TipoCompra === 'CREDITO') {

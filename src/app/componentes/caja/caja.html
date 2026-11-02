@@ -159,6 +159,7 @@
                                         <th role="button" (click)="ordenarPor('Documento')">Documento <i class="bi bi-arrow-down-up small"></i></th>
                                         <th role="button" (click)="ordenarPor('TipoOperacion')">Tipo de operación <i class="bi bi-arrow-down-up small"></i></th>
                                         <th role="button" (click)="ordenarPor('Entidad')">Nombre <i class="bi bi-arrow-down-up small"></i></th>
+                                        <th role="button" (click)="ordenarPor('NombreUsuario')">Responsable <i class="bi bi-arrow-down-up small"></i></th>
                                         <th class="text-end" role="button" (click)="ordenarPor('MontoTotal')">Monto <i class="bi bi-arrow-down-up small"></i></th>
                                         <th class="text-center">Acciones</th>
                                     </tr>
@@ -175,6 +176,7 @@
                                             }
                                         </td>
                                         <td>{{ m.Entidad || '—' }}</td>
+                                        <td>{{ m.NombreUsuario || '—' }}</td>
                                         <td class="text-end">Q {{ m.MontoTotal | number:'1.2-2' }}</td>
                                         <td class="text-center">
                                             <button class="btn btn-sm btn-ver-doc border-0 shadow-none"
@@ -190,7 +192,7 @@
                                     </tr>
                                     } @empty {
                                     <tr>
-                                        <td colspan="5" class="text-center text-muted py-4 fst-italic">
+                                        <td colspan="6" class="text-center text-muted py-4 fst-italic">
                                             No hay movimientos registrados en la caja.
                                         </td>
                                     </tr>

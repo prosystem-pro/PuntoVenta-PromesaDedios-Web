@@ -182,45 +182,47 @@ export class Facturar implements OnInit {
     // Límite de stock para la venta (TC-749): número finito disponible, o null si no
     // aplica control (stock no informado, o producto de cocina que no maneja stock físico).
     private limiteStock(prod: { Stock?: number | null; TipoProducto?: string | null }): number | null {
-        // En el flujo de PEDIDO el stock no limita: se puede pedir por encima de lo disponible
-        // (se produce/abastece después). El tope de stock solo aplica al facturar una venta.
-        if (this.flujo() === 'pedido') return null;
+        // Stock disponible (para informar y para topar al FACTURAR). Ya NO limita al agregar
+        // (B, Walter 3-nov): se permite cualquier cantidad en el carrito; bajo pedido registra
+        // todo y facturar cobra solo lo disponible. null = sin control (cocina / stock no informado).
         if (prod.TipoProducto === 'COCINA') return null;
         return (prod.Stock === null || prod.Stock === undefined) ? null : Number(prod.Stock);
     }
 
-    // El producto ya llegó a su tope de stock según lo que hay en el carrito
-    // (para atenuar la tarjeta del grid). null = sin control => nunca llega al tope.
-    alcanzoLimiteStock(prod: ProductoVenta): boolean {
-        const limite = this.limiteStock(prod);
-        return limite !== null && this.cantidadEnCarrito(prod.CodigoProducto) >= limite;
+    // B: ya no se atenúa ni se bloquea por stock al agregar; se permite cualquier cantidad.
+    alcanzoLimiteStock(_prod: ProductoVenta): boolean {
+        return false;
     }
 
-    // El ítem del carrito ya está en su tope de stock (para desactivar el botón "+").
-    itemEnLimiteStock(item: ItemCarrito): boolean {
-        return item.Stock !== null && item.Cantidad >= item.Stock;
+    itemEnLimiteStock(_item: ItemCarrito): boolean {
+        return false;
+    }
+
+    // Aviso informativo (no bloqueante) cuando la cantidad supera el stock disponible.
+    private mensajeStock(nombre: string, disponible: number): string {
+        return disponible <= 0
+            ? `${nombre}: sin stock. Al facturar no se cobra; use Bajo pedido para registrarlo.`
+            : `Stock disponible: ${disponible}. Al facturar se cobra solo lo disponible; en Bajo pedido se registra todo.`;
     }
 
     agregarAlCarrito(producto: ProductoVenta) {
         if (!producto.CodigoProducto) return;
 
-        // TC-749: no permitir agregar por encima del stock disponible.
+        // B (Walter 3-nov): no se bloquea por stock al agregar. Si supera lo disponible se
+        // avisa (solo informativo); al facturar se cobra únicamente lo disponible y en bajo
+        // pedido se registra la cantidad completa.
         const limite = this.limiteStock(producto);
-        if (limite !== null && this.cantidadEnCarrito(producto.CodigoProducto) >= limite) {
-            this.servicioAlerta.MostrarToast(
-                limite <= 0
-                    ? `Stock insuficiente: ${producto.NombreProducto} sin stock disponible`
-                    : `Stock insuficiente. Disponible: ${limite}`,
-                'warning');
-            return;
-        }
 
         const actual = this.carrito();
         const existe = actual.find(it => it.CodigoProducto === producto.CodigoProducto);
 
         if (existe) {
+            // actualizarCantidad ya emite el aviso informativo si supera el stock.
             this.actualizarCantidad(producto.CodigoProducto, existe.Cantidad + 1);
         } else {
+            if (limite !== null && 1 > limite) {
+                this.servicioAlerta.MostrarToast(this.mensajeStock(producto.NombreProducto, limite), 'warning');
+            }
             this.carrito.set([...actual, {
                 CodigoProducto: producto.CodigoProducto,
                 NombreProducto: producto.NombreProducto,
@@ -258,12 +260,11 @@ export class Facturar implements OnInit {
             if (this.comentarioAbierto() === codigo) this.comentarioAbierto.set(null);
             return;
         }
-        // TC-749: topar la cantidad al stock disponible del ítem (si maneja control).
+        // B: no se topa la cantidad por stock; si supera lo disponible solo se avisa (informativo).
         const item = this.carrito().find(it => it.CodigoProducto === codigo);
-        let cant = nuevaCant;
-        if (item && item.Stock !== null && cant > item.Stock) {
-            cant = item.Stock;
-            this.servicioAlerta.MostrarToast(`Stock insuficiente. Disponible: ${item.Stock}`, 'warning');
+        const cant = nuevaCant;
+        if (item && item.Stock !== null && item.Stock !== undefined && cant > item.Stock) {
+            this.servicioAlerta.MostrarToast(this.mensajeStock(item.NombreProducto, item.Stock), 'warning');
         }
         if (cant <= 0) {
             this.carrito.update(items => items.filter(it => it.CodigoProducto !== codigo));
@@ -356,6 +357,28 @@ export class Facturar implements OnInit {
             this.servicioAlerta.MostrarAlerta('Agregue al menos un producto a la orden');
             return;
         }
+
+        // B (Walter 3-nov): facturar cobra SOLO las existencias disponibles. Se topa cada ítem
+        // a su stock y se quitan los que no tienen stock. Para la cantidad completa: Bajo pedido.
+        const items = this.carrito();
+        let ajustado = false;
+        const capados = items
+            .map(it => {
+                if (it.Stock === null || it.Stock === undefined) return it; // cocina / sin control de stock
+                if (it.Cantidad > it.Stock) { ajustado = true; return { ...it, Cantidad: it.Stock }; }
+                return it;
+            })
+            .filter(it => (it.Stock === null || it.Stock === undefined) ? true : it.Stock > 0);
+
+        if (capados.length === 0) {
+            this.servicioAlerta.MostrarAlerta('No hay existencias disponibles para facturar. Use "Bajo pedido" para registrar la orden.');
+            return;
+        }
+        if (ajustado || capados.length !== items.length) {
+            this.carrito.set(capados);
+            this.servicioAlerta.MostrarToast('Se ajustó a las existencias disponibles; las unidades sin stock no se cobran (para esas use Bajo pedido).', 'warning');
+        }
+
         this.flujo.set('facturar');
         this.mostrarModalCliente.set(true);
     }

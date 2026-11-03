@@ -8,6 +8,7 @@ import { GuardarProductosMesaRequest, FacturarMesaRequest, ComprobanteVenta } fr
 import { ProductoServicio } from '../../../Servicios/producto.service';
 import { MesaServicio } from '../../../Servicios/mesa.service';
 import { VentaServicio } from '../../../Servicios/venta.service';
+import { ServicioConfiguracion } from '../../../Servicios/configuracion.service';
 import { AlertaServicio } from '../../../Servicios/alerta.service';
 import { Entorno } from '../../../Entorno/Entorno';
 import { MesaCobroModal, ResultadoCobro } from '../mesa-cobro-modal/mesa-cobro-modal';
@@ -53,6 +54,7 @@ export class VentaMesa implements OnInit {
     private servicioProducto = inject(ProductoServicio);
     private servicioMesa = inject(MesaServicio);
     private servicioVenta = inject(VentaServicio);
+    private servicioConfig = inject(ServicioConfiguracion);
     private servicioAlerta = inject(AlertaServicio);
     private destroyRef = inject(DestroyRef);
 
@@ -441,8 +443,16 @@ export class VentaMesa implements OnInit {
 
         this.guardando.set(true);
         try {
+            // Caja compartida: resolver el turno abierto (puede haberlo abierto otro usuario
+            // asignado a la misma caja). El API facturarMesa exige CodigoAperturaCaja.
+            const turno = await this.servicioConfig.resolverTurnoActual();
+            if (!turno) {
+                this.servicioAlerta.MostrarError('No hay una caja abierta para facturar. Solicite que abran el turno de su caja asignada.');
+                return;
+            }
             const request: FacturarMesaRequest = {
                 CodigoMesa: this.mesaId,
+                CodigoAperturaCaja: turno.CodigoAperturaCaja,
                 Propina: resultado.propina,
                 Pagos: [resultado.pago]
             };

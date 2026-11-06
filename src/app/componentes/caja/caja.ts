@@ -139,11 +139,19 @@ export class Caja implements OnInit {
         VENTA: 'Venta al contado',
         COMPRA_CONTADO: 'Compra al contado',
         ABONO_COMPRA_CREDITO: 'Abono compra crédito',
-        ABONO_PEDIDO: 'Abono de pedido'
+        ABONO_PEDIDO: 'Abono de pedido',
+        ANULACION_PAGO_VENTA: 'Anulación de venta',
+        ANULACION_PAGO_COMPRA: 'Anulación de compra',
+        ANULACION_COMPRA: 'Anulación de compra'
     };
     etiquetaOperacion(tipo: string): string {
         if (this.etiquetasOperacion[tipo]) return this.etiquetasOperacion[tipo];
         return (tipo || '').replace(/_/g, ' ').toLowerCase().replace(/^\w/, c => c.toUpperCase());
+    }
+
+    // Movimiento de anulación (reverso): se resalta distinto de una operación normal.
+    esAnulacion(m: MovimientoCaja): boolean {
+        return (m.TipoOperacion || '').startsWith('ANULACION');
     }
 
     // Filtra por el texto de búsqueda (documento, operación, entidad, monto).
@@ -450,6 +458,10 @@ export class Caja implements OnInit {
             case 'COMPRA_CONTADO': return 'compra';       // factura de compra
             case 'ABONO_COMPRA_CREDITO': return 'abono';  // recibo de abono a proveedor
             case 'ABONO_PEDIDO': return 'pago';           // recibo de pago de venta/pedido
+            // Anulaciones (el API devuelve el documento original de la operación anulada).
+            case 'ANULACION_PAGO_VENTA': return 'pago';   // comprobante del pago de venta anulado
+            case 'ANULACION_PAGO_COMPRA': return 'compra'; // factura de la compra
+            case 'ANULACION_COMPRA': return 'compra';      // factura de la compra anulada
             default: return null;
         }
     }

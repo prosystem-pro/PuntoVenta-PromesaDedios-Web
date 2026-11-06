@@ -120,6 +120,29 @@
     vertical-align: middle;
 }
 
+/* Movimiento de ANULACIÓN (reverso): válido, se marca en rojo (estado "Anulado"),
+   sin tachado. Rojo semántico de anulado (mismo que el badge ANULADO). */
+.tabla-movimientos tbody tr.mov-anulacion td:first-child {
+    box-shadow: inset 3px 0 0 #e74c3c;
+}
+
+.text-anulacion {
+    color: #e74c3c;
+}
+
+/* Chip "Anulado" */
+.chip-anulacion {
+    display: inline-block;
+    background-color: #e74c3c;
+    color: #fff;
+    font-size: .62rem;
+    font-weight: 700;
+    letter-spacing: .3px;
+    padding: .1rem .4rem;
+    border-radius: 999px;
+    vertical-align: middle;
+}
+
 /* Botón "ver documento" (lupa) */
 .btn-ver-doc {
     color: #6c757d;

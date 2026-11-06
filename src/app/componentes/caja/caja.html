@@ -167,10 +167,17 @@
                                 <tbody>
                                     @for (m of movimientosPagina(); track $index) {
                                     <tr [class.mov-anulado]="m.Estatus === 'ANULADO'"
+                                        [class.mov-anulacion]="esAnulacion(m) && m.Estatus !== 'ANULADO'"
                                         [title]="m.Estatus === 'ANULADO' && m.MotivoAnulacion ? 'Anulado: ' + m.MotivoAnulacion : ''">
                                         <td>{{ m.Documento || '—' }}</td>
                                         <td>
+                                            @if (esAnulacion(m)) {
+                                            <i class="bi bi-arrow-return-left me-1 text-anulacion"></i>
+                                            }
                                             {{ etiquetaOperacion(m.TipoOperacion) }}
+                                            @if (esAnulacion(m) && m.Estatus !== 'ANULADO') {
+                                            <span class="chip-anulacion ms-1">Anulado</span>
+                                            }
                                             @if (m.Estatus === 'ANULADO') {
                                             <span class="badge-anulado ms-1">ANULADO</span>
                                             }

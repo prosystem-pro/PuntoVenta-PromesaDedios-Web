@@ -47,6 +47,11 @@ export class PedidoCrearModal implements OnInit {
         return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     }
 
+    // En crear pedido solo se trabajan productos de Ventanilla; los de Cocina se excluyen.
+    private esVentanilla(p: any): boolean {
+        return (p?.TipoProducto || '').toUpperCase() === 'VENTANILLA';
+    }
+
     async cargarProductos() {
         this.cargando.set(true);
         try {
@@ -56,24 +61,30 @@ export class PedidoCrearModal implements OnInit {
             ]);
 
             if (resGlobal.success && resGlobal.data) {
-                const globalMapped = resGlobal.data.map((p: any) => ({
-                    ...p,
-                    Producto: p.Producto || p.NombreProducto, // Salvaguarda hibrida por si acaso
-                    Visible: true,
-                    CantidadSolicitada: 1
-                }));
+                const globalMapped = resGlobal.data
+                    // En crear pedido solo aplican los productos de tipo Ventanilla (se excluye Cocina).
+                    .filter((p: any) => this.esVentanilla(p))
+                    .map((p: any) => ({
+                        ...p,
+                        Producto: p.Producto || p.NombreProducto, // Salvaguarda hibrida por si acaso
+                        Visible: true,
+                        CantidadSolicitada: 1
+                    }));
                 this.catalogoProductos.set(globalMapped);
             }
 
             if (resProduccion.success) {
-                const listado = (resProduccion.data || []).map((p: any) => {
-                    const diferencia = p.StockSugerido - p.StockActual;
-                    return {
-                        ...p,
-                        CantidadSolicitada: diferencia > 0 ? diferencia : 0,
-                        Visible: true // Todos los productos del API son visibles por defecto
-                    };
-                });
+                const listado = (resProduccion.data || [])
+                    // Primera vista: solo Ventanilla (manteniendo la regla de stock mínimo); Cocina excluido.
+                    .filter((p: any) => this.esVentanilla(p))
+                    .map((p: any) => {
+                        const diferencia = p.StockSugerido - p.StockActual;
+                        return {
+                            ...p,
+                            CantidadSolicitada: diferencia > 0 ? diferencia : 0,
+                            Visible: true // Todos los productos del API son visibles por defecto
+                        };
+                    });
                 this.productos.set(listado);
             }
         } finally {

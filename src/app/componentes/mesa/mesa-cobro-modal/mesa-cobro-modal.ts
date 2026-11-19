@@ -20,7 +20,7 @@ export interface ResultadoCobro {
 })
 export class MesaCobroModal implements OnChanges {
     private servicioAlerta = inject(AlertaServicio);
-    logo = Entorno.Logo;
+    logo = Entorno.LogoFactura;
 
     @Input() visible = false;
     @Input() colorSistema = '#ff9500';

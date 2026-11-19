@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AlertaServicio } from '../../../Servicios/alerta.service';
 import { PagoVenta } from '../../../Modelos/venta.modelo';
+import { Entorno } from '../../../Entorno/Entorno';
 
 export interface ResultadoPago {
     pago: PagoVenta | null; // null = pedido sin abono (crédito total)
@@ -18,6 +19,7 @@ export interface ResultadoPago {
 })
 export class MontoPagoModal implements OnChanges {
     private servicioAlerta = inject(AlertaServicio);
+    logo = Entorno.LogoFactura;
 
     @Input() visible = false;
     @Input() colorSistema = '#ff9500';

@@ -251,6 +251,7 @@ export class ProduccionListado implements OnInit {
         if (estado === 'PENDIENTE') return 'estado-espera';
         if (estado === 'EN_PROCESO') return 'estado-proceso';
         if (estado === 'PENDIENTE_AUTORIZACION' || estado === 'FINALIZADO') return 'estado-finalizado';
+        if (estado === 'EN_ESPERA') return 'estado-espera';
         if (estado === 'ENTREGADO') return 'estado-entregado';
 
         switch (pedido.Estatus) {
@@ -258,6 +259,7 @@ export class ProduccionListado implements OnInit {
             case 2: return 'estado-proceso';
             case 3:
             case 4: return 'estado-finalizado';
+            case 5: return 'estado-espera';
             case 6: return 'estado-entregado';
             default: return '';
         }
@@ -268,6 +270,7 @@ export class ProduccionListado implements OnInit {
         if (estado === 'PENDIENTE') return 'En espera';
         if (estado === 'EN_PROCESO') return 'En proceso';
         if (estado === 'PENDIENTE_AUTORIZACION' || estado === 'FINALIZADO') return 'Finalizado';
+        if (estado === 'EN_ESPERA') return 'En espera';
         if (estado === 'ENTREGADO') return 'Entregado';
 
         switch (pedido.Estatus) {
@@ -275,6 +278,7 @@ export class ProduccionListado implements OnInit {
             case 2: return 'En proceso';
             case 3:
             case 4: return 'Finalizado';
+            case 5: return 'En espera';
             case 6: return 'Entregado';
             default: return 'Desconocido';
         }

@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, inject, computed } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, inject, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -8,6 +8,7 @@ import { ComprobanteVenta, FacturarVentanillaRequest, CrearVentaPedidoRequest } 
 import { ProductoServicio } from '../../Servicios/producto.service';
 import { VentaServicio } from '../../Servicios/venta.service';
 import { AlertaServicio } from '../../Servicios/alerta.service';
+import { ImpresionService } from '../../Servicios/impresion.service';
 import { ServicioConfiguracion } from '../../Servicios/configuracion.service';
 import { Entorno } from '../../Entorno/Entorno';
 import { ClienteFacturaModal } from './cliente-factura-modal/cliente-factura-modal';
@@ -44,11 +45,12 @@ interface ProductoVenta {
     templateUrl: './facturar.html',
     styleUrl: './facturar.css'
 })
-export class Facturar implements OnInit {
+export class Facturar implements OnInit, OnDestroy {
     private servicioProducto = inject(ProductoServicio);
     private servicioVenta = inject(VentaServicio);
     private servicioAlerta = inject(AlertaServicio);
     private servicioConfig = inject(ServicioConfiguracion);
+    private servicioImpresion = inject(ImpresionService);
     private router = inject(Router);
 
     colorSistema = Entorno.ColorSistema;
@@ -88,6 +90,13 @@ export class Facturar implements OnInit {
         this.carrito().reduce((acc, item) => acc + (item.PrecioUnitario * item.Cantidad), 0)
     );
 
+    // Visor del cliente (D3 MINI): refleja en vivo el total de la venta a medida
+    // que se cargan productos. Fuera del wrapper Sunmi no hace nada. Al vaciar el
+    // carrito el total cae a 0 y el visor muestra 0.00.
+    private visorEffect = effect(() => {
+        this.servicioImpresion.mostrarTotalVisor(this.total());
+    });
+
     // Modal Cliente
     mostrarModalCliente = signal(false);
     flujo = signal<'facturar' | 'pedido'>('facturar');
@@ -109,6 +118,11 @@ export class Facturar implements OnInit {
         this.servicioProducto.Listar('facturar').then(res => {
             if (res.success) this.productosGlobal = res.data || [];
         });
+    }
+
+    ngOnDestroy() {
+        // Al salir de la pantalla de venta, limpiar el visor del cliente.
+        this.servicioImpresion.limpiarVisor();
     }
 
     async cargarCategorias() {

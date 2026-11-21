@@ -14,6 +14,11 @@ interface SunmiPrinterBridge {
     isReady?(): boolean;
     getStatus?(): string;
     printReceipt(json: string): void;
+    // Visor del cliente (segundo display). En el D3 MINI es un visor de
+    // SEGMENTOS numérico: mostrarMonto recibe una cifra (ej "28.00") y el wrapper
+    // la manda por sendLCDDigital. Opcionales: wrappers viejos no los exponen.
+    mostrarMonto?(texto: string): void;
+    limpiarDisplay?(): void;
 }
 
 // Fila de dos columnas (izquierda / derecha alineada al borde).
@@ -147,6 +152,37 @@ export class ImpresionService {
             return this.bridge?.getStatus?.() ?? null;
         } catch {
             return null;
+        }
+    }
+
+    // ---------------------------------------------------------------------
+    // Visor del cliente (segundo display del equipo). Accesorio: si no estamos
+    // en el wrapper, o el wrapper no lo expone, o falla, no pasa nada.
+    // ---------------------------------------------------------------------
+
+    /**
+     * Muestra el total actual de la venta en el visor del cliente. Se llama en
+     * vivo a medida que cambia el carrito. El D3 MINI tiene visor de segmentos
+     * (solo número), así que se manda la cifra sin "Q" ni separadores (ej "28.00").
+     */
+    mostrarTotalVisor(total: number): void {
+        const bridge = this.bridge;
+        if (!bridge || typeof bridge.mostrarMonto !== 'function') return;
+        try {
+            bridge.mostrarMonto(Number(total ?? 0).toFixed(2));
+        } catch {
+            // El visor es accesorio: si falla, la venta sigue normal.
+        }
+    }
+
+    /** Limpia el visor del cliente (p. ej. al salir de la pantalla de venta). */
+    limpiarVisor(): void {
+        const bridge = this.bridge;
+        if (!bridge || typeof bridge.limpiarDisplay !== 'function') return;
+        try {
+            bridge.limpiarDisplay();
+        } catch {
+            // accesorio
         }
     }
 

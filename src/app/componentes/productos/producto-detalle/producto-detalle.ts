@@ -72,6 +72,11 @@ export class ProductoDetalle implements OnInit {
     itemsPorPaginaIngredientes = signal(5);
 
     totalPaginasIngredientes = computed(() => {
+        // OJO: depende de triggerRecargaIngredientes porque this.ingredientes.length
+        // NO es una señal. Sin esta dependencia el computed se calculaba una sola vez
+        // (con la lista vacía -> 1) y no se refrescaba al cargar/agregar ingredientes,
+        // así que los controles de página nunca aparecían y solo se veían los primeros 5.
+        this.triggerRecargaIngredientes();
         const total = this.ingredientes.length;
         return total > 0 ? Math.ceil(total / this.itemsPorPaginaIngredientes()) : 1;
     });
@@ -495,6 +500,11 @@ export class ProductoDetalle implements OnInit {
     eliminarIngrediente(index: number) {
         this.ingredientes.removeAt(index);
         this.triggerRecargaIngredientes.update(v => v + 1);
+        // Si al borrar se eliminó la última página (p. ej. ibas en la 2 y quedó 1),
+        // retroceder para no mostrar una lista vacía.
+        if (this.paginaIngredientes() > this.totalPaginasIngredientes()) {
+            this.paginaIngredientes.set(this.totalPaginasIngredientes());
+        }
     }
 
     calcularCostoTotal(): number {
